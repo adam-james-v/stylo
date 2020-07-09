@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Standing Point</title>
+<style>
+/*!
+MIT License
+
+Copyright (c) 2016 Fabien Sa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+
+/*
+| The mu framework v0.3.1
+| BafS 2016-2018
+*/
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+body {
+  font: 18px/1.6 Georgia, "Times New Roman", Times, serif;
+}
+
+table, input {
+  font-size: 16px;
+}
+
+button, select {
+  font-size: 14px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 1.2;
+}
+
+.ln {
+  stroke: #2e3440;
+  stroke-width: 2px;
+}
+
+.clr {
+  fill: none;
+}
+
+.attn {
+  fill: rgb(234, 82, 111);
+}
+
+.face {
+  fill: #a3be8c;
+  fill-rule: evenodd;
+}
+
+rect, line, path, polygon, polyline, circle {
+  vector-effect: non-scaling-stroke;
+}
+
+table {
+  width: auto;
+}
+
+th, td {
+  vertical-align: top;
+  padding: 5px;
+  border: 1px solid #ddd;
+}
+
+table ul {
+  list-style-type: none;
+  padding-left: 4px;
+  margin: 0;
+}
+
+table li:before {
+  content: ▢ ;
+}
+
+table p {
+  margin: 0;
+}
+
+.figure {
+  padding-left: 7px;
+}
+
+.figure p {
+  font-size: smaller;
+  font-style: italic;
+}
+
+code {
+  padding: 8px;
+  background: #2e3440;
+  color: #dedee9;
+  display: inline-block;
+  width: 100%;
+}
+
+@media (print) {
+
+  .pagebreak {
+    page-break-after: always;
+  }
+
+}
+
+body {
+  margin: 40px auto;
+  max-width: 760px;
+  color: #444;
+  padding: 0 20px;
+}
+
+a {
+  color: #07c;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #059;
+  text-decoration: underline;
+}
+
+hr {
+  border: 0;
+  margin: 25px 0;
+}
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  text-align: left;
+  padding-bottom: 25px;
+}
+
+td, th {
+  padding: 5px;
+  vertical-align: bottom;
+}
+
+td, th, hr {
+  border-bottom: 1px solid #ddd;
+}
+
+pre {
+  padding: 8px;
+  white-space: pre-wrap;
+}
+
+button, select {
+  background: #ddd;
+  border: 0;
+  padding: 9px 20px;
+}
+
+input {
+  padding: 5px;
+  vertical-align: bottom;
+}
+
+button:hover {
+  background: #eee;
+}
+
+textarea {
+  border-color: #ccc;
+}
+
+.row {
+  display: block;
+  width: auto;
+  min-height: 1px;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.row, .c {
+  float: left;
+}
+
+table, .g2, .g3, .g3-2, .m2, .m3, .m3-2 {
+  width: 100%;
+}
+
+.g2 {
+  width: 50%;
+}
+
+.m2 {
+  margin-left: 50%;
+}
+
+.g3 {
+  width: 33.33%;
+}
+
+.g3-2 {
+  width: 66.66%;
+}
+
+.m3 {
+  margin-left: 33.33%;
+}
+
+.m3-2 {
+  margin-left: 66.66%;
+}</style>
+</head>
+<body>
+<main>
+<h1>Standing Point</h1>
+<p>This is a simple design for a small standing desk. You can build it all out of plywood.</p>
+<h2>Materials</h2>
+<p>The entire desk can be built from 0.5in plywood, and can be either glued or bolted together. If you bolt the desk together, you can disassemble it for easier storage and moving later.</p>
+<h2>Major Dimensions</h2>
+<p>The table top is 32in wide by 20in deep. The surface stands 39.5in up from the ground.</p>
+<div>
+</div>
+<div>
+</div>
+<h1>Parts</h1>
+<p>The desk consists of only a few unique parts:</p>
+<ul>
+<li>top</li>
+<li>shelf</li>
+<li>legs</li>
+</ul>
+<h2>Top</h2>
+<p>The top is quite simple. It has 4 slots that snugly 'trap' the legs in place. This allows the whole desk to be held together by only a few bolts holding the top to the shelf components.</p>
+<div>
+<div class="figure">
+<svg height="325" viewbox="-1 -1 720 325" width="720" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(12.7)">
+<g transform="translate(0 5)">
+<path class="ln clr" d="M0 0 L24 0 Z ">
+</path>
+<path class="ln clr" d="M24 0 L24 16 Z ">
+</path>
+<path class="ln clr" d="M24 16 L0 16 Z ">
+</path>
+<path class="ln clr" d="M0 16 L0 0 Z ">
+</path>
+<path class="ln clr" d="M0 0 L24 0 Z ">
+</path>
+<path class="ln clr" d="M24 0 L24 16 Z ">
+</path>
+<path class="ln clr" d="M24 16 L0 16 Z ">
+</path>
+<path class="ln clr" d="M0 16 L0 0 Z ">
+</path>
+<path class="ln clr" d="M0 0 L0 0 Z ">
+</path>
+<path class="ln clr" d="M24 0 L24 0 Z ">
+</path>
+<path class="ln clr" d="M24 16 L24 16 Z ">
+</path>
+<path class="ln clr" d="M0 16 L0 16 Z ">
+</path>
+<path class="ln clr" d="M1 1 L3.5 1 Z ">
+</path>
+<path class="ln clr" d="M3.5 1 L3.5 2 Z ">
+</path>
+<path class="ln clr" d="M3.5 2 L1 2 Z ">
+</path>
+<path class="ln clr" d="M1 2 L1 1 Z ">
+</path>
+<path class="ln clr" d="M1 1 L3.5 1 Z ">
+</path>
+<path class="ln clr" d="M3.5 1 L3.5 2 Z ">
+</path>
+<path class="ln clr" d="M3.5 2 L1 2 Z ">
+</path>
+<path class="ln clr" d="M1 2 L1 1 Z ">
+</path>
+<path class="ln clr" d="M1 1 L1 1 Z ">
+</path>
+<path class="ln clr" d="M3.5 1 L3.5 1 Z ">
+</path>
+<path class="ln clr" d="M3.5 2 L3.5 2 Z ">
+</path>
+<path class="ln clr" d="M1 2 L1 2 Z ">
+</path>
+<path class="ln clr" d="M20.5 1 L23.0 1 Z ">
+</path>
+<path class="ln clr" d="M23.0 1 L23.0 2 Z ">
+</path>
+<path class="ln clr" d="M23.0 2 L20.5 2 Z ">
+</path>
+<path class="ln clr" d="M20.5 2 L20.5 1 Z ">
+</path>
+<path class="ln clr" d="M20.5 1 L23.0 1 Z ">
+</path>
+<path class="ln clr" d="M23.0 1 L23.0 2 Z ">
+</path>
+<path class="ln clr" d="M23.0 2 L20.5 2 Z ">
+</path>
+<path class="ln clr" d="M20.5 2 L20.5 1 Z ">
+</path>
+<path class="ln clr" d="M20.5 1 L20.5 1 Z ">
+</path>
+<path class="ln clr" d="M23.0 1 L23.0 1 Z ">
+</path>
+<path class="ln clr" d="M23.0 2 L23.0 2 Z ">
+</path>
+<path class="ln clr" d="M20.5 2 L20.5 2 Z ">
+</path>
+<path class="ln clr" d="M20.5 14 L23.0 14 Z ">
+</path>
+<path class="ln clr" d="M23.0 14 L23.0 15 Z ">
+</path>
+<path class="ln clr" d="M23.0 15 L20.5 15 Z ">
+</path>
+<path class="ln clr" d="M20.5 15 L20.5 14 Z ">
+</path>
+<path class="ln clr" d="M20.5 14 L23.0 14 Z ">
+</path>
+<path class="ln clr" d="M23.0 14 L23.0 15 Z ">
+</path>
+<path class="ln clr" d="M23.0 15 L20.5 15 Z ">
+</path>
+<path class="ln clr" d="M20.5 15 L20.5 14 Z ">
+</path>
+<path class="ln clr" d="M20.5 14 L20.5 14 Z ">
+</path>
+<path class="ln clr" d="M23.0 14 L23.0 14 Z ">
+</path>
+<path class="ln clr" d="M23.0 15 L23.0 15 Z ">
+</path>
+<path class="ln clr" d="M20.5 15 L20.5 15 Z ">
+</path>
+<path class="ln clr" d="M1 14 L3.5 14 Z ">
+</path>
+<path class="ln clr" d="M3.5 14 L3.5 15 Z ">
+</path>
+<path class="ln clr" d="M3.5 15 L1 15 Z ">
+</path>
+<path class="ln clr" d="M1 15 L1 14 Z ">
+</path>
+<path class="ln clr" d="M1 14 L3.5 14 Z ">
+</path>
+<path class="ln clr" d="M3.5 14 L3.5 15 Z ">
+</path>
+<path class="ln clr" d="M3.5 15 L1 15 Z ">
+</path>
+<path class="ln clr" d="M1 15 L1 14 Z ">
+</path>
+<path class="ln clr" d="M1 14 L1 14 Z ">
+</path>
+<path class="ln clr" d="M3.5 14 L3.5 14 Z ">
+</path>
+<path class="ln clr" d="M3.5 15 L3.5 15 Z ">
+</path>
+<path class="ln clr" d="M1 15 L1 15 Z ">
+</path>
+<g transform="translate(11.1 -2.0)">
+<g transform="scale(2)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">24in</text>
+</g>
+</g>
+<polyline fill="rgba(0,0,0,0)" points="0,-2.75 0,-0.5 " stroke-linecap="round" stroke-width="2" stroke="black">
+</polyline>
+<polyline fill="rgba(0,0,0,0)" points="24,-2.75 24,-0.5 " stroke-linecap="round" stroke-width="2" stroke="black">
+</polyline>
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="10.425,-2.0 0.5,-2 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="13.575,-2.0 23.5,-2 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+<g transform="translate(25.1 8.0)">
+<g transform="rotate(90 0.9 0)">
+<g transform="scale(2)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">16in</text>
+</g>
+</g>
+</g>
+<polyline fill="rgba(0,0,0,0)" points="24.5,0 26.75,0 " stroke-linecap="round" stroke-width="2" stroke="black">
+</polyline>
+<polyline fill="rgba(0,0,0,0)" points="24.5,16 26.75,16 " stroke-linecap="round" stroke-width="2" stroke="black">
+</polyline>
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="26.0,6.425 26,0.5 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="26.0,9.575 26,15.5 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+</svg>
+<p>Desk Top Design</p>
+</div>
+</div>
+<div>
+<div class="figure">
+<div style="display:flex;flex-wrap:wrap;width:600px;">
+<svg height="250.0" viewbox="-1 -1 300.0 250.0" width="300.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(8)">
+<g transform="translate(10.750000000000004 27.625)">
+<path class="ln clr" d="M0.0 -0.0 L-4.408728476930472E-15 -24.0 Z ">
+</path>
+<path class="ln clr" d="M-4.408728476930472E-15 -24.0 L15.999999999999996 -24.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M15.999999999999996 -24.000000000000004 L16.0 -2.9391523179536475E-15 Z ">
+</path>
+<path class="ln clr" d="M16.0 -2.9391523179536475E-15 L0.0 -0.0 Z ">
+</path>
+<path class="ln clr" d="M0.0 -0.0 L-4.408728476930472E-15 -24.0 Z ">
+</path>
+<path class="ln clr" d="M-4.408728476930472E-15 -24.0 L15.999999999999996 -24.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M15.999999999999996 -24.000000000000004 L16.0 -2.9391523179536475E-15 Z ">
+</path>
+<path class="ln clr" d="M16.0 -2.9391523179536475E-15 L0.0 -0.0 Z ">
+</path>
+<path class="ln clr" d="M0.0 -0.0 L0.0 -0.0 Z ">
+</path>
+<path class="ln clr" d="M-4.408728476930472E-15 -24.0 L-4.408728476930472E-15 -24.0 Z ">
+</path>
+<path class="ln clr" d="M15.999999999999996 -24.000000000000004 L15.999999999999996 -24.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M16.0 -2.9391523179536475E-15 L16.0 -2.9391523179536475E-15 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999998 -1.0000000000000002 L0.9999999999999993 -3.5 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999993 -3.5 L1.9999999999999993 -3.5000000000000004 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999993 -3.5000000000000004 L1.9999999999999998 -1.0000000000000004 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999998 -1.0000000000000004 L0.9999999999999998 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999998 -1.0000000000000002 L0.9999999999999993 -3.5 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999993 -3.5 L1.9999999999999993 -3.5000000000000004 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999993 -3.5000000000000004 L1.9999999999999998 -1.0000000000000004 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999998 -1.0000000000000004 L0.9999999999999998 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999998 -1.0000000000000002 L0.9999999999999998 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999993 -3.5 L0.9999999999999993 -3.5 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999993 -3.5000000000000004 L1.9999999999999993 -3.5000000000000004 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999998 -1.0000000000000004 L1.9999999999999998 -1.0000000000000004 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999962 -20.5 L0.9999999999999958 -23.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999958 -23.0 L1.9999999999999958 -23.0 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999958 -23.0 L1.9999999999999962 -20.5 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999962 -20.5 L0.9999999999999962 -20.5 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999962 -20.5 L0.9999999999999958 -23.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999958 -23.0 L1.9999999999999958 -23.0 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999958 -23.0 L1.9999999999999962 -20.5 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999962 -20.5 L0.9999999999999962 -20.5 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999962 -20.5 L0.9999999999999962 -20.5 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999958 -23.0 L0.9999999999999958 -23.0 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999958 -23.0 L1.9999999999999958 -23.0 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999962 -20.5 L1.9999999999999962 -20.5 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -20.500000000000004 L13.999999999999996 -23.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -23.000000000000004 L14.999999999999996 -23.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -23.000000000000004 L14.999999999999996 -20.500000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -20.500000000000004 L13.999999999999996 -20.500000000000004 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -20.500000000000004 L13.999999999999996 -23.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -23.000000000000004 L14.999999999999996 -23.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -23.000000000000004 L14.999999999999996 -20.500000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -20.500000000000004 L13.999999999999996 -20.500000000000004 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -20.500000000000004 L13.999999999999996 -20.500000000000004 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -23.000000000000004 L13.999999999999996 -23.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -23.000000000000004 L14.999999999999996 -23.000000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -20.500000000000004 L14.999999999999996 -20.500000000000004 Z ">
+</path>
+<path class="ln clr" d="M14.0 -1.0000000000000027 L14.0 -3.5000000000000027 Z ">
+</path>
+<path class="ln clr" d="M14.0 -3.5000000000000027 L15.0 -3.5000000000000027 Z ">
+</path>
+<path class="ln clr" d="M15.0 -3.5000000000000027 L15.0 -1.0000000000000027 Z ">
+</path>
+<path class="ln clr" d="M15.0 -1.0000000000000027 L14.0 -1.0000000000000027 Z ">
+</path>
+<path class="ln clr" d="M14.0 -1.0000000000000027 L14.0 -3.5000000000000027 Z ">
+</path>
+<path class="ln clr" d="M14.0 -3.5000000000000027 L15.0 -3.5000000000000027 Z ">
+</path>
+<path class="ln clr" d="M15.0 -3.5000000000000027 L15.0 -1.0000000000000027 Z ">
+</path>
+<path class="ln clr" d="M15.0 -1.0000000000000027 L14.0 -1.0000000000000027 Z ">
+</path>
+<path class="ln clr" d="M14.0 -1.0000000000000027 L14.0 -1.0000000000000027 Z ">
+</path>
+<path class="ln clr" d="M14.0 -3.5000000000000027 L14.0 -3.5000000000000027 Z ">
+</path>
+<path class="ln clr" d="M15.0 -3.5000000000000027 L15.0 -3.5000000000000027 Z ">
+</path>
+<path class="ln clr" d="M15.0 -1.0000000000000027 L15.0 -1.0000000000000027 Z ">
+</path>
+</g>
+</g>
+</svg>
+<svg height="250.0" viewbox="-1 -1 300.0 250.0" width="300.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(8)">
+<g transform="translate(21.578427124746188 8.986944890026745)">
+<path class="ln clr" d="M0.0 0.0 L-16.97056274847714 8.48528137423857 Z ">
+</path>
+<path class="ln clr" d="M-16.97056274847714 8.48528137423857 L-5.656854249492378 14.14213562373095 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492378 14.14213562373095 L11.313708498984761 5.65685424949238 Z ">
+</path>
+<path class="ln clr" d="M11.313708498984761 5.65685424949238 L0.0 0.0 Z ">
+</path>
+<path class="ln clr" d="M4.329780281177467E-17 -0.8660254037844387 L-16.97056274847714 7.619255970454131 Z ">
+</path>
+<path class="ln clr" d="M-16.97056274847714 7.619255970454131 L-5.656854249492378 13.276110219946512 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492378 13.276110219946512 L11.313708498984761 4.790828845707941 Z ">
+</path>
+<path class="ln clr" d="M11.313708498984761 4.790828845707941 L4.329780281177467E-17 -0.8660254037844387 Z ">
+</path>
+<path class="ln clr" d="M0.0 0.0 L4.329780281177467E-17 -0.8660254037844387 Z ">
+</path>
+<path class="ln clr" d="M-16.97056274847714 8.48528137423857 L-16.97056274847714 7.619255970454131 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492378 14.14213562373095 L-5.656854249492378 13.276110219946512 Z ">
+</path>
+<path class="ln clr" d="M11.313708498984761 5.65685424949238 L11.313708498984761 4.790828845707941 Z ">
+</path>
+<path class="ln clr" d="M2.220446049250313E-16 0.7071067811865474 L-1.7677669529663682 1.5909902576697317 Z ">
+</path>
+<path class="ln clr" d="M-1.7677669529663682 1.5909902576697317 L-1.0606601717798207 1.9445436482630054 Z ">
+</path>
+<path class="ln clr" d="M-1.0606601717798207 1.9445436482630054 L0.7071067811865478 1.060660171779821 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865478 1.060660171779821 L2.220446049250313E-16 0.7071067811865474 Z ">
+</path>
+<path class="ln clr" d="M2.220446049250313E-16 -0.15891862259789125 L-1.7677669529663682 0.7249648538852931 Z ">
+</path>
+<path class="ln clr" d="M-1.7677669529663682 0.7249648538852931 L-1.0606601717798207 1.0785182444785668 Z ">
+</path>
+<path class="ln clr" d="M-1.0606601717798207 1.0785182444785668 L0.7071067811865478 0.19463476799538237 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865478 0.19463476799538237 L2.220446049250313E-16 -0.15891862259789125 Z ">
+</path>
+<path class="ln clr" d="M2.220446049250313E-16 0.7071067811865474 L2.220446049250313E-16 -0.15891862259789125 Z ">
+</path>
+<path class="ln clr" d="M-1.7677669529663682 1.5909902576697317 L-1.7677669529663682 0.7249648538852931 Z ">
+</path>
+<path class="ln clr" d="M-1.0606601717798207 1.9445436482630054 L-1.0606601717798207 1.0785182444785668 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865478 1.060660171779821 L0.7071067811865478 0.19463476799538237 Z ">
+</path>
+<path class="ln clr" d="M-13.788582233137674 7.601397897755386 L-15.556349186104045 8.48528137423857 Z ">
+</path>
+<path class="ln clr" d="M-15.556349186104045 8.48528137423857 L-14.849242404917497 8.838834764831843 Z ">
+</path>
+<path class="ln clr" d="M-14.849242404917497 8.838834764831843 L-13.081475451951126 7.95495128834866 Z ">
+</path>
+<path class="ln clr" d="M-13.081475451951126 7.95495128834866 L-13.788582233137674 7.601397897755386 Z ">
+</path>
+<path class="ln clr" d="M-13.788582233137674 6.735372493970948 L-15.556349186104045 7.619255970454131 Z ">
+</path>
+<path class="ln clr" d="M-15.556349186104045 7.619255970454131 L-14.849242404917497 7.972809361047404 Z ">
+</path>
+<path class="ln clr" d="M-14.849242404917497 7.972809361047404 L-13.081475451951126 7.088925884564222 Z ">
+</path>
+<path class="ln clr" d="M-13.081475451951126 7.088925884564222 L-13.788582233137674 6.735372493970948 Z ">
+</path>
+<path class="ln clr" d="M-13.788582233137674 7.601397897755386 L-13.788582233137674 6.735372493970948 Z ">
+</path>
+<path class="ln clr" d="M-15.556349186104045 8.48528137423857 L-15.556349186104045 7.619255970454131 Z ">
+</path>
+<path class="ln clr" d="M-14.849242404917497 8.838834764831843 L-14.849242404917497 7.972809361047404 Z ">
+</path>
+<path class="ln clr" d="M-13.081475451951126 7.95495128834866 L-13.081475451951126 7.088925884564222 Z ">
+</path>
+<path class="ln clr" d="M-4.596194077712555 12.197591975467944 L-6.363961030678926 13.081475451951126 Z ">
+</path>
+<path class="ln clr" d="M-6.363961030678926 13.081475451951126 L-5.656854249492378 13.435028842544401 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492378 13.435028842544401 L-3.8890872965260073 12.551145366061219 Z ">
+</path>
+<path class="ln clr" d="M-3.8890872965260073 12.551145366061219 L-4.596194077712555 12.197591975467944 Z ">
+</path>
+<path class="ln clr" d="M-4.596194077712555 11.331566571683506 L-6.363961030678926 12.215450048166689 Z ">
+</path>
+<path class="ln clr" d="M-6.363961030678926 12.215450048166689 L-5.656854249492378 12.569003438759964 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492378 12.569003438759964 L-3.8890872965260073 11.685119962276781 Z ">
+</path>
+<path class="ln clr" d="M-3.8890872965260073 11.685119962276781 L-4.596194077712555 11.331566571683506 Z ">
+</path>
+<path class="ln clr" d="M-4.596194077712555 12.197591975467944 L-4.596194077712555 11.331566571683506 Z ">
+</path>
+<path class="ln clr" d="M-6.363961030678926 13.081475451951126 L-6.363961030678926 12.215450048166689 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492378 13.435028842544401 L-5.656854249492378 12.569003438759964 Z ">
+</path>
+<path class="ln clr" d="M-3.8890872965260073 12.551145366061219 L-3.8890872965260073 11.685119962276781 Z ">
+</path>
+<path class="ln clr" d="M9.19238815542512 5.303300858899105 L7.42462120245875 6.187184335382289 Z ">
+</path>
+<path class="ln clr" d="M7.42462120245875 6.187184335382289 L8.131727983645298 6.540737725975564 Z ">
+</path>
+<path class="ln clr" d="M8.131727983645298 6.540737725975564 L9.899494936611667 5.656854249492379 Z ">
+</path>
+<path class="ln clr" d="M9.899494936611667 5.656854249492379 L9.19238815542512 5.303300858899105 Z ">
+</path>
+<path class="ln clr" d="M9.19238815542512 4.437275455114666 L7.42462120245875 5.32115893159785 Z ">
+</path>
+<path class="ln clr" d="M7.42462120245875 5.32115893159785 L8.131727983645298 5.674712322191125 Z ">
+</path>
+<path class="ln clr" d="M8.131727983645298 5.674712322191125 L9.899494936611667 4.79082884570794 Z ">
+</path>
+<path class="ln clr" d="M9.899494936611667 4.79082884570794 L9.19238815542512 4.437275455114666 Z ">
+</path>
+<path class="ln clr" d="M9.19238815542512 5.303300858899105 L9.19238815542512 4.437275455114666 Z ">
+</path>
+<path class="ln clr" d="M7.42462120245875 6.187184335382289 L7.42462120245875 5.32115893159785 Z ">
+</path>
+<path class="ln clr" d="M8.131727983645298 6.540737725975564 L8.131727983645298 5.674712322191125 Z ">
+</path>
+<path class="ln clr" d="M9.899494936611667 5.656854249492379 L9.899494936611667 4.79082884570794 Z ">
+</path>
+</g>
+</g>
+</svg>
+<svg height="250.0" viewbox="-1 -1 300.0 250.0" width="300.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(8)">
+<g transform="translate(10.750000000000004 16.125)">
+<path class="ln clr" d="M0.0 -0.0 L-4.408728476930472E-15 -1.4695761589768238E-15 Z ">
+</path>
+<path class="ln clr" d="M-4.408728476930472E-15 -1.4695761589768238E-15 L15.999999999999996 -1.4695761589768241E-15 Z ">
+</path>
+<path class="ln clr" d="M15.999999999999996 -1.4695761589768241E-15 L16.0 -1.7997117391942291E-31 Z ">
+</path>
+<path class="ln clr" d="M16.0 -1.7997117391942291E-31 L0.0 -0.0 Z ">
+</path>
+<path class="ln clr" d="M0.0 -1.0 L-4.408728476930472E-15 -1.0000000000000016 Z ">
+</path>
+<path class="ln clr" d="M-4.408728476930472E-15 -1.0000000000000016 L15.999999999999996 -1.0000000000000016 Z ">
+</path>
+<path class="ln clr" d="M15.999999999999996 -1.0000000000000016 L16.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M16.0 -1.0 L0.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M0.0 -0.0 L0.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M-4.408728476930472E-15 -1.4695761589768238E-15 L-4.408728476930472E-15 -1.0000000000000016 Z ">
+</path>
+<path class="ln clr" d="M15.999999999999996 -1.4695761589768241E-15 L15.999999999999996 -1.0000000000000016 Z ">
+</path>
+<path class="ln clr" d="M16.0 -1.7997117391942291E-31 L16.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999998 -6.123233995736767E-17 L0.9999999999999993 -2.143131898507868E-16 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999993 -2.143131898507868E-16 L1.9999999999999993 -2.1431318985078683E-16 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999993 -2.1431318985078683E-16 L1.9999999999999998 -6.123233995736769E-17 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999998 -6.123233995736769E-17 L0.9999999999999998 -6.123233995736767E-17 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999998 -1.0 L0.9999999999999993 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999993 -1.0000000000000002 L1.9999999999999993 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999993 -1.0000000000000002 L1.9999999999999998 -1.0 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999998 -1.0 L0.9999999999999998 -1.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999998 -6.123233995736767E-17 L0.9999999999999998 -1.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999993 -2.143131898507868E-16 L0.9999999999999993 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999993 -2.1431318985078683E-16 L1.9999999999999993 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999998 -6.123233995736769E-17 L1.9999999999999998 -1.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999962 -1.255262969126037E-15 L0.9999999999999958 -1.4083438190194562E-15 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999958 -1.4083438190194562E-15 L1.9999999999999958 -1.4083438190194562E-15 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999958 -1.4083438190194562E-15 L1.9999999999999962 -1.255262969126037E-15 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999962 -1.255262969126037E-15 L0.9999999999999962 -1.255262969126037E-15 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999962 -1.0000000000000013 L0.9999999999999958 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999958 -1.0000000000000013 L1.9999999999999958 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999958 -1.0000000000000013 L1.9999999999999962 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999962 -1.0000000000000013 L0.9999999999999962 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999962 -1.255262969126037E-15 L0.9999999999999962 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999958 -1.4083438190194562E-15 L0.9999999999999958 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999958 -1.4083438190194562E-15 L1.9999999999999958 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M1.9999999999999962 -1.255262969126037E-15 L1.9999999999999962 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -1.2552629691260372E-15 L13.999999999999996 -1.4083438190194564E-15 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -1.4083438190194564E-15 L14.999999999999996 -1.4083438190194564E-15 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -1.4083438190194564E-15 L14.999999999999996 -1.2552629691260372E-15 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -1.2552629691260372E-15 L13.999999999999996 -1.2552629691260372E-15 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -1.0000000000000013 L13.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -1.0000000000000013 L14.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -1.0000000000000013 L14.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -1.0000000000000013 L13.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -1.2552629691260372E-15 L13.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M13.999999999999996 -1.4083438190194564E-15 L13.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -1.4083438190194564E-15 L14.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M14.999999999999996 -1.2552629691260372E-15 L14.999999999999996 -1.0000000000000013 Z ">
+</path>
+<path class="ln clr" d="M14.0 -6.123233995736782E-17 L14.0 -2.1431318985078698E-16 Z ">
+</path>
+<path class="ln clr" d="M14.0 -2.1431318985078698E-16 L15.0 -2.1431318985078698E-16 Z ">
+</path>
+<path class="ln clr" d="M15.0 -2.1431318985078698E-16 L15.0 -6.123233995736782E-17 Z ">
+</path>
+<path class="ln clr" d="M15.0 -6.123233995736782E-17 L14.0 -6.123233995736782E-17 Z ">
+</path>
+<path class="ln clr" d="M14.0 -1.0 L14.0 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M14.0 -1.0000000000000002 L15.0 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M15.0 -1.0000000000000002 L15.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M15.0 -1.0 L14.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M14.0 -6.123233995736782E-17 L14.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M14.0 -2.1431318985078698E-16 L14.0 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M15.0 -2.1431318985078698E-16 L15.0 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M15.0 -6.123233995736782E-17 L15.0 -1.0 Z ">
+</path>
+</g>
+</g>
+</svg>
+<svg height="250.0" viewbox="-1 -1 300.0 250.0" width="300.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(8)">
+<g transform="translate(6.75 16.125)">
+<path class="ln clr" d="M0.0 0.0 L24.0 0.0 Z ">
+</path>
+<path class="ln clr" d="M24.0 0.0 L24.0 9.797174393178826E-16 Z ">
+</path>
+<path class="ln clr" d="M24.0 9.797174393178826E-16 L0.0 9.797174393178826E-16 Z ">
+</path>
+<path class="ln clr" d="M0.0 9.797174393178826E-16 L0.0 0.0 Z ">
+</path>
+<path class="ln clr" d="M0.0 -1.0 L24.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M24.0 -1.0 L24.0 -0.999999999999999 Z ">
+</path>
+<path class="ln clr" d="M24.0 -0.999999999999999 L0.0 -0.999999999999999 Z ">
+</path>
+<path class="ln clr" d="M0.0 -0.999999999999999 L0.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M0.0 0.0 L0.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M24.0 0.0 L24.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M24.0 9.797174393178826E-16 L24.0 -0.999999999999999 Z ">
+</path>
+<path class="ln clr" d="M0.0 9.797174393178826E-16 L0.0 -0.999999999999999 Z ">
+</path>
+<path class="ln clr" d="M1.0 6.123233995736766E-17 L3.5 6.123233995736766E-17 Z ">
+</path>
+<path class="ln clr" d="M3.5 6.123233995736766E-17 L3.5 1.2246467991473532E-16 Z ">
+</path>
+<path class="ln clr" d="M3.5 1.2246467991473532E-16 L1.0 1.2246467991473532E-16 Z ">
+</path>
+<path class="ln clr" d="M1.0 1.2246467991473532E-16 L1.0 6.123233995736766E-17 Z ">
+</path>
+<path class="ln clr" d="M1.0 -0.9999999999999999 L3.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M3.5 -0.9999999999999999 L3.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M3.5 -0.9999999999999999 L1.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M1.0 -0.9999999999999999 L1.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M1.0 6.123233995736766E-17 L1.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M3.5 6.123233995736766E-17 L3.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M3.5 1.2246467991473532E-16 L3.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M1.0 1.2246467991473532E-16 L1.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M20.5 6.123233995736766E-17 L23.0 6.123233995736766E-17 Z ">
+</path>
+<path class="ln clr" d="M23.0 6.123233995736766E-17 L23.0 1.2246467991473532E-16 Z ">
+</path>
+<path class="ln clr" d="M23.0 1.2246467991473532E-16 L20.5 1.2246467991473532E-16 Z ">
+</path>
+<path class="ln clr" d="M20.5 1.2246467991473532E-16 L20.5 6.123233995736766E-17 Z ">
+</path>
+<path class="ln clr" d="M20.5 -0.9999999999999999 L23.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M23.0 -0.9999999999999999 L23.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M23.0 -0.9999999999999999 L20.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M20.5 -0.9999999999999999 L20.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M20.5 6.123233995736766E-17 L20.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M23.0 6.123233995736766E-17 L23.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M23.0 1.2246467991473532E-16 L23.0 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M20.5 1.2246467991473532E-16 L20.5 -0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M20.5 8.572527594031472E-16 L23.0 8.572527594031472E-16 Z ">
+</path>
+<path class="ln clr" d="M23.0 8.572527594031472E-16 L23.0 9.18485099360515E-16 Z ">
+</path>
+<path class="ln clr" d="M23.0 9.18485099360515E-16 L20.5 9.18485099360515E-16 Z ">
+</path>
+<path class="ln clr" d="M20.5 9.18485099360515E-16 L20.5 8.572527594031472E-16 Z ">
+</path>
+<path class="ln clr" d="M20.5 -0.9999999999999991 L23.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M23.0 -0.9999999999999991 L23.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M23.0 -0.9999999999999991 L20.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M20.5 -0.9999999999999991 L20.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M20.5 8.572527594031472E-16 L20.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M23.0 8.572527594031472E-16 L23.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M23.0 9.18485099360515E-16 L23.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M20.5 9.18485099360515E-16 L20.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M1.0 8.572527594031472E-16 L3.5 8.572527594031472E-16 Z ">
+</path>
+<path class="ln clr" d="M3.5 8.572527594031472E-16 L3.5 9.18485099360515E-16 Z ">
+</path>
+<path class="ln clr" d="M3.5 9.18485099360515E-16 L1.0 9.18485099360515E-16 Z ">
+</path>
+<path class="ln clr" d="M1.0 9.18485099360515E-16 L1.0 8.572527594031472E-16 Z ">
+</path>
+<path class="ln clr" d="M1.0 -0.9999999999999991 L3.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M3.5 -0.9999999999999991 L3.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M3.5 -0.9999999999999991 L1.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M1.0 -0.9999999999999991 L1.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M1.0 8.572527594031472E-16 L1.0 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M3.5 8.572527594031472E-16 L3.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M3.5 9.18485099360515E-16 L3.5 -0.9999999999999991 Z ">
+</path>
+<path class="ln clr" d="M1.0 9.18485099360515E-16 L1.0 -0.9999999999999991 Z ">
+</path>
+</g>
+</g>
+</svg>
+</div>
+<p>Desk Top CAD View</p>
+</div>
+</div>
+<h2>Shelf</h2>
+<p>The shelf is the most substantial portion of the desk. It uses a tab/slot construction to hold the legs and horizontal pieces together.</p>
+<h2>Legs</h2>
+<p>The table legs will be cut from 0.5in plywood.</p>
+<div>
+<div class="figure">
+<svg height="280" viewbox="-1 -1 720 280" width="720" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(12.7)">
+<g transform="translate(10 5)">
+<path class="ln clr" d="M2 0 L11.625 0 Z ">
+</path>
+<path class="ln clr" d="M11.625 0 L11.625 1 Z ">
+</path>
+<path class="ln clr" d="M11.625 1 L21.25 1 Z ">
+</path>
+<path class="ln clr" d="M21.25 1 L21.25 0 Z ">
+</path>
+<path class="ln clr" d="M21.25 0 L30.875 0 Z ">
+</path>
+<path class="ln clr" d="M30.875 0 L30.875 1 Z ">
+</path>
+<path class="ln clr" d="M30.875 1 L40.5 1 Z ">
+</path>
+<path class="ln clr" d="M40.5 1 L40.5 3 Z ">
+</path>
+<path class="ln clr" d="M40.5 3 L2 3 Z ">
+</path>
+<path class="ln clr" d="M2 3 L2 0 Z ">
+</path>
+<path class="ln clr" d="M2 0 L11.625 0 Z ">
+</path>
+<path class="ln clr" d="M11.625 0 L11.625 1 Z ">
+</path>
+<path class="ln clr" d="M11.625 1 L21.25 1 Z ">
+</path>
+<path class="ln clr" d="M21.25 1 L21.25 0 Z ">
+</path>
+<path class="ln clr" d="M21.25 0 L30.875 0 Z ">
+</path>
+<path class="ln clr" d="M30.875 0 L30.875 1 Z ">
+</path>
+<path class="ln clr" d="M30.875 1 L40.5 1 Z ">
+</path>
+<path class="ln clr" d="M40.5 1 L40.5 3 Z ">
+</path>
+<path class="ln clr" d="M40.5 3 L2 3 Z ">
+</path>
+<path class="ln clr" d="M2 3 L2 0 Z ">
+</path>
+<path class="ln clr" d="M2 0 L2 0 Z ">
+</path>
+<path class="ln clr" d="M11.625 0 L11.625 0 Z ">
+</path>
+<path class="ln clr" d="M11.625 1 L11.625 1 Z ">
+</path>
+<path class="ln clr" d="M21.25 1 L21.25 1 Z ">
+</path>
+<path class="ln clr" d="M21.25 0 L21.25 0 Z ">
+</path>
+<path class="ln clr" d="M30.875 0 L30.875 0 Z ">
+</path>
+<path class="ln clr" d="M30.875 1 L30.875 1 Z ">
+</path>
+<path class="ln clr" d="M40.5 1 L40.5 1 Z ">
+</path>
+<path class="ln clr" d="M40.5 3 L40.5 3 Z ">
+</path>
+<path class="ln clr" d="M2 3 L2 3 Z ">
+</path>
+<path class="ln clr" d="M40.5 0.0 L30.875 -2.165278186218057E-31 Z ">
+</path>
+<path class="ln clr" d="M30.875 -2.165278186218057E-31 L30.875 1.8369701987210277E-16 Z ">
+</path>
+<path class="ln clr" d="M30.875 1.8369701987210277E-16 L21.25 1.8369701987210253E-16 Z ">
+</path>
+<path class="ln clr" d="M21.25 1.8369701987210253E-16 L21.25 -4.330556372436114E-31 Z ">
+</path>
+<path class="ln clr" d="M21.25 -4.330556372436114E-31 L11.625 -6.495834558654171E-31 Z ">
+</path>
+<path class="ln clr" d="M11.625 -6.495834558654171E-31 L11.625 1.8369701987210233E-16 Z ">
+</path>
+<path class="ln clr" d="M11.625 1.8369701987210233E-16 L2.0 1.8369701987210213E-16 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.8369701987210213E-16 L2.0 5.51091059616308E-16 Z ">
+</path>
+<path class="ln clr" d="M2.0 5.51091059616308E-16 L40.5 5.51091059616309E-16 Z ">
+</path>
+<path class="ln clr" d="M40.5 5.51091059616309E-16 L40.5 0.0 Z ">
+</path>
+<path class="ln clr" d="M40.5 1.0 L30.875 1.0 Z ">
+</path>
+<path class="ln clr" d="M30.875 1.0 L30.875 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M30.875 1.0000000000000002 L21.25 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M21.25 1.0000000000000002 L21.25 1.0 Z ">
+</path>
+<path class="ln clr" d="M21.25 1.0 L11.625 1.0 Z ">
+</path>
+<path class="ln clr" d="M11.625 1.0 L11.625 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M11.625 1.0000000000000002 L2.0 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.0000000000000002 L2.0 1.0000000000000007 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.0000000000000007 L40.5 1.0000000000000007 Z ">
+</path>
+<path class="ln clr" d="M40.5 1.0000000000000007 L40.5 1.0 Z ">
+</path>
+<path class="ln clr" d="M40.5 0.0 L40.5 1.0 Z ">
+</path>
+<path class="ln clr" d="M30.875 -2.165278186218057E-31 L30.875 1.0 Z ">
+</path>
+<path class="ln clr" d="M30.875 1.8369701987210277E-16 L30.875 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M21.25 1.8369701987210253E-16 L21.25 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M21.25 -4.330556372436114E-31 L21.25 1.0 Z ">
+</path>
+<path class="ln clr" d="M11.625 -6.495834558654171E-31 L11.625 1.0 Z ">
+</path>
+<path class="ln clr" d="M11.625 1.8369701987210233E-16 L11.625 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.8369701987210213E-16 L2.0 1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M2.0 5.51091059616308E-16 L2.0 1.0000000000000007 Z ">
+</path>
+<path class="ln clr" d="M40.5 5.51091059616309E-16 L40.5 1.0000000000000007 Z ">
+</path>
+</g>
+</g>
+</svg>
+<p>leg-side-a design</p>
+</div>
+</div>
+<h2>The shelf</h2>
+<p>The shelf design.</p>
+<h2>CAD View WIP</h2>
+<p>This is a CAD view:</p>
+<div>
+<div class="figure">
+<div style="display:flex;flex-wrap:wrap;width:500px;">
+<svg height="150.0" viewbox="-1 -1 250.0 150.0" width="250.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(10)">
+<g transform="translate(12.5 11.5)">
+<path class="ln clr" d="M2.5 -6.123233995736765E-16 L1.2499999999999996 -3.0616169978683817E-16 Z ">
+</path>
+<path class="ln clr" d="M1.2499999999999996 -3.0616169978683817E-16 L-1.250000000000001 3.0616169978683856E-16 Z ">
+</path>
+<path class="ln clr" d="M-1.250000000000001 3.0616169978683856E-16 L-2.5 6.123233995736765E-16 Z ">
+</path>
+<path class="ln clr" d="M-2.5 6.123233995736765E-16 L-1.2499999999999973 3.0616169978683757E-16 Z ">
+</path>
+<path class="ln clr" d="M-1.2499999999999973 3.0616169978683757E-16 L1.250000000000004 -3.0616169978683925E-16 Z ">
+</path>
+<path class="ln clr" d="M1.250000000000004 -3.0616169978683925E-16 L2.5 -6.123233995736765E-16 Z ">
+</path>
+<path class="ln clr" d="M2.4999999999999996 -1.5000000000000007 L1.2499999999999993 -1.5000000000000002 Z ">
+</path>
+<path class="ln clr" d="M1.2499999999999993 -1.5000000000000002 L-1.2500000000000013 -1.4999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-1.2500000000000013 -1.4999999999999998 L-2.5000000000000004 -1.4999999999999993 Z ">
+</path>
+<path class="ln clr" d="M-2.5000000000000004 -1.4999999999999993 L-1.2499999999999976 -1.4999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-1.2499999999999976 -1.4999999999999998 L1.2500000000000038 -1.5000000000000002 Z ">
+</path>
+<path class="ln clr" d="M1.2500000000000038 -1.5000000000000002 L2.4999999999999996 -1.5000000000000007 Z ">
+</path>
+<path class="ln clr" d="M2.5 -6.123233995736765E-16 L2.4999999999999996 -1.5000000000000007 Z ">
+</path>
+<path class="ln clr" d="M1.2499999999999996 -3.0616169978683817E-16 L1.2499999999999993 -1.5000000000000002 Z ">
+</path>
+<path class="ln clr" d="M-1.250000000000001 3.0616169978683856E-16 L-1.2500000000000013 -1.4999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-2.5 6.123233995736765E-16 L-2.5000000000000004 -1.4999999999999993 Z ">
+</path>
+<path class="ln clr" d="M-1.2499999999999973 3.0616169978683757E-16 L-1.2499999999999976 -1.4999999999999998 Z ">
+</path>
+<path class="ln clr" d="M1.250000000000004 -3.0616169978683925E-16 L1.2500000000000038 -1.5000000000000002 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999997 -2.0 L0.9876883405951374 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951374 -2.0 L0.9510565162951532 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951532 -2.0 L0.8910065241883676 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883676 -2.0 L0.8090169943749471 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749471 -2.0 L0.7071067811865472 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865472 -2.0 L0.5877852522924728 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924728 -2.0 L0.45399049973954647 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.45399049973954647 -2.0 L0.3090169943749471 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749471 -2.0 L0.15643446504023084 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504023084 -2.0 L-2.2884754904439284E-17 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-2.2884754904439284E-17 -2.0 L-0.1564344650402309 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402309 -2.0 L-0.3090169943749477 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749477 -2.0 L-0.453990499739547 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.453990499739547 -2.0 L-0.5877852522924734 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924734 -2.0 L-0.7071067811865481 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865481 -1.9999999999999998 L-0.809016994374948 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374948 -1.9999999999999998 L-0.8910065241883683 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883683 -1.9999999999999998 L-0.9510565162951542 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951542 -1.9999999999999998 L-0.9876883405951382 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951382 -1.9999999999999998 L-1.0000000000000004 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-1.0000000000000004 -1.9999999999999998 L-0.987688340595138 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.987688340595138 -1.9999999999999998 L-0.9510565162951536 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951536 -1.9999999999999998 L-0.8910065241883677 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883677 -1.9999999999999998 L-0.809016994374947 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374947 -1.9999999999999998 L-0.707106781186547 -1.9999999999999998 Z ">
+</path>
+<path class="ln clr" d="M-0.707106781186547 -1.9999999999999998 L-0.5877852522924721 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924721 -2.0 L-0.4539904997395458 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.4539904997395458 -2.0 L-0.30901699437494634 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.30901699437494634 -2.0 L-0.1564344650402297 -2.0 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402297 -2.0 L1.164033439826574E-15 -2.0 Z ">
+</path>
+<path class="ln clr" d="M1.164033439826574E-15 -2.0 L0.1564344650402329 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.1564344650402329 -2.0 L0.30901699437494934 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.30901699437494934 -2.0 L0.4539904997395485 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.4539904997395485 -2.0 L0.5877852522924748 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924748 -2.0 L0.7071067811865489 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865489 -2.0 L0.8090169943749486 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749486 -2.0 L0.8910065241883687 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883687 -2.0 L0.9510565162951543 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951543 -2.0 L0.9876883405951379 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951379 -2.0 L0.9999999999999997 -2.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999982 -8.0 L0.987688340595136 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.987688340595136 -8.0 L0.9510565162951518 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951518 -8.0 L0.8910065241883661 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883661 -8.0 L0.8090169943749457 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749457 -8.0 L0.7071067811865458 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865458 -8.0 L0.5877852522924714 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924714 -8.0 L0.45399049973954503 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.45399049973954503 -8.0 L0.3090169943749457 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749457 -8.0 L0.15643446504022937 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504022937 -8.0 L-1.4924609138812631E-15 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-1.4924609138812631E-15 -8.0 L-0.15643446504023237 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.15643446504023237 -8.0 L-0.3090169943749491 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749491 -8.0 L-0.45399049973954847 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.45399049973954847 -8.0 L-0.5877852522924748 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924748 -8.0 L-0.7071067811865496 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865496 -8.0 L-0.8090169943749494 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.8090169943749494 -8.0 L-0.8910065241883698 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883698 -8.0 L-0.9510565162951556 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951556 -8.0 L-0.9876883405951397 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951397 -8.0 L-1.000000000000002 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-1.000000000000002 -8.0 L-0.9876883405951394 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951394 -8.0 L-0.9510565162951551 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951551 -8.0 L-0.8910065241883691 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883691 -8.0 L-0.8090169943749485 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.8090169943749485 -8.0 L-0.7071067811865485 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865485 -8.0 L-0.5877852522924736 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924736 -8.0 L-0.45399049973954725 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.45399049973954725 -8.0 L-0.3090169943749478 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749478 -8.0 L-0.15643446504023117 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.15643446504023117 -8.0 L-3.055427191502498E-16 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-3.055427191502498E-16 -8.0 L0.15643446504023142 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504023142 -8.0 L0.3090169943749479 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749479 -8.0 L0.4539904997395471 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.4539904997395471 -8.0 L0.5877852522924734 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924734 -8.0 L0.7071067811865475 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865475 -8.0 L0.8090169943749471 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749471 -8.0 L0.8910065241883672 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883672 -8.0 L0.9510565162951529 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951529 -8.0 L0.9876883405951364 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951364 -8.0 L0.9999999999999982 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999997 -2.0 L0.9999999999999982 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951374 -2.0 L0.987688340595136 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951532 -2.0 L0.9510565162951518 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883676 -2.0 L0.8910065241883661 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749471 -2.0 L0.8090169943749457 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865472 -2.0 L0.7071067811865458 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924728 -2.0 L0.5877852522924714 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.45399049973954647 -2.0 L0.45399049973954503 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749471 -2.0 L0.3090169943749457 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504023084 -2.0 L0.15643446504022937 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-2.2884754904439284E-17 -2.0 L-1.4924609138812631E-15 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402309 -2.0 L-0.15643446504023237 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749477 -2.0 L-0.3090169943749491 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.453990499739547 -2.0 L-0.45399049973954847 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924734 -2.0 L-0.5877852522924748 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865481 -1.9999999999999998 L-0.7071067811865496 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374948 -1.9999999999999998 L-0.8090169943749494 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883683 -1.9999999999999998 L-0.8910065241883698 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951542 -1.9999999999999998 L-0.9510565162951556 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951382 -1.9999999999999998 L-0.9876883405951397 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-1.0000000000000004 -1.9999999999999998 L-1.000000000000002 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.987688340595138 -1.9999999999999998 L-0.9876883405951394 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951536 -1.9999999999999998 L-0.9510565162951551 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883677 -1.9999999999999998 L-0.8910065241883691 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374947 -1.9999999999999998 L-0.8090169943749485 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.707106781186547 -1.9999999999999998 L-0.7071067811865485 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924721 -2.0 L-0.5877852522924736 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.4539904997395458 -2.0 L-0.45399049973954725 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.30901699437494634 -2.0 L-0.3090169943749478 -8.0 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402297 -2.0 L-0.15643446504023117 -8.0 Z ">
+</path>
+<path class="ln clr" d="M1.164033439826574E-15 -2.0 L-3.055427191502498E-16 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.1564344650402329 -2.0 L0.15643446504023142 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.30901699437494934 -2.0 L0.3090169943749479 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.4539904997395485 -2.0 L0.4539904997395471 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924748 -2.0 L0.5877852522924734 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865489 -2.0 L0.7071067811865475 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749486 -2.0 L0.8090169943749471 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883687 -2.0 L0.8910065241883672 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951543 -2.0 L0.9510565162951529 -8.0 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951379 -2.0 L0.9876883405951364 -8.0 Z ">
+</path>
+</g>
+</g>
+</svg>
+<svg height="150.0" viewbox="-1 -1 250.0 150.0" width="250.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(10)">
+<g transform="translate(14.79809703885628 6.777810751918432)">
+<path class="ln clr" d="M1.7677669529663689 0.8838834764831844 L0.8838834764831843 -1.4330582617584087 Z ">
+</path>
+<path class="ln clr" d="M0.8838834764831843 -1.4330582617584087 L-0.8838834764831851 -2.3169417382415913 Z ">
+</path>
+<path class="ln clr" d="M-0.8838834764831851 -2.3169417382415913 L-1.7677669529663689 -0.8838834764831828 Z ">
+</path>
+<path class="ln clr" d="M-1.7677669529663689 -0.8838834764831828 L-0.8838834764831828 1.4330582617584104 Z ">
+</path>
+<path class="ln clr" d="M-0.8838834764831828 1.4330582617584104 L0.8838834764831871 2.3169417382415913 Z ">
+</path>
+<path class="ln clr" d="M0.8838834764831871 2.3169417382415913 L1.7677669529663689 0.8838834764831844 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865477 1.414213562373095 L-0.17677669529663687 -0.902728175868498 Z ">
+</path>
+<path class="ln clr" d="M-0.17677669529663687 -0.902728175868498 L-1.9445436482630063 -1.7866116523516808 Z ">
+</path>
+<path class="ln clr" d="M-1.9445436482630063 -1.7866116523516808 L-2.82842712474619 -0.3535533905932722 Z ">
+</path>
+<path class="ln clr" d="M-2.82842712474619 -0.3535533905932722 L-1.944543648263004 1.963388347648321 Z ">
+</path>
+<path class="ln clr" d="M-1.944543648263004 1.963388347648321 L-0.1767766952966341 2.8472718241315023 Z ">
+</path>
+<path class="ln clr" d="M-0.1767766952966341 2.8472718241315023 L0.7071067811865477 1.414213562373095 Z ">
+</path>
+<path class="ln clr" d="M1.7677669529663689 0.8838834764831844 L0.7071067811865477 1.414213562373095 Z ">
+</path>
+<path class="ln clr" d="M0.8838834764831843 -1.4330582617584087 L-0.17677669529663687 -0.902728175868498 Z ">
+</path>
+<path class="ln clr" d="M-0.8838834764831851 -2.3169417382415913 L-1.9445436482630063 -1.7866116523516808 Z ">
+</path>
+<path class="ln clr" d="M-1.7677669529663689 -0.8838834764831828 L-2.82842712474619 -0.3535533905932722 Z ">
+</path>
+<path class="ln clr" d="M-0.8838834764831828 1.4330582617584104 L-1.944543648263004 1.963388347648321 Z ">
+</path>
+<path class="ln clr" d="M0.8838834764831871 2.3169417382415913 L-0.1767766952966341 2.8472718241315023 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865472 1.0606601717798212 L-0.7158124390393845 0.9208311221011339 Z ">
+</path>
+<path class="ln clr" d="M-0.7158124390393845 0.9208311221011339 L-0.7417150504091375 0.7757394698387086 Z ">
+</path>
+<path class="ln clr" d="M-0.7417150504091375 0.7757394698387086 L-0.7841768070380443 0.6289578530028327 Z ">
+</path>
+<path class="ln clr" d="M-0.7841768070380443 0.6289578530028327 L-0.8421521595554105 0.48410052214026245 Z ">
+</path>
+<path class="ln clr" d="M-0.8421521595554105 0.48410052214026245 L-0.9142135623730948 0.3447343454907531 Z ">
+</path>
+<path class="ln clr" d="M-0.9142135623730948 0.3447343454907531 L-0.9985866245956414 0.2142909808532374 Z ">
+</path>
+<path class="ln clr" d="M-0.9985866245956414 0.2142909808532374 L-1.0931938014129916 0.09598237678179866 Z ">
+</path>
+<path class="ln clr" d="M-1.0931938014129916 0.09598237678179866 L-1.1957055501486842 -0.007278316247579131 Z ">
+</path>
+<path class="ln clr" d="M-1.1957055501486842 -0.007278316247579131 L-1.3035976913318574 -0.09294847726992006 Z ">
+</path>
+<path class="ln clr" d="M-1.3035976913318574 -0.09294847726992006 L-1.4142135623730945 -0.15891862259789102 Z ">
+</path>
+<path class="ln clr" d="M-1.4142135623730945 -0.15891862259789102 L-1.5248294334143317 -0.20356434831115733 Z ">
+</path>
+<path class="ln clr" d="M-1.5248294334143317 -0.20356434831115733 L-1.6327215745975052 -0.22578632847198976 Z ">
+</path>
+<path class="ln clr" d="M-1.6327215745975052 -0.22578632847198976 L-1.7352333233331978 -0.22503738417830454 Z ">
+</path>
+<path class="ln clr" d="M-1.7352333233331978 -0.22503738417830454 L-1.8298405001505482 -0.20133595692421596 Z ">
+</path>
+<path class="ln clr" d="M-1.8298405001505482 -0.20133595692421596 L-1.914213562373095 -0.1552656545092469 Z ">
+</path>
+<path class="ln clr" d="M-1.914213562373095 -0.1552656545092469 L-1.9862749651907794 -0.08796088067742158 Z ">
+</path>
+<path class="ln clr" d="M-1.9862749651907794 -0.08796088067742158 L-2.0442503177081455 -0.001078902332217635 Z ">
+</path>
+<path class="ln clr" d="M-2.0442503177081455 -0.001078902332217635 L-2.0867120743370524 0.1032409578747519 Z ">
+</path>
+<path class="ln clr" d="M-2.0867120743370524 0.1032409578747519 L-2.1126146857068053 0.22242999876742434 Z ">
+</path>
+<path class="ln clr" d="M-2.1126146857068053 0.22242999876742434 L-2.1213203435596424 0.3535533905932744 Z ">
+</path>
+<path class="ln clr" d="M-2.1213203435596424 0.3535533905932744 L-2.112614685706805 0.49338244027196165 Z ">
+</path>
+<path class="ln clr" d="M-2.112614685706805 0.49338244027196165 L-2.086712074337052 0.638474092534387 Z ">
+</path>
+<path class="ln clr" d="M-2.086712074337052 0.638474092534387 L-2.044250317708145 0.7852557093702635 Z ">
+</path>
+<path class="ln clr" d="M-2.044250317708145 0.7852557093702635 L-1.9862749651907787 0.9301130402328339 Z ">
+</path>
+<path class="ln clr" d="M-1.9862749651907787 0.9301130402328339 L-1.9142135623730943 1.069479216882343 Z ">
+</path>
+<path class="ln clr" d="M-1.9142135623730943 1.069479216882343 L-1.8298405001505473 1.1999225815198589 Z ">
+</path>
+<path class="ln clr" d="M-1.8298405001505473 1.1999225815198589 L-1.7352333233331971 1.3182311855912976 Z ">
+</path>
+<path class="ln clr" d="M-1.7352333233331971 1.3182311855912976 L-1.6327215745975043 1.4214918786206752 Z ">
+</path>
+<path class="ln clr" d="M-1.6327215745975043 1.4214918786206752 L-1.5248294334143309 1.507162039643016 Z ">
+</path>
+<path class="ln clr" d="M-1.5248294334143309 1.507162039643016 L-1.4142135623730938 1.5731321849709867 Z ">
+</path>
+<path class="ln clr" d="M-1.4142135623730938 1.5731321849709867 L-1.303597691331856 1.617777910684253 Z ">
+</path>
+<path class="ln clr" d="M-1.303597691331856 1.617777910684253 L-1.1957055501486826 1.6399998908450848 Z ">
+</path>
+<path class="ln clr" d="M-1.1957055501486826 1.6399998908450848 L-1.0931938014129903 1.6392509465513994 Z ">
+</path>
+<path class="ln clr" d="M-1.0931938014129903 1.6392509465513994 L-0.99858662459564 1.6155495192973106 Z ">
+</path>
+<path class="ln clr" d="M-0.99858662459564 1.6155495192973106 L-0.9142135623730936 1.569479216882341 Z ">
+</path>
+<path class="ln clr" d="M-0.9142135623730936 1.569479216882341 L-0.8421521595554095 1.5021744430505155 Z ">
+</path>
+<path class="ln clr" d="M-0.8421521595554095 1.5021744430505155 L-0.7841768070380435 1.4152924647053113 Z ">
+</path>
+<path class="ln clr" d="M-0.7841768070380435 1.4152924647053113 L-0.7417150504091368 1.3109726044983412 Z ">
+</path>
+<path class="ln clr" d="M-0.7417150504091368 1.3109726044983412 L-0.7158124390393842 1.1917835636056686 Z ">
+</path>
+<path class="ln clr" d="M-0.7158124390393842 1.1917835636056686 L-0.7071067811865472 1.0606601717798212 Z ">
+</path>
+<path class="ln clr" d="M-4.949747468305832 3.181980515339464 L-4.95845312615867 3.042151465660776 Z ">
+</path>
+<path class="ln clr" d="M-4.95845312615867 3.042151465660776 L-4.984355737528422 2.8970598133983514 Z ">
+</path>
+<path class="ln clr" d="M-4.984355737528422 2.8970598133983514 L-5.026817494157329 2.7502781965624754 Z ">
+</path>
+<path class="ln clr" d="M-5.026817494157329 2.7502781965624754 L-5.084792846674695 2.605420865699905 Z ">
+</path>
+<path class="ln clr" d="M-5.084792846674695 2.605420865699905 L-5.15685424949238 2.466054689050395 Z ">
+</path>
+<path class="ln clr" d="M-5.15685424949238 2.466054689050395 L-5.241227311714926 2.3356113244128798 Z ">
+</path>
+<path class="ln clr" d="M-5.241227311714926 2.3356113244128798 L-5.335834488532276 2.2173027203414413 Z ">
+</path>
+<path class="ln clr" d="M-5.335834488532276 2.2173027203414413 L-5.438346237267969 2.1140420273120633 Z ">
+</path>
+<path class="ln clr" d="M-5.438346237267969 2.1140420273120633 L-5.546238378451142 2.0283718662897225 Z ">
+</path>
+<path class="ln clr" d="M-5.546238378451142 2.0283718662897225 L-5.65685424949238 1.962401720961751 Z ">
+</path>
+<path class="ln clr" d="M-5.65685424949238 1.962401720961751 L-5.767470120533616 1.917755995248485 Z ">
+</path>
+<path class="ln clr" d="M-5.767470120533616 1.917755995248485 L-5.87536226171679 1.8955340150876525 Z ">
+</path>
+<path class="ln clr" d="M-5.87536226171679 1.8955340150876525 L-5.977874010452482 1.896282959381338 Z ">
+</path>
+<path class="ln clr" d="M-5.977874010452482 1.896282959381338 L-6.072481187269833 1.9199843866354263 Z ">
+</path>
+<path class="ln clr" d="M-6.072481187269833 1.9199843866354263 L-6.15685424949238 1.9660546890503956 Z ">
+</path>
+<path class="ln clr" d="M-6.15685424949238 1.9660546890503956 L-6.228915652310064 2.0333594628822205 Z ">
+</path>
+<path class="ln clr" d="M-6.228915652310064 2.0333594628822205 L-6.28689100482743 2.120241441227425 Z ">
+</path>
+<path class="ln clr" d="M-6.28689100482743 2.120241441227425 L-6.329352761456337 2.2245613014343943 Z ">
+</path>
+<path class="ln clr" d="M-6.329352761456337 2.2245613014343943 L-6.35525537282609 2.3437503423270667 Z ">
+</path>
+<path class="ln clr" d="M-6.35525537282609 2.3437503423270667 L-6.363961030678928 2.474873734152917 Z ">
+</path>
+<path class="ln clr" d="M-6.363961030678928 2.474873734152917 L-6.35525537282609 2.614702783831604 Z ">
+</path>
+<path class="ln clr" d="M-6.35525537282609 2.614702783831604 L-6.329352761456337 2.759794436094029 Z ">
+</path>
+<path class="ln clr" d="M-6.329352761456337 2.759794436094029 L-6.28689100482743 2.9065760529299056 Z ">
+</path>
+<path class="ln clr" d="M-6.28689100482743 2.9065760529299056 L-6.2289156523100635 3.0514333837924763 Z ">
+</path>
+<path class="ln clr" d="M-6.2289156523100635 3.0514333837924763 L-6.156854249492379 3.1907995604419854 Z ">
+</path>
+<path class="ln clr" d="M-6.156854249492379 3.1907995604419854 L-6.072481187269832 3.3212429250795013 Z ">
+</path>
+<path class="ln clr" d="M-6.072481187269832 3.3212429250795013 L-5.9778740104524815 3.43955152915094 Z ">
+</path>
+<path class="ln clr" d="M-5.9778740104524815 3.43955152915094 L-5.8753622617167895 3.5428122221803173 Z ">
+</path>
+<path class="ln clr" d="M-5.8753622617167895 3.5428122221803173 L-5.767470120533615 3.6284823832026585 Z ">
+</path>
+<path class="ln clr" d="M-5.767470120533615 3.6284823832026585 L-5.656854249492379 3.694452528530629 Z ">
+</path>
+<path class="ln clr" d="M-5.656854249492379 3.694452528530629 L-5.54623837845114 3.7390982542438955 Z ">
+</path>
+<path class="ln clr" d="M-5.54623837845114 3.7390982542438955 L-5.438346237267967 3.761320234404727 Z ">
+</path>
+<path class="ln clr" d="M-5.438346237267967 3.761320234404727 L-5.335834488532275 3.7605712901110415 Z ">
+</path>
+<path class="ln clr" d="M-5.335834488532275 3.7605712901110415 L-5.241227311714924 3.736869862856953 Z ">
+</path>
+<path class="ln clr" d="M-5.241227311714924 3.736869862856953 L-5.156854249492378 3.690799560441983 Z ">
+</path>
+<path class="ln clr" d="M-5.156854249492378 3.690799560441983 L-5.084792846674694 3.6234947866101583 Z ">
+</path>
+<path class="ln clr" d="M-5.084792846674694 3.6234947866101583 L-5.026817494157328 3.5366128082649535 Z ">
+</path>
+<path class="ln clr" d="M-5.026817494157328 3.5366128082649535 L-4.984355737528421 3.432292948057984 Z ">
+</path>
+<path class="ln clr" d="M-4.984355737528421 3.432292948057984 L-4.958453126158669 3.3131039071653112 Z ">
+</path>
+<path class="ln clr" d="M-4.958453126158669 3.3131039071653112 L-4.949747468305832 3.181980515339464 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865472 1.0606601717798212 L-4.949747468305832 3.181980515339464 Z ">
+</path>
+<path class="ln clr" d="M-0.7158124390393845 0.9208311221011339 L-4.95845312615867 3.042151465660776 Z ">
+</path>
+<path class="ln clr" d="M-0.7417150504091375 0.7757394698387086 L-4.984355737528422 2.8970598133983514 Z ">
+</path>
+<path class="ln clr" d="M-0.7841768070380443 0.6289578530028327 L-5.026817494157329 2.7502781965624754 Z ">
+</path>
+<path class="ln clr" d="M-0.8421521595554105 0.48410052214026245 L-5.084792846674695 2.605420865699905 Z ">
+</path>
+<path class="ln clr" d="M-0.9142135623730948 0.3447343454907531 L-5.15685424949238 2.466054689050395 Z ">
+</path>
+<path class="ln clr" d="M-0.9985866245956414 0.2142909808532374 L-5.241227311714926 2.3356113244128798 Z ">
+</path>
+<path class="ln clr" d="M-1.0931938014129916 0.09598237678179866 L-5.335834488532276 2.2173027203414413 Z ">
+</path>
+<path class="ln clr" d="M-1.1957055501486842 -0.007278316247579131 L-5.438346237267969 2.1140420273120633 Z ">
+</path>
+<path class="ln clr" d="M-1.3035976913318574 -0.09294847726992006 L-5.546238378451142 2.0283718662897225 Z ">
+</path>
+<path class="ln clr" d="M-1.4142135623730945 -0.15891862259789102 L-5.65685424949238 1.962401720961751 Z ">
+</path>
+<path class="ln clr" d="M-1.5248294334143317 -0.20356434831115733 L-5.767470120533616 1.917755995248485 Z ">
+</path>
+<path class="ln clr" d="M-1.6327215745975052 -0.22578632847198976 L-5.87536226171679 1.8955340150876525 Z ">
+</path>
+<path class="ln clr" d="M-1.7352333233331978 -0.22503738417830454 L-5.977874010452482 1.896282959381338 Z ">
+</path>
+<path class="ln clr" d="M-1.8298405001505482 -0.20133595692421596 L-6.072481187269833 1.9199843866354263 Z ">
+</path>
+<path class="ln clr" d="M-1.914213562373095 -0.1552656545092469 L-6.15685424949238 1.9660546890503956 Z ">
+</path>
+<path class="ln clr" d="M-1.9862749651907794 -0.08796088067742158 L-6.228915652310064 2.0333594628822205 Z ">
+</path>
+<path class="ln clr" d="M-2.0442503177081455 -0.001078902332217635 L-6.28689100482743 2.120241441227425 Z ">
+</path>
+<path class="ln clr" d="M-2.0867120743370524 0.1032409578747519 L-6.329352761456337 2.2245613014343943 Z ">
+</path>
+<path class="ln clr" d="M-2.1126146857068053 0.22242999876742434 L-6.35525537282609 2.3437503423270667 Z ">
+</path>
+<path class="ln clr" d="M-2.1213203435596424 0.3535533905932744 L-6.363961030678928 2.474873734152917 Z ">
+</path>
+<path class="ln clr" d="M-2.112614685706805 0.49338244027196165 L-6.35525537282609 2.614702783831604 Z ">
+</path>
+<path class="ln clr" d="M-2.086712074337052 0.638474092534387 L-6.329352761456337 2.759794436094029 Z ">
+</path>
+<path class="ln clr" d="M-2.044250317708145 0.7852557093702635 L-6.28689100482743 2.9065760529299056 Z ">
+</path>
+<path class="ln clr" d="M-1.9862749651907787 0.9301130402328339 L-6.2289156523100635 3.0514333837924763 Z ">
+</path>
+<path class="ln clr" d="M-1.9142135623730943 1.069479216882343 L-6.156854249492379 3.1907995604419854 Z ">
+</path>
+<path class="ln clr" d="M-1.8298405001505473 1.1999225815198589 L-6.072481187269832 3.3212429250795013 Z ">
+</path>
+<path class="ln clr" d="M-1.7352333233331971 1.3182311855912976 L-5.9778740104524815 3.43955152915094 Z ">
+</path>
+<path class="ln clr" d="M-1.6327215745975043 1.4214918786206752 L-5.8753622617167895 3.5428122221803173 Z ">
+</path>
+<path class="ln clr" d="M-1.5248294334143309 1.507162039643016 L-5.767470120533615 3.6284823832026585 Z ">
+</path>
+<path class="ln clr" d="M-1.4142135623730938 1.5731321849709867 L-5.656854249492379 3.694452528530629 Z ">
+</path>
+<path class="ln clr" d="M-1.303597691331856 1.617777910684253 L-5.54623837845114 3.7390982542438955 Z ">
+</path>
+<path class="ln clr" d="M-1.1957055501486826 1.6399998908450848 L-5.438346237267967 3.761320234404727 Z ">
+</path>
+<path class="ln clr" d="M-1.0931938014129903 1.6392509465513994 L-5.335834488532275 3.7605712901110415 Z ">
+</path>
+<path class="ln clr" d="M-0.99858662459564 1.6155495192973106 L-5.241227311714924 3.736869862856953 Z ">
+</path>
+<path class="ln clr" d="M-0.9142135623730936 1.569479216882341 L-5.156854249492378 3.690799560441983 Z ">
+</path>
+<path class="ln clr" d="M-0.8421521595554095 1.5021744430505155 L-5.084792846674694 3.6234947866101583 Z ">
+</path>
+<path class="ln clr" d="M-0.7841768070380435 1.4152924647053113 L-5.026817494157328 3.5366128082649535 Z ">
+</path>
+<path class="ln clr" d="M-0.7417150504091368 1.3109726044983412 L-4.984355737528421 3.432292948057984 Z ">
+</path>
+<path class="ln clr" d="M-0.7158124390393842 1.1917835636056686 L-4.958453126158669 3.3131039071653112 Z ">
+</path>
+</g>
+</g>
+</svg>
+<svg height="150.0" viewbox="-1 -1 250.0 150.0" width="250.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(10)">
+<g transform="translate(12.5 7.5)">
+<path class="ln clr" d="M2.5 1.530808498934191E-16 L1.2499999999999996 -2.1650635094610973 Z ">
+</path>
+<path class="ln clr" d="M1.2499999999999996 -2.1650635094610973 L-1.250000000000001 -2.1650635094610955 Z ">
+</path>
+<path class="ln clr" d="M-1.250000000000001 -2.1650635094610955 L-2.5 1.7612034995700557E-15 Z ">
+</path>
+<path class="ln clr" d="M-2.5 1.7612034995700557E-15 L-1.2499999999999973 2.165063509461098 Z ">
+</path>
+<path class="ln clr" d="M-1.2499999999999973 2.165063509461098 L1.250000000000004 2.165063509461094 Z ">
+</path>
+<path class="ln clr" d="M1.250000000000004 2.165063509461094 L2.5 1.530808498934191E-16 Z ">
+</path>
+<path class="ln clr" d="M2.4999999999999996 6.123233995736762E-17 L1.2499999999999993 -2.1650635094610973 Z ">
+</path>
+<path class="ln clr" d="M1.2499999999999993 -2.1650635094610973 L-1.2500000000000013 -2.1650635094610955 Z ">
+</path>
+<path class="ln clr" d="M-1.2500000000000013 -2.1650635094610955 L-2.5000000000000004 1.6693549896340043E-15 Z ">
+</path>
+<path class="ln clr" d="M-2.5000000000000004 1.6693549896340043E-15 L-1.2499999999999976 2.165063509461098 Z ">
+</path>
+<path class="ln clr" d="M-1.2499999999999976 2.165063509461098 L1.2500000000000038 2.165063509461094 Z ">
+</path>
+<path class="ln clr" d="M1.2500000000000038 2.165063509461094 L2.4999999999999996 6.123233995736762E-17 Z ">
+</path>
+<path class="ln clr" d="M2.5 1.530808498934191E-16 L2.4999999999999996 6.123233995736762E-17 Z ">
+</path>
+<path class="ln clr" d="M1.2499999999999996 -2.1650635094610973 L1.2499999999999993 -2.1650635094610973 Z ">
+</path>
+<path class="ln clr" d="M-1.250000000000001 -2.1650635094610955 L-1.2500000000000013 -2.1650635094610955 Z ">
+</path>
+<path class="ln clr" d="M-2.5 1.7612034995700557E-15 L-2.5000000000000004 1.6693549896340043E-15 Z ">
+</path>
+<path class="ln clr" d="M-1.2499999999999973 2.165063509461098 L-1.2499999999999976 2.165063509461098 Z ">
+</path>
+<path class="ln clr" d="M1.250000000000004 2.165063509461094 L1.2500000000000038 2.165063509461094 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999997 -6.123233995736766E-17 L0.9876883405951374 -0.15643446504023092 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951374 -0.15643446504023092 L0.9510565162951532 -0.30901699437494745 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951532 -0.30901699437494745 L0.8910065241883676 -0.45399049973954686 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883676 -0.45399049973954686 L0.8090169943749471 -0.5877852522924732 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749471 -0.5877852522924732 L0.7071067811865472 -0.7071067811865476 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865472 -0.7071067811865476 L0.5877852522924728 -0.8090169943749476 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924728 -0.8090169943749476 L0.45399049973954647 -0.8910065241883679 Z ">
+</path>
+<path class="ln clr" d="M0.45399049973954647 -0.8910065241883679 L0.3090169943749471 -0.9510565162951536 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749471 -0.9510565162951536 L0.15643446504023084 -0.9876883405951378 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504023084 -0.9876883405951378 L-2.2884754904439284E-17 -1.0000000000000002 Z ">
+</path>
+<path class="ln clr" d="M-2.2884754904439284E-17 -1.0000000000000002 L-0.1564344650402309 -0.9876883405951379 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402309 -0.9876883405951379 L-0.3090169943749477 -0.9510565162951538 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749477 -0.9510565162951538 L-0.453990499739547 -0.891006524188368 Z ">
+</path>
+<path class="ln clr" d="M-0.453990499739547 -0.891006524188368 L-0.5877852522924734 -0.8090169943749476 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924734 -0.8090169943749476 L-0.7071067811865481 -0.7071067811865474 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865481 -0.7071067811865474 L-0.809016994374948 -0.5877852522924729 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374948 -0.5877852522924729 L-0.8910065241883683 -0.45399049973954664 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883683 -0.45399049973954664 L-0.9510565162951542 -0.30901699437494684 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951542 -0.30901699437494684 L-0.9876883405951382 -0.15643446504023029 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951382 -0.15643446504023029 L-1.0000000000000004 5.82016719913287E-16 Z ">
+</path>
+<path class="ln clr" d="M-1.0000000000000004 5.82016719913287E-16 L-0.987688340595138 0.15643446504023145 Z ">
+</path>
+<path class="ln clr" d="M-0.987688340595138 0.15643446504023145 L-0.9510565162951536 0.30901699437494795 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951536 0.30901699437494795 L-0.8910065241883677 0.4539904997395477 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883677 0.4539904997395477 L-0.809016994374947 0.587785252292474 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374947 0.587785252292474 L-0.707106781186547 0.7071067811865482 Z ">
+</path>
+<path class="ln clr" d="M-0.707106781186547 0.7071067811865482 L-0.5877852522924721 0.8090169943749482 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924721 0.8090169943749482 L-0.4539904997395458 0.8910065241883685 Z ">
+</path>
+<path class="ln clr" d="M-0.4539904997395458 0.8910065241883685 L-0.30901699437494634 0.951056516295154 Z ">
+</path>
+<path class="ln clr" d="M-0.30901699437494634 0.951056516295154 L-0.1564344650402297 0.9876883405951379 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402297 0.9876883405951379 L1.164033439826574E-15 0.9999999999999999 Z ">
+</path>
+<path class="ln clr" d="M1.164033439826574E-15 0.9999999999999999 L0.1564344650402329 0.9876883405951372 Z ">
+</path>
+<path class="ln clr" d="M0.1564344650402329 0.9876883405951372 L0.30901699437494934 0.9510565162951526 Z ">
+</path>
+<path class="ln clr" d="M0.30901699437494934 0.9510565162951526 L0.4539904997395485 0.8910065241883667 Z ">
+</path>
+<path class="ln clr" d="M0.4539904997395485 0.8910065241883667 L0.5877852522924748 0.8090169943749459 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924748 0.8090169943749459 L0.7071067811865489 0.7071067811865457 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865489 0.7071067811865457 L0.8090169943749486 0.587785252292471 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749486 0.587785252292471 L0.8910065241883687 0.4539904997395446 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883687 0.4539904997395446 L0.9510565162951543 0.30901699437494423 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951543 0.30901699437494423 L0.9876883405951379 0.15643446504022754 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951379 0.15643446504022754 L0.9999999999999997 -6.123233995736766E-17 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999982 -4.2862637970157366E-16 L0.987688340595136 -0.1564344650402313 Z ">
+</path>
+<path class="ln clr" d="M0.987688340595136 -0.1564344650402313 L0.9510565162951518 -0.30901699437494784 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951518 -0.30901699437494784 L0.8910065241883661 -0.45399049973954725 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883661 -0.45399049973954725 L0.8090169943749457 -0.5877852522924736 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749457 -0.5877852522924736 L0.7071067811865458 -0.7071067811865479 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865458 -0.7071067811865479 L0.5877852522924714 -0.8090169943749479 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924714 -0.8090169943749479 L0.45399049973954503 -0.8910065241883682 Z ">
+</path>
+<path class="ln clr" d="M0.45399049973954503 -0.8910065241883682 L0.3090169943749457 -0.951056516295154 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749457 -0.951056516295154 L0.15643446504022937 -0.9876883405951381 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504022937 -0.9876883405951381 L-1.4924609138812631E-15 -1.0000000000000004 Z ">
+</path>
+<path class="ln clr" d="M-1.4924609138812631E-15 -1.0000000000000004 L-0.15643446504023237 -0.9876883405951382 Z ">
+</path>
+<path class="ln clr" d="M-0.15643446504023237 -0.9876883405951382 L-0.3090169943749491 -0.9510565162951541 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749491 -0.9510565162951541 L-0.45399049973954847 -0.8910065241883683 Z ">
+</path>
+<path class="ln clr" d="M-0.45399049973954847 -0.8910065241883683 L-0.5877852522924748 -0.8090169943749479 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924748 -0.8090169943749479 L-0.7071067811865496 -0.7071067811865477 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865496 -0.7071067811865477 L-0.8090169943749494 -0.5877852522924732 Z ">
+</path>
+<path class="ln clr" d="M-0.8090169943749494 -0.5877852522924732 L-0.8910065241883698 -0.453990499739547 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883698 -0.453990499739547 L-0.9510565162951556 -0.30901699437494723 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951556 -0.30901699437494723 L-0.9876883405951397 -0.15643446504023067 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951397 -0.15643446504023067 L-1.000000000000002 2.1462268016908093E-16 Z ">
+</path>
+<path class="ln clr" d="M-1.000000000000002 2.1462268016908093E-16 L-0.9876883405951394 0.15643446504023106 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951394 0.15643446504023106 L-0.9510565162951551 0.30901699437494756 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951551 0.30901699437494756 L-0.8910065241883691 0.4539904997395473 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883691 0.4539904997395473 L-0.8090169943749485 0.5877852522924737 Z ">
+</path>
+<path class="ln clr" d="M-0.8090169943749485 0.5877852522924737 L-0.7071067811865485 0.7071067811865479 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865485 0.7071067811865479 L-0.5877852522924736 0.8090169943749479 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924736 0.8090169943749479 L-0.45399049973954725 0.8910065241883681 Z ">
+</path>
+<path class="ln clr" d="M-0.45399049973954725 0.8910065241883681 L-0.3090169943749478 0.9510565162951536 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749478 0.9510565162951536 L-0.15643446504023117 0.9876883405951375 Z ">
+</path>
+<path class="ln clr" d="M-0.15643446504023117 0.9876883405951375 L-3.055427191502498E-16 0.9999999999999996 Z ">
+</path>
+<path class="ln clr" d="M-3.055427191502498E-16 0.9999999999999996 L0.15643446504023142 0.9876883405951369 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504023142 0.9876883405951369 L0.3090169943749479 0.9510565162951523 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749479 0.9510565162951523 L0.4539904997395471 0.8910065241883663 Z ">
+</path>
+<path class="ln clr" d="M0.4539904997395471 0.8910065241883663 L0.5877852522924734 0.8090169943749456 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924734 0.8090169943749456 L0.7071067811865475 0.7071067811865454 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865475 0.7071067811865454 L0.8090169943749471 0.5877852522924707 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749471 0.5877852522924707 L0.8910065241883672 0.4539904997395442 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883672 0.4539904997395442 L0.9510565162951529 0.30901699437494384 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951529 0.30901699437494384 L0.9876883405951364 0.15643446504022715 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951364 0.15643446504022715 L0.9999999999999982 -4.2862637970157366E-16 Z ">
+</path>
+<path class="ln clr" d="M0.9999999999999997 -6.123233995736766E-17 L0.9999999999999982 -4.2862637970157366E-16 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951374 -0.15643446504023092 L0.987688340595136 -0.1564344650402313 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951532 -0.30901699437494745 L0.9510565162951518 -0.30901699437494784 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883676 -0.45399049973954686 L0.8910065241883661 -0.45399049973954725 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749471 -0.5877852522924732 L0.8090169943749457 -0.5877852522924736 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865472 -0.7071067811865476 L0.7071067811865458 -0.7071067811865479 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924728 -0.8090169943749476 L0.5877852522924714 -0.8090169943749479 Z ">
+</path>
+<path class="ln clr" d="M0.45399049973954647 -0.8910065241883679 L0.45399049973954503 -0.8910065241883682 Z ">
+</path>
+<path class="ln clr" d="M0.3090169943749471 -0.9510565162951536 L0.3090169943749457 -0.951056516295154 Z ">
+</path>
+<path class="ln clr" d="M0.15643446504023084 -0.9876883405951378 L0.15643446504022937 -0.9876883405951381 Z ">
+</path>
+<path class="ln clr" d="M-2.2884754904439284E-17 -1.0000000000000002 L-1.4924609138812631E-15 -1.0000000000000004 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402309 -0.9876883405951379 L-0.15643446504023237 -0.9876883405951382 Z ">
+</path>
+<path class="ln clr" d="M-0.3090169943749477 -0.9510565162951538 L-0.3090169943749491 -0.9510565162951541 Z ">
+</path>
+<path class="ln clr" d="M-0.453990499739547 -0.891006524188368 L-0.45399049973954847 -0.8910065241883683 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924734 -0.8090169943749476 L-0.5877852522924748 -0.8090169943749479 Z ">
+</path>
+<path class="ln clr" d="M-0.7071067811865481 -0.7071067811865474 L-0.7071067811865496 -0.7071067811865477 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374948 -0.5877852522924729 L-0.8090169943749494 -0.5877852522924732 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883683 -0.45399049973954664 L-0.8910065241883698 -0.453990499739547 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951542 -0.30901699437494684 L-0.9510565162951556 -0.30901699437494723 Z ">
+</path>
+<path class="ln clr" d="M-0.9876883405951382 -0.15643446504023029 L-0.9876883405951397 -0.15643446504023067 Z ">
+</path>
+<path class="ln clr" d="M-1.0000000000000004 5.82016719913287E-16 L-1.000000000000002 2.1462268016908093E-16 Z ">
+</path>
+<path class="ln clr" d="M-0.987688340595138 0.15643446504023145 L-0.9876883405951394 0.15643446504023106 Z ">
+</path>
+<path class="ln clr" d="M-0.9510565162951536 0.30901699437494795 L-0.9510565162951551 0.30901699437494756 Z ">
+</path>
+<path class="ln clr" d="M-0.8910065241883677 0.4539904997395477 L-0.8910065241883691 0.4539904997395473 Z ">
+</path>
+<path class="ln clr" d="M-0.809016994374947 0.587785252292474 L-0.8090169943749485 0.5877852522924737 Z ">
+</path>
+<path class="ln clr" d="M-0.707106781186547 0.7071067811865482 L-0.7071067811865485 0.7071067811865479 Z ">
+</path>
+<path class="ln clr" d="M-0.5877852522924721 0.8090169943749482 L-0.5877852522924736 0.8090169943749479 Z ">
+</path>
+<path class="ln clr" d="M-0.4539904997395458 0.8910065241883685 L-0.45399049973954725 0.8910065241883681 Z ">
+</path>
+<path class="ln clr" d="M-0.30901699437494634 0.951056516295154 L-0.3090169943749478 0.9510565162951536 Z ">
+</path>
+<path class="ln clr" d="M-0.1564344650402297 0.9876883405951379 L-0.15643446504023117 0.9876883405951375 Z ">
+</path>
+<path class="ln clr" d="M1.164033439826574E-15 0.9999999999999999 L-3.055427191502498E-16 0.9999999999999996 Z ">
+</path>
+<path class="ln clr" d="M0.1564344650402329 0.9876883405951372 L0.15643446504023142 0.9876883405951369 Z ">
+</path>
+<path class="ln clr" d="M0.30901699437494934 0.9510565162951526 L0.3090169943749479 0.9510565162951523 Z ">
+</path>
+<path class="ln clr" d="M0.4539904997395485 0.8910065241883667 L0.4539904997395471 0.8910065241883663 Z ">
+</path>
+<path class="ln clr" d="M0.5877852522924748 0.8090169943749459 L0.5877852522924734 0.8090169943749456 Z ">
+</path>
+<path class="ln clr" d="M0.7071067811865489 0.7071067811865457 L0.7071067811865475 0.7071067811865454 Z ">
+</path>
+<path class="ln clr" d="M0.8090169943749486 0.587785252292471 L0.8090169943749471 0.5877852522924707 Z ">
+</path>
+<path class="ln clr" d="M0.8910065241883687 0.4539904997395446 L0.8910065241883672 0.4539904997395442 Z ">
+</path>
+<path class="ln clr" d="M0.9510565162951543 0.30901699437494423 L0.9510565162951529 0.30901699437494384 Z ">
+</path>
+<path class="ln clr" d="M0.9876883405951379 0.15643446504022754 L0.9876883405951364 0.15643446504022715 Z ">
+</path>
+</g>
+</g>
+</svg>
+<svg height="150.0" viewbox="-1 -1 250.0 150.0" width="250.0" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(10)">
+<g transform="translate(8.5 7.5)">
+<path class="ln clr" d="M1.5308084989341916E-16 3.061616997868383E-16 L7.654042494670953E-17 -2.1650635094610973 Z ">
+</path>
+<path class="ln clr" d="M7.654042494670953E-17 -2.1650635094610973 L-7.654042494670965E-17 -2.1650635094610955 Z ">
+</path>
+<path class="ln clr" d="M-7.654042494670965E-17 -2.1650635094610955 L-1.5308084989341916E-16 1.6081226496766366E-15 Z ">
+</path>
+<path class="ln clr" d="M-1.5308084989341916E-16 1.6081226496766366E-15 L-7.654042494670939E-17 2.165063509461098 Z ">
+</path>
+<path class="ln clr" d="M-7.654042494670939E-17 2.165063509461098 L7.654042494670984E-17 2.165063509461094 Z ">
+</path>
+<path class="ln clr" d="M7.654042494670984E-17 2.165063509461094 L1.5308084989341916E-16 3.061616997868383E-16 Z ">
+</path>
+<path class="ln clr" d="M1.5000000000000002 3.061616997868383E-16 L1.5 -2.1650635094610973 Z ">
+</path>
+<path class="ln clr" d="M1.5 -2.1650635094610973 L1.5 -2.1650635094610955 Z ">
+</path>
+<path class="ln clr" d="M1.5 -2.1650635094610955 L1.4999999999999998 1.6081226496766366E-15 Z ">
+</path>
+<path class="ln clr" d="M1.4999999999999998 1.6081226496766366E-15 L1.5 2.165063509461098 Z ">
+</path>
+<path class="ln clr" d="M1.5 2.165063509461098 L1.5 2.165063509461094 Z ">
+</path>
+<path class="ln clr" d="M1.5 2.165063509461094 L1.5000000000000002 3.061616997868383E-16 Z ">
+</path>
+<path class="ln clr" d="M1.5308084989341916E-16 3.061616997868383E-16 L1.5000000000000002 3.061616997868383E-16 Z ">
+</path>
+<path class="ln clr" d="M7.654042494670953E-17 -2.1650635094610973 L1.5 -2.1650635094610973 Z ">
+</path>
+<path class="ln clr" d="M-7.654042494670965E-17 -2.1650635094610955 L1.5 -2.1650635094610955 Z ">
+</path>
+<path class="ln clr" d="M-1.5308084989341916E-16 1.6081226496766366E-15 L1.4999999999999998 1.6081226496766366E-15 Z ">
+</path>
+<path class="ln clr" d="M-7.654042494670939E-17 2.165063509461098 L1.5 2.165063509461098 Z ">
+</path>
+<path class="ln clr" d="M7.654042494670984E-17 2.165063509461094 L1.5 2.165063509461094 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.2246467991473532E-16 L2.0 -0.15643446504023076 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.15643446504023076 L2.0 -0.3090169943749473 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.3090169943749473 L2.0 -0.4539904997395467 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.4539904997395467 L2.0 -0.5877852522924731 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.5877852522924731 L2.0 -0.7071067811865475 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.7071067811865475 L2.0 -0.8090169943749475 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8090169943749475 L2.0 -0.8910065241883678 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8910065241883678 L2.0 -0.9510565162951535 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9510565162951535 L2.0 -0.9876883405951377 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9876883405951377 L2.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M2.0 -1.0 L2.0 -0.9876883405951378 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9876883405951378 L2.0 -0.9510565162951536 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9510565162951536 L2.0 -0.8910065241883679 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8910065241883679 L2.0 -0.8090169943749475 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8090169943749475 L2.0 -0.7071067811865472 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.7071067811865472 L2.0 -0.5877852522924728 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.5877852522924728 L2.0 -0.4539904997395466 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.4539904997395466 L2.0 -0.3090169943749468 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.3090169943749468 L2.0 -0.15643446504023023 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.15643446504023023 L2.0 6.432490598706545E-16 Z ">
+</path>
+<path class="ln clr" d="M2.0 6.432490598706545E-16 L2.0 0.1564344650402315 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.1564344650402315 L2.0 0.309016994374948 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.309016994374948 L2.0 0.45399049973954775 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.45399049973954775 L2.0 0.5877852522924741 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.5877852522924741 L2.0 0.7071067811865483 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.7071067811865483 L2.0 0.8090169943749483 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.8090169943749483 L2.0 0.8910065241883686 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.8910065241883686 L2.0 0.9510565162951541 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.9510565162951541 L2.0 0.987688340595138 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.987688340595138 L2.0 1.0 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.0 L2.0 0.9876883405951373 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.9876883405951373 L2.0 0.9510565162951528 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.9510565162951528 L2.0 0.8910065241883668 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.8910065241883668 L2.0 0.809016994374946 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.809016994374946 L2.0 0.7071067811865458 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.7071067811865458 L2.0 0.5877852522924711 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.5877852522924711 L2.0 0.45399049973954475 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.45399049973954475 L2.0 0.3090169943749444 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.3090169943749444 L2.0 0.1564344650402277 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.1564344650402277 L2.0 1.2246467991473532E-16 Z ">
+</path>
+<path class="ln clr" d="M8.0 1.2246467991473527E-16 L8.0 -0.15643446504023076 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.15643446504023076 L8.0 -0.3090169943749473 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.3090169943749473 L8.0 -0.4539904997395467 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.4539904997395467 L8.0 -0.5877852522924731 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.5877852522924731 L8.0 -0.7071067811865475 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.7071067811865475 L8.0 -0.8090169943749475 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.8090169943749475 L8.0 -0.8910065241883678 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.8910065241883678 L8.0 -0.9510565162951535 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.9510565162951535 L8.0 -0.9876883405951377 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.9876883405951377 L8.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M8.0 -1.0 L8.0 -0.9876883405951378 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.9876883405951378 L8.0 -0.9510565162951536 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.9510565162951536 L8.0 -0.8910065241883679 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.8910065241883679 L8.0 -0.8090169943749475 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.8090169943749475 L8.0 -0.7071067811865472 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.7071067811865472 L8.0 -0.5877852522924728 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.5877852522924728 L8.0 -0.4539904997395466 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.4539904997395466 L8.0 -0.3090169943749468 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.3090169943749468 L8.0 -0.15643446504023023 Z ">
+</path>
+<path class="ln clr" d="M8.0 -0.15643446504023023 L8.0 6.432490598706545E-16 Z ">
+</path>
+<path class="ln clr" d="M8.0 6.432490598706545E-16 L8.0 0.1564344650402315 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.1564344650402315 L8.0 0.309016994374948 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.309016994374948 L8.0 0.45399049973954775 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.45399049973954775 L8.0 0.5877852522924741 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.5877852522924741 L8.0 0.7071067811865483 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.7071067811865483 L8.0 0.8090169943749483 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.8090169943749483 L8.0 0.8910065241883686 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.8910065241883686 L8.0 0.9510565162951541 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.9510565162951541 L8.0 0.987688340595138 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.987688340595138 L8.0 1.0 Z ">
+</path>
+<path class="ln clr" d="M8.0 1.0 L8.0 0.9876883405951373 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.9876883405951373 L8.0 0.9510565162951528 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.9510565162951528 L8.0 0.8910065241883668 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.8910065241883668 L8.0 0.809016994374946 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.809016994374946 L8.0 0.7071067811865458 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.7071067811865458 L8.0 0.5877852522924711 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.5877852522924711 L8.0 0.45399049973954475 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.45399049973954475 L8.0 0.3090169943749444 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.3090169943749444 L8.0 0.1564344650402277 Z ">
+</path>
+<path class="ln clr" d="M8.0 0.1564344650402277 L8.0 1.2246467991473527E-16 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.2246467991473532E-16 L8.0 1.2246467991473527E-16 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.15643446504023076 L8.0 -0.15643446504023076 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.3090169943749473 L8.0 -0.3090169943749473 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.4539904997395467 L8.0 -0.4539904997395467 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.5877852522924731 L8.0 -0.5877852522924731 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.7071067811865475 L8.0 -0.7071067811865475 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8090169943749475 L8.0 -0.8090169943749475 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8910065241883678 L8.0 -0.8910065241883678 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9510565162951535 L8.0 -0.9510565162951535 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9876883405951377 L8.0 -0.9876883405951377 Z ">
+</path>
+<path class="ln clr" d="M2.0 -1.0 L8.0 -1.0 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9876883405951378 L8.0 -0.9876883405951378 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.9510565162951536 L8.0 -0.9510565162951536 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8910065241883679 L8.0 -0.8910065241883679 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.8090169943749475 L8.0 -0.8090169943749475 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.7071067811865472 L8.0 -0.7071067811865472 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.5877852522924728 L8.0 -0.5877852522924728 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.4539904997395466 L8.0 -0.4539904997395466 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.3090169943749468 L8.0 -0.3090169943749468 Z ">
+</path>
+<path class="ln clr" d="M2.0 -0.15643446504023023 L8.0 -0.15643446504023023 Z ">
+</path>
+<path class="ln clr" d="M2.0 6.432490598706545E-16 L8.0 6.432490598706545E-16 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.1564344650402315 L8.0 0.1564344650402315 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.309016994374948 L8.0 0.309016994374948 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.45399049973954775 L8.0 0.45399049973954775 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.5877852522924741 L8.0 0.5877852522924741 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.7071067811865483 L8.0 0.7071067811865483 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.8090169943749483 L8.0 0.8090169943749483 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.8910065241883686 L8.0 0.8910065241883686 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.9510565162951541 L8.0 0.9510565162951541 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.987688340595138 L8.0 0.987688340595138 Z ">
+</path>
+<path class="ln clr" d="M2.0 1.0 L8.0 1.0 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.9876883405951373 L8.0 0.9876883405951373 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.9510565162951528 L8.0 0.9510565162951528 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.8910065241883668 L8.0 0.8910065241883668 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.809016994374946 L8.0 0.809016994374946 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.7071067811865458 L8.0 0.7071067811865458 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.5877852522924711 L8.0 0.5877852522924711 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.45399049973954475 L8.0 0.45399049973954475 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.3090169943749444 L8.0 0.3090169943749444 Z ">
+</path>
+<path class="ln clr" d="M2.0 0.1564344650402277 L8.0 0.1564344650402277 Z ">
+</path>
+</g>
+</g>
+</svg>
+</div>
+<p>example bolt.</p>
+</div>
+</div>
+</main>
+</body>
+</html>

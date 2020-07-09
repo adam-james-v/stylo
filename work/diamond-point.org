@@ -1,0 +1,305 @@
+* pattern
+** srcs
+#+begin_src clojure :tangle ./diamond-point.md
+<<diamond-01>>
+<<diamond-02>>
+<<blueberry-method-text>>
+<<blueberry-method-diagram>>
+<<templates-start-text>>
+<<template-a>>
+<<template-b>>
+<<template-c>>
+<<template-d>>
+<<template-e>>
+<<template-f>>
+<<templates-end-text>>
+#+end_src
+
+** style-defs
+#+NAME: diamond-01
+#+BEGIN_SRC clojure
+(ex
+(ns diamond-point
+  (:require [hiccup.core :refer [h html]]
+            [stylo.draw :refer :all]))
+
+(load-file "fabric.clj")
+(use 'stylo.fabric)
+
+(html (list
+       fabric-styles
+       [:style "
+table{width:auto;}
+th, td{vertical-align:top;padding:5px;border: 1px solid #ddd;}
+table ul {list-style-type:none;padding-left:4px;margin:0}
+table p {margin:0}
+table li:before {content:'▢ ';}
+@media print {.pagebreak {page-break-before:always;}}
+.figure{padding-left:7px;}
+.figure p{font-size:smaller;font-style:italic;}
+.trim{fill:#fff;stroke:#fff !important;}
+
+.A{fill:rgb(235, 235, 220);}
+.Aw{fill:rgb(242, 242, 242);}
+.B{fill:rgb(178, 113, 106);}
+.C{fill:rgb(65, 95, 135);}
+.Cw{fill:rgba(140, 154, 168);}
+.Cw-a{fill:rgba(140, 154, 168, 0.5);}
+.D{fill:rgb(240, 185, 158);}
+.E{fill:rgb(158, 189, 221);}
+.F{fill:rgb(111, 131, 156);}
+"]))
+#+END_SRC
+
+** intro
+#+NAME: diamond-02
+#+BEGIN_SRC text
+ex)
+
+# Diamond Point
+Finished Size: 26 1/2" x 46 1/2"
+
+I encourage you to take a few minutes and read through all the instructions...
+
+#+END_SRC
+
+** blueberry-method
+*** text
+#+NAME: blueberry-method-text
+#+BEGIN_SRC text
+(ex
+(html [:h2 [:img {:style "width:50px;padding-right:10px;display:inline;" :src "./resources/berry.png"}] "The Blueberry Method"])
+ex)
+
+1. Draw a diagonal line on the wrong side of 4 squares designated for the Blueberry.
+2. Place a Blueberry square RST onto the corners that meet in the middle of 4 selected units. Sew on the diagonal lines. Press two towards the corner, and then press the opposite two away from the corner. This will help to nest the seams together when completing The Blueberry. Trim.
+3. Sew the seams together and your Blueberry will be complete.
+
+(ex
+#+END_SRC
+
+*** diagram
+#+NAME: blueberry-method-diagram
+#+BEGIN_SRC clojure
+(def bb-a 
+  (list
+   (sq 1.25 "Cw")
+   (ln-d [-0.1 1.35] [1.35 -0.1])))
+
+(defn bb-b
+  [fabric]
+  (list
+   (sq 2.5 fabric)
+   (mv [1.25 1.25] bb-a)))
+
+(defn bb-c
+  [fabric]
+  (list
+   (sq 2.5 fabric)
+   (mv [1.25 1.25] bb-a)
+   (mv [1.4 1.4] (rot 180 [0.625 0.625] (hst 1.25 "trim"))
+                 (mv [0.075 0.075] (rot 180 [0.55 0.55] (hst 0.95 "Cw-a"))))))
+
+(defn bb-d
+  [fabric out?]
+  (list
+   (sq 2.5 fabric)
+   (mv [1.25 1.25] (rot 180 [0.625 0.625] (hst 1.25 "C"))
+                   (if out?
+                    [:g {:transform "scale(0.625)"} (arw [-0.1 -0.1] [1.35 1.35])]
+                    [:g {:transform "scale(0.625)"} (arw [1.35 1.35] [-0.1 -0.1])]))))
+
+(defn bb-e
+  [fabric]
+  (list
+   (sq 2 fabric)
+   (mv [1.25 1.25] (rot 180 [0.375 0.375] (hst 0.75 "C")))))
+
+(html [:div {:class "figure"}
+  (svg [700 160 22.5]
+    (mv [0.1 1.25]
+      bb-a
+      (mv [1.75    0] (rot  90 [0.625 0.625] bb-a))
+      (mv [1.75 1.75] (rot 180 [0.625 0.625] bb-a))
+      (mv [   0 1.75] (rot 270 [0.625 0.625] bb-a)))
+    (mv [0.5 5.375] (label "mark on"))
+    (mv [0.175 6.25] (label "wrong side"))
+    
+    (mv [5 0]
+      (bb-b "A")
+      (mv [3 0] (rot  90 [1.25 1.25] (bb-b "B")))
+      (mv [3 3] (rot 180 [1.25 1.25] (bb-b "A")))
+      (mv [0 3] (rot 270 [1.25 1.25] (bb-b "B"))))
+    (mv [5.825 6.25] (label "sew diagonals"))
+    
+    (mv [12.25 0]
+      (bb-c "A")
+      (mv [3 0] (rot  90 [1.25 1.25] (bb-c "B")))
+      (mv [3 3] (rot 180 [1.25 1.25] (bb-c "A")))
+      (mv [0 3] (rot 270 [1.25 1.25] (bb-c "B"))))
+    (mv [14.625 6.25] (label "trim"))
+    
+    (mv [19.5 0]
+      (bb-d "A" false)
+      (mv [3 0] (rot  90 [1.25 1.25] (bb-d "B" true)))
+      (mv [3 3] (rot 180 [1.25 1.25] (bb-d "A" false)))
+      (mv [0 3] (rot 270 [1.25 1.25] (bb-d "B" true))))
+    (mv [21.625 6.25] (label "press"))
+    
+    (mv [26.75 0.5]
+      (bb-e "A")
+      (mv [2 0] (rot  90 [1 1] (bb-e "B")))
+      (mv [2 2] (rot 180 [1 1] (bb-e "A")))
+      (mv [0 2] (rot 270 [1 1] (bb-e "B"))))
+    (mv [27.5 6.25] (label "sew seams")))
+
+
+  [:p "Blueberry Point Method"]])
+#+END_SRC
+
+** templates
+*** templates-start-text
+#+NAME: templates-start-text
+#+BEGIN_SRC text
+ex)
+
+# Templates
+This pattern has some more complicated shapes. To make your fabric pieces reliably, please print out and use these templates.
+
+Templates should be printed 1:1. Each page has a 1x1in square that you can use to verify your prints.
+
+If the square does not exactly match 1in, you will have to adjust your printer's scale settings.
+
+NOTE: ADAM, check the original document's wording.
+NOTE: The diamond template function needs to have proper offset capabilty for accuracy. The factors used now will need to be replaced by proper geometry calculation.
+
+(ex
+#+END_SRC
+
+*** template-a
+#+NAME: template-a
+#+BEGIN_SRC clojure
+(defn diamond-template
+  [name w h hof]
+  (let [pts (diamond-pts w h hof)
+        half-w (/ w 2.0)]
+    (list 
+     (polygon-d pts)
+     (polygon (offset pts 0.25))
+     (ln-d [half-w 0] [half-w h])
+     (mv [half-w hof] (label (str name))))))
+
+(def scale-sq
+  (list
+   (sq 1)
+   (mv [0.4 0.85] (sc 0.25 (label "1in")))))
+
+(def template-a
+  (diamond-template "A" 5.75 9 2.925))
+
+(figure [720 875 82] "template A"
+        scale-sq
+        (mv [1 1] template-a))
+
+#+END_SRC
+
+*** template-b
+#+NAME: template-b
+#+BEGIN_SRC clojure
+(def template-b
+  (diamond-template "B" 4.625 8.625 2.25))
+
+(figure [720 855 82] "template B"
+        scale-sq
+        (mv [1 1] template-b))
+
+#+END_SRC
+
+*** template-c
+#+NAME: template-c
+#+BEGIN_SRC clojure
+(defn polygon-template
+  [name pts]
+  (list
+   (polygon-d pts)
+   (polygon (offset pts 0.25))
+   (mv (bb-center pts) (label name))
+   (map #(mv % (sc 0.25 (dot [0 0 ]))) pts)))
+
+(def template-c 
+  (polygon-template "C" [[0 0]
+                         [6.1875 0]
+                         [3.25 2.75]
+                         [0 2.75]]))
+
+(figure [720 500 82] "template C"
+        scale-sq
+        (mv [0.5 2] template-c))
+
+#+END_SRC
+
+*** template-d
+#+NAME: template-d
+#+BEGIN_SRC clojure
+(def template-d
+  (polygon-template "D" [[0 0]
+                         [6.125 0]
+                         [9 2.875]
+                         [0 2.875]]))
+
+(figure [720 500 82] "template D"
+        scale-sq
+        (mv [0.5 2] template-d))
+
+#+END_SRC
+
+*** template-e
+#+NAME: template-e
+#+BEGIN_SRC clojure
+(def template-e
+  (polygon-template "E" (hst-pts 3.25)))
+
+(figure [720 360 82] "template E"
+        scale-sq
+        (mv [2 0.5] template-e))
+
+#+END_SRC
+
+*** template-f
+#+NAME: template-f
+#+BEGIN_SRC clojure
+(def template-f
+  (polygon-template "F" [[0 0]
+                         [6.625 0]
+                         [6.625 2]
+                         [6.375 2.25]]))
+
+(figure [720 400 82] "template F"
+        scale-sq
+        (mv [1.75 2] template-f))
+
+#+END_SRC
+
+*** templates-end-text
+#+NAME: templates-end-text
+#+BEGIN_SRC text
+ex)
+
+templates end.
+
+#+END_SRC
+
+#+BEGIN_SRC html
+
+
+<path 
+  class="ln clr" 
+  d="M5.0 0.0 
+     L3.061616997868383E-16 5.0
+     L-5.0 6.123233995736766E-16
+     L-9.184850993605148E-16 -5.0
+     Z">
+</path>
+
+
+#+END_SRC

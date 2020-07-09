@@ -1,0 +1,3176 @@
+* ;;
+#+Title: stylo
+#+SUBTITLE: document rendering library
+#+AUTHOR: adam-james
+#+STARTUP: overview
+#+PROPERTY: header-args :cache yes :noweb yes :results inline :mkdirp yes :padline yes :async
+#+HTML_DOCTYPE: html5
+#+OPTIONS: toc:2 num:nil html-style:nil html-postamble:nil html-preamble:nil html5-fancy:t
+
+** deps.edn
+I intend to have stylo work in both clj/cljs contexts. As such, I need both clojure and clojurescript dependencies.
+
+Some additional notes about deps:
+
+- hiccup is clj only, hench macchiato/hiccups, which seems to be a near 1-1 port of hiccup to cljs
+  - might be worth finding an alternative to hiccup that works in both clj/cljs so that I don't have to write conditionals in my src files
+
+- I don't yet know if spec.alpha works in clojurescript
+  - if it does, there is not change needed
+  - if it does not, I will need to write in such a way that I can still build to cljs contexts by excluding spec.
+    - this may simply be an alias in deps.edn
+    - might require wrapping spec defs in reader conditionals
+
+- garden (the css compiling lib.) works in cljs
+
+- instaparse also works in both clj and cljs
+
+#+NAME: deps.edn
+#+begin_src clojure :tangle ./deps.edn
+{:deps 
+ {org.clojure/clojure            {:mvn/version "1.10.1"}
+  org.clojure/clojurescript      {:mvn/version "1.10.597"}
+  org.clojure/test.check         {:mvn/version "0.9.0"}
+  org.clojure/spec.alpha         {:mvn/version "0.2.187"}
+  hiccup                         {:mvn/version "2.0.0-alpha2"}
+  macchiato/hiccups              {:mvn/version "0.4.1"}
+  garden                         {:mvn/version "1.3.9"}
+  instaparse                     {:mvn/version "1.4.10"}}}
+
+#+end_src
+
+** code-structure
+*** sources
+**** draw
+#+begin_src clojure :tangle ./src/stylo/draw.cljc
+<<ns-draw>>
+<<draw-containers>>
+<<draw-helpers>>
+<<draw-offset>>
+<<draw-transforms>>
+<<draw-shapes>>
+<<draw-annotations>>
+#+end_src
+
+**** builder
+#+begin_src clojure :tangle ./src/stylo/builder.cljc
+<<ns-builder>>
+<<builder-parser>>
+<<builder-extensions>>
+<<builder-transformers>>
+<<builder-compiler>>
+<<builder-main>>
+#+end_src
+
+**** stylo-tests
+#+begin_src clojure :tangle ./test/stylo/stylo_tests.cljc
+<<ns-stylo-tests>>
+#+end_src
+** scratch
+*** js-snippets
+ To add some important background features, it is necessary to add some javascript snippets directly. It would be nice to pre-compile cljs into js snippets, but I haven't found a way to have that work without requiring the entire closure library / clojurescript. When I only need some basic functions, it makes sense to write them directly in javascript.
+
+**** local-storage
+ Use the html5 localstorage feature to save the state of the output document. This is not safe from cache clearing, but it's a pretty decent way to get 80% of the way to an actual 'app' feel. This should require no work on the part of the user and happen silently.
+
+ This first pass at local storage works, but is messy. It only runs the bulksave any time a stateful class node is changed, which is good. However, it's messy because it saves the entirety of the innerHTML contents of the 'state-zone' div and replaces it.
+
+ So, if you make file changes within the state zone and there is pre-existing localStorage state, you will not see the new changes until you perform a reset by clearing the localStorage. A half-measure is the 'escape-hatch' idea.
+
+ The full solution is to instead build up state in an intelligent manner, replacing only those nodes which have state associated with them. It is purely a waste of memory to store static elements of the document inside the state.
+
+
+ #+NAME: js-local-storage
+ #+BEGIN_SRC javascript
+ function bulksave() {
+     let state = document.getElementById("state-zone").innerHTML
+     localStorage.setItem("state", state);
+ }
+
+ function bulkrestore() {
+     let state = localStorage.getItem("state");
+     document.getElementById("state-zone").innerHTML = state;
+ }
+
+ function reset() {
+     localStorage.clear();
+     location.reload();
+ }
+
+ function stateful() {
+     let elems = document.getElementsByClassName("stateful");
+     for (let elem of elems) {
+         elem.contentEditable = true;
+         elem.oninput = function () {bulksave();}
+     }
+ }
+
+ function init() {
+     stateful();
+     if (localStorage.state) {
+         bulkrestore();
+         stateful();
+     }
+ }
+
+ #+END_SRC
+
+*** build
+ This code snippet will build an executable. It uses node.js and cljs only.
+
+ #+begin_src clojure
+ (require 'cljs.build.api)
+ (cljs.build.api/build "src" {:optimizations :advanced :output-to "out/main.js"})
+
+ (use '[clojure.java.shell :only [sh]])
+ #_(sh "nexe -i out/main.js -o stylo.exe")
+
+ #+end_src
+*** ppm
+ This was an experiment to output images (.ppm files). It may be useful as a basis for creating a .png output option for diagrams.
+
+ #+BEGIN_SRC clojure
+ (defn ppm-header
+   [w h]
+   (str "P3\n" w " " h "\n255\n"))
+
+ (defn px-str
+   [r g b]
+   (let [px-ln (apply str (interleave [r g b] (repeat " ")))]
+     (str px-ln "\n")))
+
+ (defn black-img
+   [w h]
+   (str (ppm-header w h)
+        (apply str (take (* w h) (repeat (px-str 0 0 0))))))
+
+ ;; RGBA(163, 190, 140, 1)
+ (defn green-img
+   [w h]
+   (str (ppm-header w h)
+        (apply str (take (* w h) (repeat (px-str 163 190 140))))))
+
+ (defn make-grid
+   [w h]
+   (let [row (into [] (repeat w [0 0 0]))]
+     (into [] (repeat h row))))
+
+ (defn make-grid!
+   [w h]
+   (atom (make-grid w h)))
+
+ (defn get-size
+   [grid]
+   [(count (first grid)) (count grid)])
+
+ (defn grid->ppm
+   [grid]
+   (let [[w h] (get-size grid)
+         header (ppm-header w h)
+         pixels (apply concat grid)]
+     (str header (apply str (map #(apply px-str %) pixels)))))
+
+ (def black-img2
+   (grid->ppm
+    (make-grid 100 100)))
+
+ (defn rand-col
+   []
+   (vec (take 3 (repeatedly #(rand-int 256)))))
+
+ (defn make-grid-noise
+   [w h]
+   (let [row #(vec (take w (repeatedly rand-col)))]
+     (vec (take h (repeatedly row)))))
+
+ (defn noise
+   [grid]
+   (let [[w h] (get-size @grid)]
+     (doseq [row (range h)
+             col (range w)]
+       (swap! grid #(assoc-in % [row col] (rand-col))))))
+
+ (def example-grid
+   [[ ["a"] ["b"] ["c"] ["d"] ["e"] ]
+    [ ["f"] ["g"] ["h"] ["i"] ["j"] ]
+    [ ["k"] ["l"] ["m"] ["n"] ["o"] ]])
+
+ ;; a grid structure like above can use (get-in with [row col])
+ #+END_SRC
+
+ The watcher in the  code below is bad. This is because it runs a side-effecting fn (save to a file) EVERY time the atom is updated. My (noise a) fn does a swap! to the atom for every pixel. This means that the file gets re-written (* w h) times. That's not smart.
+
+ #+BEGIN_SRC clojure
+ ;; use watchers... this is probably not safe or smart. 
+ ;; just an experiment
+ (add-watch a :watcher
+   (fn [key atom old-state new-state]
+     (spit "ppm-test.ppm" (grid->ppm new-state))))
+
+ #+END_SRC
+* design
+** idea
+This program takes a document and renders it.
+
+The intent is to have a plaintext file format. Markdown and org files are good examples. These files will have a simple syntax which allows text and code. The user can use or create 'extensions' which allow for more specialized sections in the documents. For example, github flavoured markdown has a more advanced concept of tables than the original specification of markdown.
+
+These extensions will each have their own DSL which can be used directly in the plaintext document.
+
+Users can write their document, run the stylo program binary on their file, and expect to see an .html file which fully contains their rendered work.
+
+The rendered document is 'standalone'. It is (ideally) a single file (all images, and interactive elements are embedded).
+
+Any interactive components in the document are fully contained in the file so that no internet connection is required.
+
+** pragmatic-considerations
+- it should be optional to render documents with links to a ./resources/ folder containing images (no embedding) to keep files smaller
+- for interactive elements, it may be simpler to distribute/keep files small by rendering with cdn links to js plugins
+  - if there is a 3D viewer using three.js or babylon.js, it might be a better approach to NOT include the entire js library in the document and instead use a script tag with a link to the cdn.
+
+** workflow
+- user creates a new document in their editor of choice
+- at the top of the file, the user can list the extensions they wish to use (if no list is provided, sensible defaults exist in the core library already)
+- user runs the stylo program from the terminal, passing in the file as an arg.
+- a file watcher is spawned and the document is rendered to an html file, and the file opens in the user's default browser
+- changes to the document are detected and the html file is re-rendered and the browser refreshed.
+- when the user is finished, they have both the source document and the finished html file to distribute as they wish.
+
+This setup allows users to edit documents however they want and still see their changes live in the browser. This is a really nice way to work allowing for incremental improvements to the document. This is similar to how Clojure has a really nice REPL allowing for progams to be built up in small pieces.
+* style
+Each theme's source is ported from a plain .css file into hiccup style syntax. Original source is linked within each. All are MIT licensed, so are acceptable to use in this project.
+
+It's valuable to have the styles in clojure data structures in case there is need to programmatically manipulate styles in the future. For example, if I want to create a macro that packages up 'lightweight components', I may wish to attach style vectors directly to the rest of the component's definition.
+
+The focus of all styles is simplicity. They are classless (or as close as possible), work on mobile displays with minimal special-casing, and are easy to understand. They also look very nice without being overly designed.
+
+Clean.
+Minimal.
+Simple.
+
+IDEA: make it possible for users to easily provide their own themes. Perhaps this is best done by treating themes as extensions?
+
+** style-base
+This is the base style set used in all themes.
+*** src
+#+begin_src clojure :tangle ./src/stylo/style/base.cljc
+<<ns-style-base>>
+<<style-base-draw>>
+<<style-base-tables>>
+<<style-base-figures>>
+<<style-base-code>>
+<<style-base-pagebreak>>
+<<style-base-build>>
+#+end_src
+
+*** ns
+#+NAME: ns-style-base
+#+BEGIN_SRC clojure
+(ns stylo.style.base
+  (:require [garden.core :refer [css]]
+            [garden.stylesheet :refer [at-media]]
+            [garden.units :as u]))
+
+#+END_SRC
+
+*** draw
+These styles are used within the draw namespace.
+
+#+NAME: style-base-draw
+#+BEGIN_SRC clojure
+(def draw
+  [[:.ln {:stroke "#2e3440" :stroke-width (u/px 2)}]
+   [:.clr {:fill "none"}]
+   [:.attn {:fill "rgb(234, 82, 111)"}]
+   [:.face {:fill "#a3be8c"
+           :fill-rule "evenodd"}]
+   [:rect :line :path :polygon :polyline :circle {:vector-effect "non-scaling-stroke"}]])
+
+#+END_SRC
+
+*** tables
+#+NAME: style-base-tables
+#+BEGIN_SRC clojure
+(def tables
+  [[:table {:width "auto"}]
+   [:th :td {:vertical-align "top"
+             :padding (u/px 5)
+             :border "1px solid #ddd"}]
+   [:table [:ul {:list-style-type "none"
+                  :padding-left (u/px 4)
+                  :margin 0}]]
+   [:table [:li:before {:content "▢ "}]]
+   [:table [:p {:margin 0}]]])
+
+#+END_SRC
+
+*** figures
+#+NAME: style-base-figures
+#+BEGIN_SRC clojure
+(def figures
+  [[:.figure {:padding-left (u/px 7)}]
+   [:.figure [:p {:font-size "smaller"
+                  :font-style "italic"}]]])
+
+#+END_SRC
+
+*** code
+#+NAME: style-base-code
+#+BEGIN_SRC clojure
+(def code
+  [[:code {:padding (u/px 8)
+           :background "#2e3440"
+           :color "#dedee9"
+           :white-space "pre-wrap"
+           :display "inline-block"
+           :width (u/percent 100)}]])
+
+#+END_SRC
+
+#+RESULTS[2342df20361e21aa93ed992c794f248f81cefa1d]: style-base-code
+: #'stylo.style.base/code
+
+*** pagebreak
+#+NAME: style-base-pagebreak
+#+BEGIN_SRC clojure
+(def pagebreak
+  [(at-media {:print ""}
+             [:.pagebreak {:page-break-after "always"}])])
+
+#+END_SRC
+
+*** build
+#+NAME: style-base-build
+#+BEGIN_SRC clojure
+(def style
+  (concat
+   draw
+   tables
+   figures
+   code
+   pagebreak))
+
+(def style-str
+  (css style))
+
+#+END_SRC
+
+** theme-mu
+[[https://github.com/BafS/mu][mu]]
+
+The writ theme is nice for documentation. It's another classless, simple theme.
+
+*** src
+#+begin_src clojure :tangle ./src/stylo/style/mu.cljc
+<<ns-style-mu>>
+<<style-mu-attribution>>
+<<style-mu-fonts>>
+<<style-mu-page-setup>>
+<<style-mu-tables>>
+<<style-mu-blocks>>
+<<style-mu-inputs>>
+<<style-mu-grid>>
+<<style-mu-build>>
+#+end_src
+
+*** ns
+#+NAME: ns-style-mu
+#+BEGIN_SRC clojure
+(ns stylo.style.mu
+  (:require [garden.core :refer [css]]
+            [garden.stylesheet :refer [at-media]]
+            [garden.units :as u]
+            [stylo.style.base :as base]))
+
+#+END_SRC
+
+*** attribution
+The license and attribution are in a comment header at the top of the original code, and shall be respected.
+
+#+NAME: style-mu-attribution
+#+BEGIN_SRC clojure
+(def license-str ""
+"
+/*!
+MIT License
+
+Copyright (c) 2016 Fabien Sa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software\"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+")
+
+(def attrib-str "" 
+"
+/*
+| The mu framework v0.3.1
+| BafS 2016-2018
+*/
+
+")
+
+#+END_SRC
+
+*** fonts
+The theme has embedded fonts, which is perfect as the final rendered document will be fully usable offline. But, since the data is embedded, we want to import it from a file so that we're not cluttering up this file.
+
+#+NAME: style-mu-fonts
+#+BEGIN_SRC clojure
+(def fonts
+  [[:* :*:after :*:before {:box-sizing "border-box"}]
+   [:body {:font "18px/1.6 Georgia, \"Times New Roman\", Times, serif"}]
+   [:table :input {:font-size (u/px 16)}]
+   [:button :select {:font-size (u/px 14)}]
+   [:h1 :h2 :h3 :h4 :h5 :h6 {:font-family "\"Helvetica Neue\", Helvetica, Arial, sans-serif"
+                             :line-height 1.2}]])
+
+#+END_SRC
+
+*** page-setup
+The page setup is most of the theme.
+
+#+NAME: style-mu-page-setup
+#+BEGIN_SRC clojure
+(def page-setup
+  [[:body {:margin [[(u/px 40) "auto"]]
+           :max-width (u/px 760)
+           :color "#444"
+           :padding [[0 (u/px 20)]]}]
+   [:a {:color "#07c"
+        :text-decoration "none"}]
+   [:a:hover {:color "#059"
+              :text-decoration "underline"}]
+   [:hr {:border 0
+         :margin [[(u/px 25) 0]]}]])
+
+#+END_SRC
+*** tables
+The table styling
+
+#+NAME: style-mu-tables
+#+BEGIN_SRC clojure
+(def tables
+  [[:table {:border-spacing 0
+            :border-collapse "collapse"
+            :text-align "left"
+            :padding-bottom (u/px 25)}]
+   [:td :th {:padding (u/px 5)
+             :vertical-align "bottom"}]
+   [:td :th :hr {:border-bottom [[(u/px 1) "solid" "#ddd"]]}]])
+
+#+END_SRC
+
+*** blocks
+Block element styles
+
+#+NAME: style-mu-blocks
+#+BEGIN_SRC clojure
+(def blocks
+  [[:pre {:padding (u/px 8)
+          :white-space "pre-wrap"}]])
+
+#+END_SRC
+
+*** inputs
+The styles for input type elements
+
+#+NAME: style-mu-inputs
+#+BEGIN_SRC clojure
+(def inputs
+  [[:button :select {:background "#ddd"
+                     :border 0
+                     :padding [[(u/px 9) (u/px 20)]]}]
+   [:input {:padding (u/px 5)
+            :vertical-align "bottom"}]
+   [:button:hover {:background "#eee"}]
+   [:textarea {:border-color "#ccc"}]])
+
+#+END_SRC
+
+*** grid
+The grid special classes
+
+#+NAME: style-mu-grid
+#+BEGIN_SRC clojure
+(def grid
+  [[:.row {:display "block"
+           :width "auto"
+           :min-height (u/px 1)}]
+   [:.row:after {:content "\"\""
+                 :display "table"
+                 :clear "both"}]
+   [:.row :.c {:float "left"}]
+   [:table :.g2 :.g3 :.g3-2 :.m2 :.m3 :.m3-2 {:width (u/percent 100)}]
+   
+   [(at-media {:min-width (u/px 768)})
+    [:.g2 {:width (u/percent 50)}]
+    [:.m2 {:margin-left (u/percent 50)}]
+    [:.g3 {:width (u/percent 33.33)}]
+    [:.g3-2 {:width (u/percent 66.66)}]
+    [:.m3 {:margin-left (u/percent 33.33)}]
+    [:.m3-2 {:margin-left (u/percent 66.66)}]]])
+
+#+END_SRC
+
+*** build
+Combine all of the definitions to build the style.
+
+#+NAME: style-mu-build
+#+BEGIN_SRC clojure
+(def style-str
+  (str
+   license-str
+   attrib-str
+   (css (concat
+         fonts
+         base/style
+         page-setup
+         tables
+         blocks
+         inputs
+         grid))))
+
+#+END_SRC
+** theme-latex
+[[https://github.com/davidrzs/latexcss][latexcss]]
+
+I love this theme because it looks really clean, and nicely mimics the distinct look of papers written with LaTeX. It is suitable for techincal documents, and probably works best when the end deliverable is a PDF document for techincal or academic readers.
+*** src
++begin_src clojure :tangle ./src/stylo/style/latex.cljc
+<<ns-style-latex>>
+<<style-latex-attribution>>
+<<style-latex-fonts>>
+<<style-latex-page-setup>>
+<<style-latex-content-box>>
+<<style-latex-article-body>>
+<<style-latex-mobile>>
+<<style-latex-special-classes>>
+<<style-latex-build>>
+#+end_src
+
+*** ns
+#+NAME: ns-style-latex
+#+BEGIN_SRC clojure
+(ns stylo.style.latex
+  (:require [garden.core :refer [css]]
+            [garden.stylesheet :refer [at-media]]
+            [garden.units :as u]))
+
+#+END_SRC
+
+*** attribution
+The license and attribution are in a comment header at the top of the original code, and shall be respected.
+
+#+NAME: style-latex-attribution
+#+BEGIN_SRC clojure
+(def license-str ""
+"
+/*!
+MIT License
+
+Copyright (c) 2017 davidrzs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software\"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+")
+
+(def attrib-str ""
+"/*
+latex.css
+https://github.com/davidrzs/latexcss
+MIT-License
+*/
+
+")
+
+#+END_SRC
+
+*** fonts
+The theme has embedded fonts, which is perfect as the final rendered document will be fully usable offline. But, since the data is embedded, we want to import it from a file so that we're not cluttering up this file.
+
+#+NAME: style-latex-fonts
+#+BEGIN_SRC clojure
+(def lmr-font-str (slurp "resources/latin-modern-roman-font.css"))
+
+#+END_SRC
+
+*** page-setup
+Page setup styles several elements. They are kept in a vector.
+
+#+NAME: style-latex-page-setup
+#+BEGIN_SRC clojure
+(def page-setup
+  [[:body {:background-color "white"
+           :font-size (u/pt 13)
+           :font-family "'Latin Modern Roman', serif"}
+    {:counter-reset "theorem"}
+    {:counter-reset "lemma"}
+    {:counter-reset "definition"}]
+   [:h1 :h2 :h3 :h4 :h5 :h6 {:border "none"
+                             :font-weight "bold"}]
+   [:a :a:visited {:color "#a00"}]
+   [:ul {:list-style "disc"}]])
+
+#+END_SRC
+
+*** content-box
+The content box is where the document's content resides.
+
+#+NAME: style-latex-content-box
+#+BEGIN_SRC clojure
+(def content-box
+  [[:body {:max-width (u/px 720)
+           :margin [[(u/em 2) "auto"]]}]
+   [:h1:first-of-type {:text-align "center"
+                       :display "block"}]])
+
+#+END_SRC
+
+*** article-body
+The article body has just a few minor tweaks.
+
+#+NAME: style-latex-article-body
+#+BEGIN_SRC clojure
+(def article-body
+  [[:body {:text-align "justify"
+           :-moz-hyphens "auto"
+           :hyphens "auto"
+           :padding [[0 (u/em 1)]]}]
+   [:dl :dd {:text-align "center"}]])
+
+#+END_SRC
+
+*** mobile
+Use the @media selector to re-define styles for mobile displays. Minimal changes in this theme.
+
+#+NAME: style-latex-mobile
+#+BEGIN_SRC clojure
+(def mobile
+  [(at-media {:max-width (u/em 43.75)}
+             [:body {:padding 0}])])
+
+#+END_SRC
+
+*** special-classes
+The LaTeX theme has some special class definitions for proofs, theorems, and lemmas. This is unlikely to be used within my current projects, but for completeness I include them here.
+
+The author class is likely to be used.
+
+#+NAME: style-latex-special-classes
+#+BEGIN_SRC clojure
+(def author
+  [:.author {:margin-top (u/px 8)
+             :margin-bottom (u/px 8)
+             :font-variant-caps "small-caps"
+             :text-align "center"}])
+
+(def theorem
+  [[:.theorem {:counter-increment "theorem"
+               :display "block"
+               :margin [(u/px 12) 0]
+               :font-style "italic"}]
+   [:.theorem:before {:content "\"Theorem \" counter(theorem) \".\""
+                      :font-weight "bold"
+                      :font-style "normal"}]])
+
+(def lemma
+  [[:.lemma {:counter-increment "lemma"
+             :display "block"
+             :margin [(u/px 12) 0]
+             :font-style "italic"}]
+   [:.lemma:before {:content "\"Lemma \" counter(lemma) \".\""
+                    :font-weight "bold"
+                    :font-style "normal"}]])
+
+(def definition
+  [[:.definition {:counter-increment "definition"
+                  :display "block"
+                  :margin [(u/px 12) 0]
+                  :font-style "normal"}]
+   [:.definition:before {:content "\"Definition \" counter(definition) \".\""
+                         :font-weight "bold"
+                         :font-style "normal"}]])
+
+(def proof
+  [[:.proof {:display "block"
+             :margin [(u/px 12) 0]
+             :font-style "normal"}]
+   [:.proof:before {:content "\"Proof. \""
+                    :font-style "italic"}]
+   [:.proof:after {:content "\"\\25FB\""
+                   :float "right"}]])
+
+(def special-classes
+  (concat
+   author
+   theorem
+   lemma
+   definition
+   proof))
+#+END_SRC
+
+*** build
+Combine all of the definitions to build the style.
+
+#+NAME: style-latex-build
+#+BEGIN_SRC clojure
+(def style-str
+  (str
+   attrib-str
+   lmr-font-str
+   (css (concat
+         page-setup
+         content-box
+         article-body
+         mobile
+         special-classes))))
+
+#+END_SRC
+** theme-writ
+[[https://github.com/causal-agent/writ][writ]]
+
+The writ theme is ideal for essays. It's another classless, simple theme.
+
+*** src
++begin_src clojure :tangle ./src/stylo/style/writ.cljc
+<<ns-style-writ>>
+<<style-writ-attribution>>
+<<style-writ-fonts>>
+<<style-writ-colors>>
+<<style-writ-page-setup>>
+<<style-writ-blocks>>
+<<style-writ-lists>>
+<<style-writ-tables>>
+<<style-writ-inline>>
+#+end_src
+
+*** ns
+#+NAME: ns-style-writ
+#+BEGIN_SRC clojure
+(ns stylo.style.writ
+  (:require [garden.core :refer [css]]
+            [garden.stylesheet :refer [at-media]]
+            [garden.color :refer [rgba]]
+            [garden.selectors :as s]
+            [garden.units :as u]))
+
+#+END_SRC
+
+*** attribution
+The license and attribution are in a comment header at the top of the original code, and shall be respected.
+
+#+NAME: style-writ-attribution
+#+BEGIN_SRC clojure
+(def license-str ""
+"
+/*!
+ISC License
+
+Copyright © 2015, Curtis McEnroe <curtis@cmcenroe.me>
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
+
+")
+
+(def attrib-str "" 
+"
+/*!
+ * Writ v1.0.4
+ *
+ * Copyright © 2015, Curtis McEnroe <curtis@cmcenroe.me>
+ *
+ * https://cmcenroe.me/writ/LICENSE (ISC)
+ */
+
+")
+
+#+END_SRC
+
+*** fonts
+The theme has embedded fonts, which is perfect as the final rendered document will be fully usable offline. But, since the data is embedded, we want to import it from a file so that we're not cluttering up this file.
+
+#+NAME: style-writ-fonts
+#+BEGIN_SRC clojure
+(def fonts-and-sizes
+  [[:html {:font-family "Palatino, Georgia, Lucida Bright, Book Antiqua, serif"
+           :font-size (u/px 16)
+           :line-height (u/rem 1.5)}]
+   [:code :pre :samp :kbd {:font-family "Consolas, Liberation Mono, Menlo, Courier, monospace"
+                           :font-size (u/rem 0.833)}]
+   [:kbd {:font-weight "bold"}]
+   [:h1 :h2 :h3 :h4 :h5 :h6 :th {:font-weight "normal"}]
+   [:h1 {:font-size (u/em 2.488)}]
+   [:h2 {:font-size (u/em 2.074)}]
+   [:h3 {:font-size (u/em 1.728)}]
+   [:h4 {:font-size (u/em 1.44)}]
+   [:h5 {:font-size (u/em 1.2)}]
+   [:h6 {:font-size (u/em 1)}]
+   [:small {:font-size (u/em 0.833)}]])
+
+(def heights-and-margins
+  [[:h1 :h2 :h3 {:line-height (u/rem 3)}]
+   [:p :ul :ol :dl :table :blockquote :pre :h1 :h2 :h3 :h4 :h5 :h6 {:margin [[(u/rem 1.5) 0 0]]}]
+   [[:ul :ul] [:ol :ol] [:ul :ol] [:ol :ul] {:margin 0}]
+   [:hr {:margin 0
+         :border "none"
+         :padding [[(u/rem 1.5) 0 0]]}]
+   [:table {:line-height "calc(1.5rem - 1px)"
+            :margin-bottom (u/px (- 1))}]
+   [:pre {:margin-top "calc(1.5rem - 1px)"
+          :margin-bottom (u/px (- 1))}]])
+
+(def fonts (concat fonts-and-sizes heights-and-margins))
+
+#+END_SRC
+
+*** colors
+Set up the colors.
+
+#+NAME: style-writ-colors
+#+BEGIN_SRC clojure
+(def colors
+  [[:body {:color "#222"}]
+   [:code :pre :samp :kbd {:color "#111"}]
+   [:a [:header :nav :a:visited] [:a :code] {:color "#00e"}]
+   [:a:visited [:a:visited :code] {:color "#60b"}]
+   [:mark {:color "inherit"}]
+
+   [:code :pre :samp :thead :tfoot {:background-color (rgba 0 0 0 0.05)}]
+   [:mark {:background-color "#fe0"}]
+
+   [[:main :aside] :blockquote :ins {:border [["solid" (rgba 0 0 0 0.05)]]}]
+   [:pre :code :samp {:border [["solid" (rgba 0 0 0 0.1)]]}]
+   [:th :td {:border [["solid" "#dbdbdb"]]}]])
+
+#+END_SRC
+
+*** page-setup
+Page setup styles several elements. They are kept in a vector.
+
+#+NAME: style-writ-page-setup
+#+BEGIN_SRC clojure
+(def page-setup
+  [[:body {:margin [[(u/rem 1.5) (u/ch 1)]]}]
+   [(s/> :body :header) {:text-align "center"}]
+   [:main (s/> :body :footer) {:display "block"
+                               :max-width (u/ch 78)
+                               :margin "auto"}]
+   [[:main :figure] [:main :aside] {:float "right"
+                                    :margin [[(u/rem 1.5) 0 0 (u/ch 1)]]}]
+   [[:main :aside] {:max-width (u/ch 26)
+                    :border-width [[0 0 0 (u/ch 0.5)]]
+                    :padding [[0 0 0 (u/ch 0.5)]]}]])
+
+#+END_SRC
+
+*** blocks
+The blocks.
+
+#+NAME: style-writ-blocks
+#+BEGIN_SRC clojure
+(def blocks
+  [[:blockquote {:margin-right (u/ch 3)
+                 :margin-left (u/ch 1.5)
+                 :border-width [[0 0 0 (u/ch 0.5)]]
+                 :padding [[0 0 0 (u/ch 1)]]}]
+   [:pre {:border-width (u/px 1)
+          :border-radius (u/px 2)
+          :padding [[0 (u/ch 0.5)]]
+          :overflow-x "auto"}]
+   [[:pre :code] {:border "none"
+                  :padding 0
+                  :background-color "transparent"
+                  :white-space "inherit"}]
+   [:img {:max-width (u/percent 100)}]])
+
+#+END_SRC
+
+*** lists
+Some list styling
+
+#+NAME: style-writ-lists
+#+BEGIN_SRC clojure
+(def lists
+  [[:ul :ol :dd {:padding [[0 0 0 (u/ch 3)]]}]
+   [:dd {:margin 0}]
+
+   [(s/> :ul :li) {:list-style-type "disc"}]
+   [(s/> "li ul" :li) {:list-style-type "circle"}]
+   [(s/> "li li ul" :li) {:list-style-type "square"}]
+
+   [(s/> :ol :li) {:list-style-type "decimal"}]
+   [(s/> "li ol" :li) {:list-style-type "lower-alpha"}]
+   [(s/> "li li ol" :li) {:list-style-type "lower-roman"}]
+
+   [[:nav :ul] {:padding 0
+                :list-style-type "none"}]
+   [[:nav :ul :li] {:display "inline"
+                    :padding-left (u/ch 1)
+                    :white-space "nowrap"}]
+   [[:nav :ul :li:first-child] {:padding-left 0}]])
+
+#+END_SRC
+
+*** tables
+Table styling
+
+#+NAME: style-writ-tables
+#+BEGIN_SRC clojure
+(def tables
+  [[:table {:width (u/percent 100)
+            :border-collapse "collapse"
+            :overflow-x "auto"}]
+   [:th :td {:border-width (u/px 1)
+             :padding [[0 (u/ch 0.5)]]}]])
+
+#+END_SRC
+*** inline
+Inline element styles
+
+#+NAME: style-writ-inline
+#+BEGIN_SRC clojure
+(def inline
+  [[:a {:text-decoration "none"}]
+   [:sup :sub {:font-size (u/em 0.75)
+               :line-height (u/em 1)}]
+   [:ins {:border-width (u/px 1)
+          :padding (u/px 1)
+          :text-decoration "none"}]
+   [:mark {:padding (u/px 1)}]
+   [:code :samp {:border-width (u/px 1)
+                 :border-radius (u/px 2)
+                 :padding [[(u/em 0.1) (u/em 0.2)]]
+                 :white-space "nowrap"}]])
+
+#+END_SRC
+
+*** build
+Combine all of the definitions to build the style.
+
+#+NAME: style-writ-build
+#+BEGIN_SRC clojure
+(def style-str
+  (str
+   license-str
+   attrib-str
+   (css (concat
+         fonts
+         colors
+         page-setup
+         blocks
+         lists
+         tables
+         inline))))
+
+#+END_SRC
+** theme-awsm
+[[https://github.com/igoradamenko/awsm.css][awsm]]
+
+This is the most comprehensive classless theme in my primary selection. It is likely to be the most useful theme.
+
+*** src
++begin_src clojure :tangle ./src/stylo/style/awsm.cljc
+<<ns-style-awsm>>
+<<style-awsm-attribution>>
+<<style-awsm-fonts>>
+<<style-awsm-page-setup>>
+<<style-awsm-blocks>>
+<<style-awsm-tables>>
+<<style-awsm-forms>>
+<<style-awsm-build>>
+#+end_src
+
+*** ns
+#+NAME: ns-style-awsm
+#+BEGIN_SRC clojure
+(ns stylo.style.awsm
+  (:require [garden.core :refer [css]]
+            [garden.stylesheet :refer [at-media]]
+            [garden.selectors :as s]
+            [garden.units :as u]))
+
+#+END_SRC
+
+*** attribution
+The license and attribution are in a comment header at the top of the original code, and shall be respected.
+
+#+NAME: style-awsm-attribution
+#+BEGIN_SRC clojure
+(def license-str ""
+"
+/*!
+MIT License
+
+Copyright (c) 2015 Igor Adamenko http://igoradamenko.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software\"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+")
+
+(def attrib-str "" 
+"
+/*!
+ * awsm.css v3.0.4 (https://igoradamenko.github.io/awsm.css/)
+ * Copyright 2015 Igor Adamenko <mail@igoradamenko.com> (https://igoradamenko.com)
+ * Licensed under MIT (https://github.com/igoradamenko/awsm.css/blob/master/LICENSE.md)
+ */
+
+")
+
+#+END_SRC
+
+*** fonts
+The theme has embedded fonts, which is perfect as the final rendered document will be fully usable offline. But, since the data is embedded, we want to import it from a file so that we're not cluttering up this file.
+
+#+NAME: style-awsm-fonts
+#+BEGIN_SRC clojure
+(def fonts
+  [[:html {:font-family "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"PT Sans\", \"Open Sans\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"
+           :font-size (u/percent 100)
+           :line-height 1.4
+           :background "white"
+           :color "black"
+           :-webkit-overflow-scrolling "touch"}]])
+
+#+END_SRC
+
+*** page-setup
+The page setup is most of the theme.
+
+#+NAME: style-awsm-page-setup
+#+BEGIN_SRC clojure
+(def body-sizing
+  [[:body {:margin (u/em 1.2)
+           :font-size (u/rem 1)}]
+   [(at-media {:min-width (u/rem 20)}) [:body {:font-size "calc(1rem + 0.00625 * (100vw - 20rem))"}]]
+   [(at-media {:min-width (u/rem 40)}) [:body {:font-size (u/rem 1.125)}]]
+   [[:body :header] [:body :footer] [:body :article] {:position "relative"
+                                                      :max-width (u/rem 40)
+                                                      :margin [[0 auto]]}]
+   [(s/> :body :header) {:margin-bottom (u/em 3.5)}]
+   [(s/> :body "header h1") {:margin 0
+                             :font-size (u/em 1.5)}]
+   [(s/> :body "header p") {:margin 0
+                            :font-size (u/em 0.85)}]
+   [(s/> :body :footer) {:margin-top (u/em 6)
+                         :padding-bottom (u/em 1.5)
+                         :text-align "center"
+                         :font-size (u/rem 0.8)
+                         :color "#aaaaaa"}]])
+
+(def sections
+  [[(s/+ :section :section) {:margin-top (u/em 2)}]
+   [(s/+ :article :article) {}]
+   [[:article :header :p] {}]
+   [[:article :header (s/+ :p :h1)] [:article :header (s/+ :p :h2)] {:margin-top (u/em (- 0.25))}]
+   [[:article :header (s/+ :h1 :p)] [:article :header (s/+ :h2 :p)] {:margin-top (u/em 0.25)}]
+   [[:article :header :h1 :a] [:article :header :h2 :a] {:color "black"}]
+   [[:article :header :h1 :a:visited] [:article :header :h2 :a:visited] {:color "#aaaaaa"}]
+   [[:article :header :h1 :a:visited:hover] [:article :header :h2 :a:visited:hover] {:color "#f00000"}]
+   [(s/> :article :footer) {:margin-top (u/em 1.5)
+                            :font-size (u.em 0.85)}]])
+
+(def nav
+  [[:nav {:margin [[(u/em 1) 0]]}]
+   [[:nav :ul] {:list-style "none"
+                :margin 0
+                :padding 0}]
+   [[:nav :li] {:display "inline-block"
+                :margin-right (u/em 1)
+                :margin-bottom (u/em 0.25)}]
+   [[:nav :a:visited] {:color "#0064cl"}]
+   [[:nav :a:hover] {:color "#f00000"}]])
+
+(def lists
+  [[:ul :ol {:margin-top 0
+             :padding-top 0
+             :padding-left (u/em 2.5)}]
+   [(s/+ "ul li" :li) (s/+ "ol li" :li) {:margin-top (u/em 0.25)}]
+   [(s/> "ul li" :details) (s/> "ol li" :details) {:margin 0}]
+   [(s/+ :p :ul) (s/+ :p :ol) {:margin-top (u/em (- 0.75))}]])
+
+(def headings
+  [[:h1 :h2 :h3 :h4 :h5 :h6 {:margin [[(u/em 1.25) 0 0]]
+                             :line-height 1.2}]
+   [:h1 {:font-size (u/em 2.5)}]
+   [:h2 {:font-size (u/em 1.75)}]
+   [:h3 {:font-size (u/em 1.25)}]
+   [:h4 {:font-size (u/em 1.15)}]
+   [:h5 {:font-size (u/em 1)}]
+   [:h6 {:font-size (u/em 1)
+         :margin-top (u/em 1)
+         :color "#aaaaaa"}]])
+
+(def paragraphs
+  [[:p {:margin [[(u/em 1) 1]]
+        :-webkit-hyphens "auto"
+        :-ms-hyphens "auto"
+        :hyphens "auto"}]
+   [:p:first-child {:margin-top 0}]
+   [:p:last-child {:margin-bottom 0}]])
+
+(def page-setup
+  (concat body-sizing
+          sections
+          nav
+          lists
+          headings
+          paragraphs))
+
+#+END_SRC
+
+*** blocks
+
+#+NAME: style-awsm-blocks
+#+BEGIN_SRC clojure
+(def links
+  [[:a {:color "#0064cl"}]
+   [:a:visited {:color "#8d39d0"}]
+   [:a:hover :a:active {:outline-width 0}]
+   [:a:hover {:color "#f00000"}]
+   [[:a :abbr] {:font-size (u/em 1)}]])
+
+(def images-and-figures
+  [[:img :picture {:display "block"
+                   :max-width (u/percent 100)
+                   :margin [[0 "auto"]]}]
+   [:audio :video {:width (u/percent 100)
+                   :max-width (u/percent 100)}]
+   [:figure {:margin [[(u/em 1) 0 (u/em 0.5)]]
+             :padding 0}]
+   [(s/+ :figure :p) {:margin-top (u/em 0.5)}]
+   [[:figure :figcaption] {:opacity 0.65
+                           :font-size (u/em 0.85)}]
+   [[:p :img] [:p :picture] {:float "right"
+                             :margin-bottom (u/em 0.5)
+                             :margin-left (u/em 0.5)}]
+   [[:p :picture :img] {:float "none"
+                        :margin 0}]])
+
+(def block-elements
+  [[:dd {:margin-bottom (u/em 1)
+         :margin-left 0
+         :padding-left (u/em 2.5)}]
+   [:dt {:font-weight 700}]
+   [:blockquote {:margin 0
+                 :padding-left (u/em 2.5)}]
+   [:aside {:margin [[(u/em 0.5) 0]]}]
+   [(at-media {:min-width (u/rem 65)})
+    [:aside {:position "absolute"
+             :right (u/rem (- 12.5))
+             :width (u/rem 9.375)
+             :max-width (u/rem 9.375)
+             :margin 0
+             :padding-left (u/em 0.5)
+             :font-size (u/em 0.8)
+             :border-left [[(u/px 1) "solid" "#f2f2f2"]]}]]
+   [:aside:first-child {:margin-top 0}]
+   [:aside:last-child {:margin-bottom 0}]
+   [:abbr {:margin-right (u/em (- 0.075))
+           :text-decoration "none"
+           :-webkit-hyphens "none"
+           :-ms-hyphens "none"
+           :hyphens "none"
+           :letter-spacing (u/em 0.075)
+           :font-size (u/em 0.9)}]
+   [:code :kbd :var :samp {:font-family "Consolas, \"Lucida Console\", Monaco, monspace"
+                           :font-style "normal"}]
+   [:pre {:overflow-x "auto"
+          :font-size (u/em 0.8)
+          :background "rgba(0,0,0,0.15)"
+          :background-attachment "scroll scroll"
+          :background-size "1px 100%, 1px 100%"
+          :background-repeat "no-repeat, no-repeat"}]
+   [(s/> :pre :code) {:display "inline-block"
+                      :overflow-x "visible"
+                      :box-sizing "border-box"
+                      :min-width (u/percent 100)
+                      :border-right [[(u/px 3) "solid" "white"]]
+                      :border-left [[(u/px 1) "solid" "white"]]}]
+   [:hr {:height (u/px 1)
+         :margin [[(u/em 2) 0]]
+         :border 0
+         :background "#f2f2f2"}]])
+
+(def blocks
+  (concat links
+          images-and-figures
+          block-elements))
+
+#+END_SRC
+*** tables
+Table styles
+
+#+NAME: style-awsm-tables
+#+BEGIN_SRC clojure
+(def tables
+  [[:table {:display "inline-block"
+            :border-spacing 0
+            :border-collapse "collapse"
+            :overflow-x "auto"
+            :max-width (u/percent 100)
+            :text-align "left"
+            :vertial-align "top"
+            :background "rgba(0,0,0,0.15)"
+            :background-attachment "scroll scroll"
+            :background-size "1px 100%, 1px 100%"
+            :background-repeat "no-repeat, no-repeat"}]
+   [[:table :th] {:line-height 1.2}]
+   [[:table :caption] {:font-size (u/em 0.9)
+                       :background "white"}]
+   [[:table :td] [:table :th] {:padding [[(u/em 0.35) (u/em 0.75)]]
+                               :vertical-align "top"
+                               :font-size (u/em 0.9)
+                               :border [[(u/px 1) "solid" "#f2f2f2"]]
+                               :border-top 0
+                               :border-left 0}]
+   [[:table :td:first-child] [:table :th:first-child] {:padding-left 0}]
+   [[:table :td:last-child] [:table :th:last-child] {:padding-right 0
+                                                     :border-right 0}]])
+
+#+END_SRC
+
+*** forms
+Form styles
+
+#+NAME: style-awsm-forms
+#+BEGIN_SRC clojure
+(def form-elements
+  [[:form {:margin-right "auto"
+           :margin-left "auto"}]
+   [(at-media {:min-width (u/rem 40)})
+    [:form {:max-width (u/percent 80)}]]
+   [[:form :select] [:form :label] {:display "block"}]
+   [[:form "label:not(:first-child)"] {:margin-top (u/em 1)}]
+   [[:form :p :label] {:display "inline"}]
+   [[:form :p (s/+ :label :label)] {:margin-left (u/em 1)}]
+   [[:form (s/+ :legend:first-child :label)] {:margin-top 0}]
+   [[:form :select] [:form "input[type]"] [:form :textarea] {:margin-bottom (u/em 1)}]
+   [[:form "input[type=checkbox]"] [:form "input[type=radio]"] {:margin-bottom 0}]
+   [:fieldset {:margin 0
+               :padding [[(u/em 0.5) (u/em 1)]]
+               :border [[(u/px 1) "solid" "#aaaaaa"]]}]
+   [:legend {:color "#aaaaaa"}]
+   [:button :select {:outline "none"
+                     :box-sizing "border-box"
+                     :height (u/em 2)
+                     :margin 0
+                     :padding [["calc(0.25em - 1px)" (u/em 0.5)]]
+                     :font-family "inherit"
+                     :font-size (u/em 1)
+                     :border [[(u/px 1) "solid" "#aaaaaa"]]
+                     :border-radius (u/px 2)
+                     :background "#f2f2f2"
+                     :color "black"
+                     :display "inline-block"
+                     :width "auto"
+                     :cursor "pointer"}]
+   [:button:focus {:border [[(u/px 1) "solid" "black"]]}]
+   [:button:hover {:border [[(u/px 1) "solid" "black"]]}]
+   [:button:active {:background-color "#aaaaaa"}]
+   [:select {:padding-right (u/em 1.2)
+             :background-position [["top" (u/percent 55) "right" (u/em 0.35)]]
+             :background-size (u/em 0.5)
+             :-webkit-appearance "button"
+             :-moz-appearance "button"
+             :appearance "button"}]
+   [:select:focus {:border [[(u/px 1) "solid" "black"]]}]
+   [:select:hover {:border [[(u/px 1) "solid" "black"]]}]
+   [:select:active {:background-color "#aaaaaa"}]
+   [:textarea {:outline "none"
+               :box-sizing "border-box"
+               :margin 0
+               :padding [["calc(0.25em - 1px)" (u/em 0.5)]]
+               :font-family "inherit"
+               :font-size (u/em 1)
+               :border [[(u/px 1) "solid" "#aaaaaa"]]
+               :border-radius (u/px 2)
+               :background "white"
+               :color "black"
+               :display "block"
+               :width (u/percent 100)
+               :line-height "calc(2em - 1px * 2 - (0.25em - 1px) * 2)"
+               :-webkit-appearance "none"
+               :-moz-appearance "none"
+               :appearance "none"
+               :height (u/em 4.5)
+               :resize "vertical"
+               :padding-top (u/em 0.5)
+               :padding-bottom (u/em 0.5)}]
+   [:textarea:focus {:border [[(u/px 1) "solid" "black"]]}]
+   ["textarea::-moz-placeholder"
+    "textarea::-webkit-input-placeholder"
+    "textarea::-ms-input-placeholder" {:color "#aaaaaa"}]
+   [:output {:display "block"}]])
+
+
+(def inputs
+  [["input[type=text]"
+    "input[type=password]"
+    "input[type^=date]"
+    "input[type=email]"
+    "input[type=number]"
+    "input[type=search]"
+    "input[type=tel]"
+    "input[type=time]"
+    "input[type=month]"
+    "input[type=week]"
+    "input[type=url]"
+    "input[type=color]"
+    {:outline "none"
+     :box-sizing "border-box"
+     :height (u/em 2)
+     :margin 0
+     :padding [["calc(0.25em - 1px)" (u/em 0.5)]]
+     :font-family "inherit"
+     :font-size (u/em 1)
+     :border [[(u/px 1) "solid" "#aaaaaa"]]
+     :border-radius (u/px 2)
+     :background "white"
+     :color "black"
+     :display "block"
+     :width (u/percent 100)
+     :line-height "calc(2em - 1px * 2 - (0.25em - 1px) * 2)"
+     :-webkit-appearance "none"
+     :-moz-appearance "none"
+     :appearance "none"}]
+   ["input[type=text]:focus"
+    "input[type=password]:focus"
+    "input[type^=date]:focus"
+    "input[type=email]:focus"
+    "input[type=number]:focus"
+    "input[type=search]:focus"
+    "input[type=tel]:focus"
+    "input[type=time]:focus"
+    "input[type=month]:focus"
+    "input[type=week]:focus"
+    "input[type=url]:focus"
+    "input[type=color]:focus"
+    "input[type=submit]:focus"
+    "input[type=button]:focus"
+    "input[type=reset]:focus"
+    "input[type=file]:focus"
+    "input[type=color]:hover"
+    "input[type=submit]:hover"
+    "input[type=button]:hover"
+    "input[type=reset]:hover"
+    "input[type=file]:hover"
+    {:border [[(u/px 1) "solid" "black"]]}]
+   ["input[type=text]::-moz-placeholder"
+    "input[type=password]::-moz-placeholder"
+    "input[type^=date]::-moz-placeholder"
+    "input[type=email]::-moz-placeholder"
+    "input[type=number]::-moz-placeholder"
+    "input[type=search]::-moz-placeholder"
+    "input[type=tel]::-moz-placeholder"
+    "input[type=time]::-moz-placeholder"
+    "input[type=month]::-moz-placeholder"
+    "input[type=week]::-moz-placeholder"
+    "input[type=url]::-moz-placeholder"
+    {:color "#aaaaaa"}]
+   ["input[type=text]::-webkit-input-placeholder"
+    "input[type=password]::-webkit-input-placeholder"
+    "input[type^=date]::-webkit-input-placeholder"
+    "input[type=email]::-webkit-input-placeholder"
+    "input[type=number]::-webkit-input-placeholder"
+    "input[type=search]::-webkit-input-placeholder"
+    "input[type=tel]::-webkit-input-placeholder"
+    "input[type=time]::-webkit-input-placeholder"
+    "input[type=month]::-webkit-input-placeholder"
+    "input[type=week]::-webkit-input-placeholder"
+    "input[type=url]::-webkit-input-placeholder"
+    "input[type=color]::-webkit-input-placeholder"
+    {:color "#aaaaaa"}]
+   ["input[type=text]::-ms-input-placeholder"
+    "input[type=password]::-ms-input-placeholder"
+    "input[type^=date]::-ms-input-placeholder"
+    "input[type=email]::-ms-input-placeholder"
+    "input[type=number]::-ms-input-placeholder"
+    "input[type=search]::-ms-input-placeholder"
+    "input[type=tel]::-ms-input-placeholder"
+    "input[type=time]::-ms-input-placeholder"
+    "input[type=month]::-ms-input-placeholder"
+    "input[type=week]::-ms-input-placeholder"
+    "input[type=url]::-ms-input-placeholder"
+    "input[type=color]::-ms-input-placeholder"
+    {:color "#aaaaaa"}]
+   ["input[type=submit]"
+    "input[type=button]"
+    "input[type=reset]"
+    "input[type=file]"
+    {:outline "none"
+     :box-sizing "border-box"
+     :height (u/em 2)
+     :margin 0
+     :padding [["calc(0.25em - 1px)" (u/em 0.5)]]
+     :font-family "inherit"
+     :font-size (u/em 1)
+     :border [[(u/px 1) "solid" "#aaaaaa"]]
+     :border-radius (u/px 2)
+     :background "f2f2f2"
+     :color "black"
+     :display "inline-block"
+     :width "auto"
+     :cursor "pointer"
+     :-webkit-appearance "none"
+     :-moz-appearance "none"
+     :appearance "none"}]
+   ["input[type=submit]:active"
+    "input[type=button]:active"
+    "input[type=reset]:active"
+    "input[type=file]:active"
+    {:background-color "#aaaaaa"}]
+   ["input[type=file]" {:width (u/percent 100)
+                        :height "auto"
+                        :padding [[(u/em 0.75) (u/em 0.5)]]
+                        :font-size (u/px 12)
+                        :line-height 1}]])
+
+(def forms
+  (concat form-elements
+          inputs))
+#+END_SRC
+
+*** build
+Combine all of the definitions to build the style.
+
+#+NAME: style-awsm-build
+#+BEGIN_SRC clojure
+(def style-str
+  (str
+   license-str
+   attrib-str
+   (css (concat
+         fonts
+         page-setup
+         blocks
+         tables
+         forms))))
+
+#+END_SRC
+* draw
+The draw namespace contains functions that produce svg elements.
+
+** todo
+- [ ] confirm that hiccup.def/defelem is NOT needed
+- [ ] implement grid-figure function
+- [ ] write better prose for 'containers' section
+- [ ] 
+
+** ns
+#+NAME: ns-draw
+#+BEGIN_SRC clojure
+(ns stylo.draw
+  #_(:require [hiccup.def :refer [defelem]]))
+
+#+END_SRC
+
+** containers
+Containers are functions that wrap visual elements like 2D or 3D drawings.
+
+#+NAME: draw-containers
+#+BEGIN_SRC clojure
+(defn svg
+  [[w h sc] & content]
+  [:svg {:width w
+         :height h
+         :viewbox (str "-1 -1 " w " " h)
+         :xmlns "http://www.w3.org/2000/svg"}
+   [:g {:transform (str "scale(" sc ")")} content]])
+
+(defn figure
+  ([descr content]
+   (figure [500 250 25] descr content))
+
+  ([[w h sc] descr & content]
+   [:div.figure
+    (svg [w h sc] content)
+    [:p descr]]))
+
+(defn quadrant-figure
+  ([descr q1 q2 q3 q4]
+   (quadrant-figure [720 720 25] descr q1 q2 q3 q4))
+  
+  ([[w h sc] descr q1 q2 q3 q4]
+   (let [qw (/ w 2.0)
+         qh (/ h 2.0)]
+     [:div.figure 
+      [:div 
+       {:style {:display "flex"
+                :flex-wrap "wrap"
+                :width (str w "px")}}
+       (svg [qw qh sc] q2)
+       (svg [qw qh sc] q1)
+       (svg [qw qh sc] q3)
+       (svg [qw qh sc] q4)]
+      [:p descr]])))
+
+(defn grid-figure
+  "creates a figure with an evenly-spaced WxH grid of svg elements."
+  []
+  "NOT IMPLEMENTED YET")
+
+#+END_SRC
+
+** helpers
+#+NAME: draw-helpers
+#+BEGIN_SRC clojure
+(defn pt-str
+  [pts]
+  (apply str (map #(apply str (interleave % ["," " "])) pts)))
+
+(defn path-str
+  [pts]
+  (let [line-to #(str "L" (first %) " " (second %))
+        move-to #(str "M" (first %) " " (second %))]
+    (str (move-to (first pts)) " "
+         (apply str (interleave 
+                     (map line-to (rest pts))
+                     (repeat " ")))
+         "Z")))
+
+(defn scale-str
+  [sc]
+  (str "scale(" sc ")"))
+
+(defn translate-str
+  [x y]
+  (str "translate(" x " " y ")"))
+
+(defn rotate-str
+  ([r]
+   (str "rotate(" r ")"))
+  ([r [x y]]
+   (str "rotate(" r " " x " " y ")")))
+
+(defn hsl-str
+  [h s l]
+  (str "hsl(" h ", " s "%, " l "%)"))
+
+(defn bb-center
+  [pts]
+  (let [xs (map first pts)
+        ys (map last pts)
+        xmax (apply max xs)
+        ymax (apply max ys)
+        xmin (apply min xs)
+        ymin (apply min ys)]
+    [(+ (/ (- xmax xmin) 2.0) xmin)
+     (+ (/ (- ymax ymin) 2.0) ymin)]))
+
+#+END_SRC
+
+** offset
+An implementation of polygon path offsetting.
+#+NAME: draw-offset
+#+BEGIN_SRC clojure
+(defn perpendicular
+  [[x y]]
+  [(- y) x])
+
+(defn normalize
+  "find the unit vector of a given vector"
+  [v]
+  (let [m (Math/sqrt (reduce + (map * v v)))]
+    (mapv / v (repeat m))))
+
+(defn det
+  [a b]
+  (- (* (first a) (second b)) 
+     (* (second a) (first b))))
+
+(defn line-intersection
+  [[a b] [c d]]
+  (let [[ax ay] a
+        [bx by] b
+        [cx cy] c
+        [dx dy] d
+        xdiff [(- ax bx) (- cx dx)]
+        ydiff [(- ay by) (- cy dy)]
+        div (det xdiff ydiff)
+        d [(det a b) (det c d)]
+        x (/ (det d xdiff) div)
+        y (/ (det d ydiff) div)]
+    [x y]))
+
+(defn offset-edge
+  [[a b] d]
+  (let [p (perpendicular (mapv - b a))
+        pd (map * (normalize p) (repeat (- d)))
+        xa (mapv + a pd)
+        xb (mapv + b pd)]
+    [xa xb]))
+
+(defn cycle-pairs
+  [pts]
+  (let [n (count pts)]
+    (vec (take n (partition 2 1 (cycle pts))))))
+
+(defn every-other
+  [v]
+  (let [n (count v)]
+    (map #(get v %) (filter even? (range n)))))
+
+(defn offset
+  [pts d]
+  (let [edges (cycle-pairs pts)
+        opts (mapcat #(offset-edge % d) edges)
+        oedges (every-other (cycle-pairs opts))
+        edge-pairs (cycle-pairs oedges)]
+    (map #(apply line-intersection %) edge-pairs)))
+
+#+END_SRC
+** transforms
+#+NAME: draw-transforms
+#+BEGIN_SRC clojure
+(defn sc
+  [sc & elems]
+  (into [:g {:transform (scale-str sc)}] elems))
+
+(defn mv
+  [[x y] & elems]
+  (into [:g {:transform (translate-str x y)}] elems))
+
+(defn rot
+  [r [x y] & elems]
+  (into [:g {:transform (rotate-str r [x y])}] elems))
+
+#+END_SRC
+
+** annotations
+#+NAME: draw-annotations
+#+BEGIN_SRC clojure
+(defn label
+  [text]
+  [:text {:fill "black"
+          :x -4
+          :y 4
+          :font-family "Verdana"
+          :font-size 12
+          :transform "translate(0,0) scale(0.05)"} text])
+
+(defn ln
+  [a b]
+  [:polyline {:stroke-linecap "round"
+              :stroke "black"
+              :stroke-width "2"
+              :fill "rgba(0,0,0,0)"
+              :points (pt-str [a b])}])
+
+(defn ln-d
+  [a b]
+  [:polyline {:stroke-linecap "round"
+              :stroke-dasharray "4, 5"
+              :stroke "black"
+              :stroke-width "1.5"
+              :fill "rgba(0,0,0,0)"
+              :points (pt-str [a b])}])
+
+(defn arw
+  [a b]
+  [:g {}
+   [:marker {:id "head"
+             :orient "auto"
+             :markerWidth "0.5"
+             :markerHeight "1"
+             :refX "0.025"
+             :refY "0.25"}
+    [:path {:d "M0,0 V0.5 L0.25,0.25 Z"
+            :fill "black"}]]
+   [:polyline {:marker-end "url(#head)"
+               :stroke "black"
+               :stroke-width "2"
+               :fill "rgba(0,0,0,0)"
+               :points (pt-str [a b])}]])
+
+(defn h-dimension
+  [a b text]
+  (let [a (map - a [0 2])
+        b (map - b [0 2])
+        mid (bb-center [a b])
+        label-offset (* 0.225 (count text))]
+    (list 
+     (mv (map - mid [label-offset 0]) (sc 2 (label text)))
+     (ln (map - a [0 0.75]) (map + a [0 1.5]))
+     (ln (map - b [0 0.75]) (map + b [0 1.5]))
+     (arw (map - mid [(* 1.75 label-offset) 0])  
+          (map + a [0.5 0]))
+     (arw (map + mid [(* 1.75 label-offset) 0]) 
+          (map - b [0.5 0])))))
+
+(defn v-dimension
+  [a b text]
+  (let [a (map + a [2 0])
+        b (map + b [2 0])
+        mid (bb-center [a b])
+        label-offset (* 0.225 (count text))]
+    (list 
+     (mv (map - mid [label-offset 0]) (rot 90 [label-offset 0] (sc 2(label text))))
+     (ln (map - a [1.5 0]) (map + a [0.75 0]))
+     (ln (map - b [1.5 0]) (map + b [0.75 0]))
+     (arw (map - mid [0 (* 1.75 label-offset)])  
+          (map + a [0 0.5]))
+     (arw (map + mid [0 (* 1.75 label-offset)]) 
+          (map - b [0 0.5])))))
+
+(defn dot
+  [[x y]]
+  [:circle {:class ["attn"]
+            :cx x :cy y :r 0.125}])
+
+#+END_SRC
+
+** shapes
+#+NAME: draw-shapes
+#+BEGIN_SRC clojure
+(defn rect
+  ([w h]
+   (rect w h nil))
+  ([w h col]
+   [:rect {:fill (if col col "black")
+           :stroke (if col col "black")
+           :stroke-width 2
+           :width w
+           :height h}]))
+
+(defn polygon
+  ([pts]
+   (polygon pts nil))
+  ([pts col]
+   [:polygon {:class ["ln" (if col col "clr")]
+              :points (pt-str pts)}]))
+
+(defn polygon-d
+  ([pts]
+   (polygon-d pts nil))
+  ([pts col]
+   [:polygon {:class ["ln-d" (if col col "clr")]
+              :points (pt-str pts)}]))
+
+(defn closed-path
+  ([pts]
+   (closed-path pts nil))
+  ([pts col]
+   [:path {:class ["ln" (if col col "clr")]
+           :d (path-str pts)}]))
+
+(defn poly-path
+  ([paths]
+   (poly-path paths nil))
+  ([paths col]
+   (let [path-strs (map path-str paths)]
+     [:path {:class ["ln" (if col col "clr")]
+             :d (apply str (interleave path-strs (repeat " ")))}])))
+
+#+END_SRC
+* builder
+*** repl-load
+#+BEGIN_SRC clojure
+(load-file "src/stylo/builder.cljc")
+#_(use 'stylo.builder)
+(ns stylo.builder)
+
+#+END_SRC
+** ns
+#+NAME: ns-builder
+#+begin_src clojure
+(ns stylo.builder
+  (:require [clojure.string :as s]
+            [hiccup.core :refer [h html]]
+            [hiccup.def :refer [defelem]]
+            [hiccup.page :as page]
+            [hiccup.form :as form]
+            [hiccup.element :as elem]
+            [stylo.style.mu :as mu]
+            [instaparse.core :as insta]))
+
+#+end_src
+** parser
+The base parser is derived in part from the following code:
+https://github.com/danneu/klobbdown/blob/master/src/klobbdown/parse.clj
+
+The linked code uses Eclipse Public License, which permits use in open source work. This parser is modified from its original version to allow for more comfortable document ergonomics. It is based off of markdown, but is not markdown.
+
+#+NAME: builder-parser
+#+BEGIN_SRC clojure
+(def -md ""
+"<root> = (hd |
+           ul |
+           ol |
+           code |
+           anc |
+           img |
+           tb |
+           ex |
+           kl |
+           para)+
+
+para = (i-code |
+        anc |
+        str |
+        em |
+        para-t)+ <nl> (<nl>+)?
+<para-t> = #'[^`\\n*#{}\\-\\!]+'
+
+hd = #'^#{1,} .+' <nl>? <bl>?
+
+str = <'**'> str-t <'**'> 
+<str-t> = #'[^\\*\\*]+'
+
+em = <'*'> em-t <'*'>
+<em-t> = #'[^\\*]+'
+
+ul = ul-i+ <bl>
+ul-i = <'- '> #'.+' <nl>?
+
+ol = ol-i+ <bl>
+ol-i = <ol-i-token> #'.*' <nl>?
+ol-i-token = #'[0-9]+\\. '
+
+i-code = <'`'> #'[^`]+' <'`'>
+code = <'~~~'> lang? <nl> code-t <'\n~~~'> <bl>
+lang = <' '> #'[a-zA-Z]+'
+code-t = #'[^\\n~~~]+'
+
+anc = a-anc | t-anc
+<a-anc> = <'<'> url <'>'>
+<t-anc> = <'['> text <']'> <'('> url <')'>
+<text> = #'[^]]+'
+<url> = #'[^>)]+'
+
+img = <'!'>
+      <'['> alt <']'>
+      <'('> path title? <')'> <nl> (<nl>+)?
+
+<alt> = #'[^]]+'
+<path> = #'[^) ]+'
+<title> = <spcs> #'[^)]+'
+
+spc = ' '
+spcs = spc+
+bl = #'\n\n'
+nl = #'\n' ")
+
+#+END_SRC
+
+** extensions
+#+NAME: builder-extensions
+#+BEGIN_SRC clojure
+;; doc extensions
+(defn gen-ext-str
+  [tag]
+  (let [main (str tag " = <'{" tag "}'> <nl> " tag "-t <'{" tag "}'> <bl>\n") 
+        inner (str "<" tag "-t> = #'([\\s\\S]*?)(?=(\\{" tag "\\}))'")]
+    (str main inner)))
+
+(def -ex (gen-ext-str "ex"))
+(def -tb (gen-ext-str "tb"))
+(def -kl (gen-ext-str "kl"))
+
+;; fix this transform. It doesn't work without a fn being run
+
+(defn transform-ex
+  [text]
+  (let [results (read-string (str "[" (s/replace text #"\n" "") "]"))
+        vals (map eval results)]
+    (for [val vals]
+      (when (not (var? val))
+        [:div val]))))
+
+(defn transform-kl
+  [text]
+  [:div.cm-container [:code.clj text]])
+
+#+END_SRC
+
+** transformers
+#+NAME: builder-transformers
+#+BEGIN_SRC clojure
+(declare ->hiccup)
+(declare doc-parse)
+;; Transformers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn transform-anchor
+  ([url] [:a {:href url} url])
+  ([text url] [:a {:href url} text]))
+
+(defn transform-emphasis
+  [text]
+  [:em text])
+
+(defn transform-strong
+  [text]
+  [:strong text])
+
+(defn transform-pre-code
+  ([text] [:pre [:code text]])
+  ([lang text] [:pre [:code text]]))
+
+(defn transform-inline-code
+  [text]
+  [:code text])
+
+(defn transform-image
+  ([alt path] [:img {:src path :alt alt}])
+  ([alt path title] [:img {:src path :alt alt :title title}]))
+
+(defn transform-unordered-item
+  [item]
+  [:li item])
+
+(defn transform-unordered-list
+  [& items]
+  (into [:ul] items))
+
+(defn transform-ordered-item
+  [item]
+  [:li item])
+
+(defn transform-ordered-list
+  [& items]
+  (into [:ol] items))
+
+(defn transform-paragraph
+  [& items]
+  (into [:p] items))
+
+(defn transform-heading
+  [text]
+  (let [octothorpes (first (s/split text #" "))
+        text (s/trim (s/replace text #"#" ""))
+        level (count octothorpes)
+        tag (keyword (str "h" level))]
+    [tag text]))
+
+(defn transform-table
+  [text]
+  (let [seq (map #(s/split % #"\|") (s/split text #"\|\n"))
+        body [:tbody
+              (for [row (rest seq)]
+                (into [:tr] (mapv #(conj [:td] (->hiccup (doc-parse (str (s/trim %) "\n\n")))) (rest row))))]
+        head [:thead
+                 (into [:tr]
+                       (mapv #(conj [:th] (->hiccup (doc-parse (str (s/trim %) "\n\n")))) (rest (first seq))))]]
+    (conj [:table] head body)))
+
+#+END_SRC
+
+** compiler
+#+NAME: builder-compiler
+#+BEGIN_SRC clojure
+;; Usage ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def doc-parse (insta/parser (str -md -tb -ex -kl)))
+
+(defn ->hiccup
+  [tree]
+  (let [transformations {:an transform-anchor
+                         :em transform-emphasis
+                         :str transform-strong
+                         :img transform-image
+                         :tb transform-table
+                         :ex transform-ex
+                         :kl transform-kl
+                         :code transform-pre-code
+                         :i-code transform-inline-code
+                         :ul-i transform-unordered-item
+                         :ul transform-unordered-list
+                         :ol-i transform-ordered-item
+                         :ol transform-ordered-list
+                         :hd transform-heading
+                         :para transform-paragraph}]
+    (insta/transform transformations tree)))
+
+(defn md->html
+  "Parses markup into HTML."
+  [markup]
+  (html (->hiccup (doc-parse markup))))
+
+(defn discern-title
+  [markup]
+  (let [t (first (s/split-lines markup))]
+    (-> t
+        (s/replace #"#" "")
+        (s/trim))))
+
+(defn md->page
+  "compiles markup into a valid HTML5 string."
+  [markup]
+  (s/replace
+   (hiccup.page/html5
+    (concat [[:head
+              [:meta {:charset "utf-8"}]
+              [:title (discern-title markup)]
+              [:style mu/style-str]]]
+            [[:body [:main (->hiccup (doc-parse markup))]]]))
+   #"><" ">\n<"))
+
+(def klipse-settings "
+window.klipse_settings = {
+  selector: '.clj',
+  codemirror_options_in: {
+    lineWrapping: true,
+    theme: 'nord',
+  },
+  codemirror_options_out: {
+    lineWrapping: true,
+    theme: 'nord',
+  }
+}
+")
+
+(def codemirror-style "
+.cm-container {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-size: 10pt;
+  margin: 0 auto;
+  max-width: 520px;
+}
+.CodeMirror {
+  border: none;
+  padding: 8px;
+}
+")
+
+(defn contains-klipse?
+  [markup]
+  (s/includes? markup "{kl}"))
+
+(defn md->klipse
+  [markup]
+  (s/replace
+   (hiccup.page/html5
+    (concat [[:head
+              [:meta {:charset "utf-8"}]
+              [:title (discern-title markup)]
+              [:style mu/style-str]]]
+            [[:body
+              [:main (->hiccup (doc-parse markup))]
+              (when (contains-klipse? markup) (list
+                [:link {:rel "stylesheet"
+                        :type "text/css"
+                        :href "https://unpkg.com/klipse@7.9.6/dist/codemirror.css"}]
+                [:link {:rel "stylesheet"
+                        :type "text/css"
+                        :href "https://codemirror.net/theme/nord.css"}]
+                [:style codemirror-style]
+                [:script klipse-settings]
+                [:script {:src "https://unpkg.com/klipse@7.9.6/dist/klipse_plugin.js"}]))]]))
+   #"><" ">\n<"))
+
+#+END_SRC
+
+** manual-testing
+These are manual functions that run a watcher and build files.
+The workflow has to be improved beyond manually setting up these functions.
+
+#+BEGIN_SRC clojure
+(defn build! [name]
+  (spit (str name ".html")
+        (s/replace
+         (hiccup.page/html5
+          (concat [[:head
+                    [:meta {:charset "utf-8"}]
+                    [:title name]
+                    [:style mu/style-str]]]
+                  [[:body [:main (->hiccup (doc-parse (slurp (str name ".md"))))]]]))
+         #"><" ">\n<")))
+
+(defn build [fname w]
+  (let [name (.getName (:file w))]
+    (when (= name fname)
+      (do
+        (println (str "building " name))
+        (build! (first (s/split fname #"\.")))))))
+
+#+END_SRC
+
+** main
+The main fn is invoked via a terminal. The idea is to pipe markdown strings into stylo and recieve html out.
+
+With more args sent to main, different actions can occur. For instance, if you pass in a string and file, it can compile the string to that file. If you give two filenames, it converts the one into the other. If you give only one file, it converts it to html or errors out on invalid markup file.
+
+A watcher will be nice too, which can either be invoked with a flag to -main OR by calling a different alias in deps.edn. Either way, the watcher will watch a single file and start a server that reloads when only that file changes. This will allow you to quickly spawn a live-reload environment to author with.
+
+#+NAME: builder-main
+#+BEGIN_SRC clojure
+(defn get-name
+  [fpath]
+  (first (s/split (last (s/split fpath #"/")) #"\.")))
+
+(defn get-path
+  [fpath]
+  (let [fname (last (s/split fpath #"/"))]
+    (s/replace fpath fname "")))
+
+(defn -main [fpath]
+  (let [markup (slurp fpath)
+        name (get-name fpath)
+        opath (get-path fpath)
+        fname (str name ".html")]
+    (do 
+      (spit (str opath fname) (md->klipse markup))
+      (println (str "created: " fname)))))
+
+#+END_SRC
+* extensions
+** fabric
+The extension used for creating qpunk.
+
+#+BEGIN_SRC clojure :tangle ./fabric.clj
+(ns stylo.fabric
+  (:require [clojure.string :as s]
+            [hiccup.core :refer [h html]]
+            [hiccup.def :refer [defelem]]
+            [hiccup.page :as page]
+            [hiccup.form :as form]
+            [hiccup.element :as elem]
+            [stylo.draw :refer :all]))
+
+(def fabric-styles
+  [:style "
+.ln{stroke:#2e3440;stroke-width:1.5;}
+.ln-d{stroke:#2e3440;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:4, 5;}
+rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
+.attn{fill:rgb(234,82,111);}
+.clr{fill:rgba(0,0,0,0);}
+"])
+
+(defn sq
+  ([s]
+   (sq s nil))
+  ([s fabric]
+   [:rect {:class ["ln" (if fabric fabric "clr")]
+           :width s
+           :height s}]))
+
+(defn rct
+  ([[x y]]
+   (rct [x y] nil))
+  ([[x y] fabric]
+   [:rect {:class ["ln" (if fabric fabric "clr")]
+           :width x
+           :height y}]))
+
+(defn hst
+  ([s]
+   (hst s nil))
+  ([s fabric]
+   [:polygon {:class ["ln" (if fabric fabric "clr")]
+              :points (pt-str [[0 s] [s 0] [0 0]])}]))
+
+(defn hst-pts
+  [s]
+  [[0 0] [s 0] [0 s]])
+
+(defn diamond
+  "draw a diamond of width and height with width offset and height offset factors."
+  ([[w h wof hof]]
+   (diamond [w h wof hof] nil))
+  ([[w h wof hof] fabric]
+   (let [wod (* w wof)
+         hod (* h hof)]
+     [:polygon {:class ["ln" (if fabric fabric "clr")]
+                :points (pt-str [[wod 0]
+                                 [w hod]
+                                 [wod h]
+                                 [0 hod]])}])))
+
+(defn diamond-pts
+  [x y y2]
+  (let [x2 (/ x 2.0)]
+    [[x2 0]
+     [x y2]
+     [x2 y]
+     [0 y2]]))
+
+(defn dot
+  [[x y]]
+  [:circle {:class "attn"
+            :cx x :cy y :r 0.175}])
+
+(defn stack
+  [elem n]
+  (let [spc 0.185
+        tfrms (map #(vector (* % spc) (* % spc)) (range n))]
+    [:g {}
+     (map 
+      (fn [[x y]] [:g {:transform (translate-str x y)} elem]) 
+      tfrms)]))
+
+#+END_SRC
+** chunk
+Chunk is the 'pet name' for the 3D diagram functionality.
+
+*** quick-load-for-repl
+#+BEGIN_SRC clojure
+(load-file "chunk.clj")
+(use 'stylo.chunk)
+
+#+END_SRC
+*** ns
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(ns stylo.chunk
+  (:require [stylo.draw :refer :all]))
+
+#+END_SRC
+
+*** renderable-objects
+Renderable objects are maps containing vertices, edges, and faces. Each entity can be assigned additional data like color.
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(def entity-defaults
+  {:color "#2e3440"
+   :fill "#a3be8c"})
+
+(defn entity
+  ([vl]
+   (entity entity-defaults vl))
+  
+  ([attr-map vl]
+   {:val vl
+    :attrs (merge entity-defaults attr-map)}))
+
+#+END_SRC
+
+*** extrude
+The extrude function will work on XY-plane shapes. So, a list of nodes and edges where nodes are [x y].
+
+Then, to extrude, take a height value, and all nodes are transformed with appropriate Z values.
+
+For the easiest implementation, assume extrusion always happens from z=0 to z=h
+
+All I have to do is copy the nodes, attach z 0 to one 'set' and z h to the other.
+
+The extrude-pt ignores any existing Z values.
+This is equivalent to 'projecting' the given pt onto the XY plane (sets Z to zero), and extruding from there.
+
+EXTRUDE needs to add edges and faces. The extrude- fn currently only changes nodes, which will break the edges.
+
+I can either update the edge indices (and add new edges) 
+
+OR
+
+---> Add the new nodes AFTER existing nodes (don't interleave), then no indices have to change, only new edges (and faces) are appended onto their appropriate lists.
+
+
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn polygon-2d
+  "creates a closed 2d polygon tracing the list of points"
+  [pts]
+  (let [edges (map vec (partition 2 1 (concat 
+                                       (range (count pts))
+                                       [0])))]
+    {:nodes (map entity pts)
+     :edges (map entity edges) 
+     :faces (list (entity (vec (range (count edges)))))}))
+
+#+END_SRC
+
+*** circle
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn parametric-circle
+  [r]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* r (Math/cos t))
+          y (* r (Math/sin t))]
+      [x y])))
+
+(defn circle
+  [r]
+  (let [circle-fn (parametric-circle r)]
+    (polygon-2d (map circle-fn (range 0 1 0.025)))))
+
+#+END_SRC
+
+*** ellipse
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn parametric-ellipse
+  [rx ry]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* rx (Math/cos t))
+          y (* ry (Math/sin t))]
+      [x y])))
+
+(defn ellipse
+  [rx ry]
+  (let [ellipse-fn (parametric-ellipse rx ry)]
+    (polygon-2d (map ellipse-fn (range 0 1 0.025)))))
+
+#+END_SRC
+
+*** regular-polygon
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn regular-polygon-pts
+  [r n]
+  (let [angle (* 2 Math/PI (/ 1 n))]
+    (for [step (range n)]
+      [(* r (Math/cos (* step angle)))
+       (* r (Math/sin (* step angle)))])))
+
+(defn regular-polygon
+  [r n]
+  (polygon-2d (regular-polygon-pts r n)))
+
+#+END_SRC
+
+**** notes on vertical faces
+This seems hacky, maybe I should entirely rethink how I store objects. However, the make-vert-face function DOES work with the current approach.
+
+What it does is take advantage of the node/edge order when an extrude- fn runs.
+
+We know that the sketch's original edges make up the first n edges, where N is the count of the edges in the sketch.
+
+We know that (range 0 n) indices always point to the original edges.
+We know that (because of how extrude- works) (range (inc n) (* 2 n)) is the set of edges making up the top plane
+We know that the remaining indices (range (* 2 n) (* 3 n)) are the vertical edges.
+
+We also know that extruding a polygon will always result in rectangular faces parallel to the extrude direction (assumed to be Z).
+
+Using these facts, we can directly build the face by doing arithmetic on indices.
+
+We pass the 'starting' idx, which will always be in (range 0 n) and just do the weird math in the fn.
+
+The math was taken from diagrams that I sketched for myself. 
+
+NOTE: this is probably a dumb way of doing things. Need to research better approaches.
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn make-vert-face
+  [sk idx]
+  (let [n (count (:edges sk))
+        indices (vec (take (* 2 n) (cycle (range (* 2 n) (* 3 n)))))]
+    [idx (get indices (inc idx)) (+ n idx) (get indices idx)]))
+
+(defn extrude-
+  [sk h]
+  (let [nodes (map :val (:nodes sk))
+        bnodes (map #(conj % 0) nodes)
+        tnodes (map #(conj % h) nodes)
+        xnodes (concat bnodes tnodes)
+
+        nedges (count (:edges sk))
+        bidx (concat (range nedges) [0])
+        tidx (concat (range nedges (* 2 nedges)) [nedges])
+        bedges (map :val (:edges sk))
+        tedges (map vec (partition 2 1 tidx))
+        medges (map vec (partition 2 (interleave bidx tidx)))
+        xedges (concat bedges tedges medges)
+
+        bfaces (map :val (:faces sk))
+        mfaces (map #(make-vert-face sk %) (range (count nodes)))
+        tfaces (list (vec (drop-last tidx)))
+        xfaces (concat bfaces mfaces tfaces)]
+    (-> sk
+        (assoc :nodes (map entity xnodes))
+        (assoc :edges (drop-last (map entity xedges)))
+        (assoc :faces (map entity xfaces)))))
+
+#+END_SRC
+
+*** join
+Like union, join takes two solids and merges them into one solid. Unlike union, join does NOT calculate intersections, trims, extensions, etc. It is a 'dumb union'.
+
+As such, this is just a starting point, not a fully useful function.
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn shift-indices
+  [entity shift-val]
+  (let [shifter (fn [v]
+                  (mapv #(+ shift-val %) v))]
+    (update entity :val shifter)))
+
+(defn join-two
+  [a b]
+  (let [anodes (:nodes a)
+        aedges (:edges a)
+        afaces (:faces a)
+        bnodes (:nodes b)
+        bedges (map #(shift-indices % (count anodes)) (:edges b))
+        bfaces (map #(shift-indices % (count aedges)) (:faces b))
+        unodes (concat anodes bnodes)
+        uedges (concat aedges bedges)
+        ufaces (concat afaces bfaces)]
+    {:nodes unodes
+     :edges uedges
+     :faces ufaces}))
+
+(defn join
+  [& solids]
+  (reduce join-two solids))
+
+#+END_SRC
+
+*** transforms
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn scl [theta]
+  [(Math/sin (Math/toRadians theta)) (Math/cos (Math/toRadians theta))])
+
+(defn -rot-pt
+  [[a b] theta]
+  (let [[s-t c-t] (scl theta)]
+    [(- (* a c-t) (* b s-t))
+     (+ (* b c-t) (* a s-t))]))
+
+(defn rot-pt
+  [axis theta [x y z]]
+  (cond
+   (= axis :x) (into [x] (-rot-pt [y z] theta))
+   (= axis :y) (apply #(into [] [%2 y %1]) (-rot-pt [z x] theta))
+   (= axis :z) (into (-rot-pt [x y] theta) [z])))
+
+(defn -rot
+  [ro axis theta]
+  (let [nodes (map :val (:nodes ro))
+        rnodes (mapv (partial rot-pt axis theta) nodes)]
+    (assoc ro :nodes (mapv entity rnodes))))
+
+(defn rot-
+  [ro [th-x th-y th-z]]
+  (-> ro
+    (-rot :z th-z)
+    (-rot :y th-y)
+    (-rot :x th-x)))
+
+(defn mv-pt
+  [delta pt]
+  (mapv + delta pt))
+
+(defn mv-
+  [ro delta]
+  (let [nodes (map :val (:nodes ro))
+        rnodes (mapv (partial mv-pt delta) nodes)]
+    (assoc ro :nodes (mapv entity rnodes))))
+
+#+END_SRC
+
+*** sketches
+**** changes to data structure ideas
+Currently, 'edges' is just a list of lines. This doesn't provide enough detail up front to make poly-path faces (faces with holes). I need to have a list of closed paths.
+
+- could make a function that searches the edge list for loops
+
+- could add a :paths key that specifies loops at creation time instead.
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn sk->3d
+  [sk]
+  (let [nodes-2d (map :val (:nodes sk))
+        nodes-3d (map #(entity (conj % 0)) nodes-2d)]
+    (assoc sk :nodes nodes-3d)))
+
+#+END_SRC
+
+*** draw
+**** main
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(def axes
+  {:nodes (map entity [[0 0 0]
+                       [1 0 0]
+                       [0 1 0]
+                       [0 0 1]])
+   :edges (map #(apply entity %) [[{:color "red"} [0 1]]
+                                  [{:color "green"} [0 2]]
+                                  [{:color "blue"} [0 3]]])})
+
+(defn ln-col
+  [a b col]
+  [:polyline.clr {:stroke-linecap "round"
+                  :stroke col
+                  :stroke-width "2"
+                  :points (pt-str [a b])}])
+
+(defn shape-col
+  [pts col]
+  [:polygon {:stroke "slategray"
+             :fill col
+             :stroke-width "2"
+             :points (pt-str pts)}])
+
+(defn face->edges
+  [ro face]
+  (let [edges (mapv :val (:edges ro))]
+    (mapv #(get edges %) face)))
+
+(defn edge->nodes
+  [ro edge]
+  (let [nodes (mapv :val (:nodes ro))]
+    (mapv #(get nodes %) edge)))
+
+(defn face->nodes
+  [ro face]
+  (let [edges (face->edges ro face)]
+    (into [] (distinct (mapcat (partial edge->nodes ro) edges)))))
+
+(def iso-euler-angles [30 45 0])
+(def origin-angle-adjust-a [90 0 0])
+(def origin-angle-adjust-b [0 90 0])
+(defn orient-iso
+  [ro]
+  (-> ro
+      (rot- origin-angle-adjust-a)
+      (rot- origin-angle-adjust-b)
+      (rot- iso-euler-angles)))
+
+(defn orient-top
+  [ro]
+  (rot- ro [0 0 270]))
+
+(defn orient-front
+  [ro]
+  (rot- ro [90 0 270]))
+
+(defn orient-right
+  [ro]
+  (rot- ro [90 0 0]))
+
+(defn draw-edges
+  ([ro]
+   (draw-edges ro orient-iso))
+  
+  ([ro orientation]
+   (let [ro (orientation ro)
+         nodes (map :val (:nodes ro))
+         edges (:edges ro)]
+     (for [edge edges]
+       (let [col (:color (:attrs edge))
+             [n0 n1] (:val edge)
+             [xa ya _] (nth nodes n0)
+             [xb yb _] (nth nodes n1)]
+         (poly-path [[[xa ya] [xb yb]]])
+         #_(ln-col [xa ya] [xb yb] col))))))
+#+END_SRC
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn all-true?
+  [l]
+  (let [s (into #{} l)]
+    (if (= 2 (count s))
+      false
+      (true? (first s)))))
+
+(defn all-false?
+  [l]
+  (let [s (into #{} l)]
+    (if (= 2 (count s))
+      false
+      (false? (first s)))))
+
+(defn loop-masks
+  [edges]
+  (let [indices (map first edges)]
+    (for [idx indices]
+      (mapv #(= idx (last %)) edges))))
+
+(defn find-loops
+  ([edges]
+   (find-loops edges []))
+  ([edges acc]
+   (let [idx (first (first edges))
+         mask (mapv #(= idx (last %)) edges)
+         no-loops (all-false? mask)
+         n-edges (inc (count (take-while false? mask)))]
+     (if no-loops
+       acc
+       (recur 
+        (drop n-edges edges)
+        (conj acc (take n-edges edges)))))))
+
+(defn loop-between
+  [e1 e2]
+  (let [[n1 n2] e1
+        [n4 n3] e2]
+    (list [n1 n2]
+          [n2 n3]
+          [n3 n4]
+          [n4 n1])))
+
+(defn make-loops
+  [edges]
+  (let [edges (concat edges [(first edges)])
+        pairs (partition 2 1 edges)]
+    (map #(apply loop-between %) pairs)))
+
+(defn get-loops
+  [edges]
+  (let [#_edges #_(drop-last edges) ;;error in extrude adds extra edge at end of list.... fix 
+        found (find-loops edges)
+        to-remove (zipmap (apply concat found) (range (count (apply concat found))))
+        remaining (drop-while #(contains? to-remove %) edges)
+        made (make-loops remaining)]
+    found #_(concat found made)))
+
+#+END_SRC
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn loop->pts
+  [ro loop]
+  (let [nodes (mapv :val (:nodes ro))
+        indices (map first loop)
+        pts (mapv #(get nodes %) indices)]
+    pts))
+
+(defn draw-loops
+  [ro]
+  (let [nodes (map :val (:nodes ro))
+        edges (:edges ro)
+        loops (get-loops (map :val edges))
+        paths (map (partial loop->pts ro) loops)]
+    (for [path paths #_(take 6 paths)]
+      (closed-path path))))
+
+#+END_SRC
+**** WIP-draw-fns
+I have an idea to have 'assemblies' which can be maps containing lists of 
+
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+;; rename this? widget, chunk, solid, something else...
+(defn object?
+  [item]
+  (and (map? item)
+       (and
+        (contains? item :nodes)
+        (contains? item :edges)
+        (contains? item :faces))))
+
+;; object looks like:
+;; {:nodes [] :edges [] :faces []}
+
+;; asm looks like:
+;; [object object object ..]
+
+(defn get-nested-objects
+  [ro]
+  (filter seqable? ro))
+
+(defn draw-edges-recursive
+  [ro]
+  (if (and (coll? ro) 
+           (not (object? ro)))
+    (concat (map draw-edges-recursive ro))
+    (draw-edges ro identity)))
+
+(defn draw-faces
+  ([ro]
+   (draw-faces [ro orient-iso]))
+
+  ([ro orientation]
+   (let [ro (orientation ro)
+         nodes (map :val (:nodes ro))
+         faces (:faces ro)]
+     (for [face faces]
+       (let [fill (:fill (:attrs face))
+             pts-3d (face->nodes ro (:val face))
+             pts-2d (map #(take 2 %) pts-3d)]
+         (shape-col pts-2d fill))))))
+
+#+END_SRC
+
+**** cad-view
+#+BEGIN_SRC clojure :tangle ./chunk.clj
+(defn get-2d-pts
+  [ro]
+  (bb-center 
+   (map #(into [] (take 2 %))
+        (map :val (:nodes ro)))))
+
+(defn get-move-coords
+  [[w h sc] ro]
+  (let [dc (get-2d-pts ro)
+        wc (mapv #(* (/ % 2.0) sc) [w h])]
+    (mapv - wc dc)))
+
+(defn center-view
+  [[w h sc] ro]
+  (let [coords (get-move-coords [w h (/ 1 sc)] ro)]
+    (mv coords (draw-edges-recursive ro))))
+
+;; iso, top, front, right
+(defn cad-view
+  [[w h sc] descr ro]
+  (let [qw (/ w 2.0)
+        qh (/ h 2.0)]
+    (quadrant-figure 
+     [w h sc] 
+     descr
+     (center-view [qw qh sc] (orient-iso ro))
+     (center-view [qw qh sc] (orient-top ro))
+     (center-view [qw qh sc] (orient-front ro))
+     (center-view [qw qh sc] (orient-right ro)))))
+
+#+END_SRC
+* work
+** parametric
+Consider different representations of geometric objects:
+
+FREP: Functional Representation
+- uses signed distance functions (SDF)
+- SDFs take a coordinate [x y z] and return a distance
+
+BREP: Boundary Representation
+- uses parametric equations for edges and surfaces
+- PEs take parameters [t], [u v] and return a point
+
+*** quick-load-for-repl
+#+BEGIN_SRC clojure
+(load-file "param.clj")
+(use 'stylo.parametric)
+
+#+END_SRC
+*** ns
+#+BEGIN_SRC clojure :tangle ./param.clj
+(ns stylo.parametric
+  (:require [stylo.draw :as d]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.test :as test]))
+
+#+END_SRC
+*** specs
+#+BEGIN_SRC clojure :tangle ./param.clj
+(s/def ::pt2d (s/tuple number? number?))
+(s/def ::pt3d (s/tuple number? number? number?))
+(s/def ::pt (s/or :xy ::pt2d :xyz ::pt3d))
+(s/def ::pts (s/* ::pt))
+(s/def ::axis #{:x :y :z})
+
+(s/def ::parameter (s/and number? #(<= 0 % 1)))
+(s/def ::surface-parameter (s/tuple ::parameter ::parameter))
+(s/def ::quad (s/tuple number? number? number? number?))
+(s/def ::path (s/* ::pt))
+
+
+;; potential issue: ::quad is indistinguishable from ::pt2d because they are both just tuples with numbers
+
+#+END_SRC
+
+*** sampling
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn sample-1
+  [f step]
+  (let [t (range 0 1 step)]
+    (map f t)))
+
+(defn sample-2
+  [f & steps]
+  (for [u (range 0 1 (first steps))
+        v (range 0 1 (second steps))]
+    (f u v)))
+
+(defn sample
+  [f & steps]
+  (let [n-params (count steps)]
+    (if (= 1 n-params)
+      (sample-1 f (first steps))
+      (sample-2 f (first steps) (second steps)))))
+
+;; does it make sense to make a defmacro?
+;; you could 'build up' the for loop
+;; one range s-expr per parameter, as determined
+;; by the # of steps the user gives
+
+;; slice only makes sense with 2+ dims? 
+(defn slice
+  [f u-step v-step]
+  (for [u (range 0 1 u-step)]
+    (for [v (range 0 1 v-step)]
+      (f u v))))
+
+(defn quad-path
+  [u v u-step v-step]
+  [[u v]
+   [(+ u u-step) v]
+   [(+ u u-step) (+ v v-step)]
+   [u (+ v v-step)]])
+
+;; quad-mesh only makes sense for surfaces (f u v)
+(defn quad-mesh
+  [f u-step v-step]
+  (for [u (range 0 1 u-step)
+        v (range 0 1 v-step)]
+    (map #(apply f %) (quad-path u v u-step v-step))))
+
+#+END_SRC
+
+*** box
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn frep-box [l w h]
+  (fn [x y z]
+    (max (- x l) (- (- l) x)
+         (- y w) (- (- w) y)
+         (- z h) (- (- h) z))))
+
+(defn *c3d
+  "calculates cross product of two 3d-vectors"
+  [a b]
+  (let [[a1 a2 a3] a
+        [b1 b2 b3] b
+        i (- (* a2 b3) (* a3 b2))
+        j (- (* a3 b1) (* a1 b3))
+        k (- (* a1 b2) (* a2 b1))]
+    [i j k]))
+
+(defn brep-line
+  [a b]
+  (fn [t]
+    (let [t (float t)]
+      (cond
+        (< t 0.0) 0
+        (> t 1.0) 1 
+        (= t 0.0) a
+        (= t 1.0) b
+        :else
+        (mapv + a (map * (map - b a) (repeat t)))))))
+
+(defn brep-axis-aligned-rect
+  [l w n]
+  (let [u2 (/ l 2.0)
+        v2 (/ w 2.0)
+        u1 (- u2)
+        v1 (- v2)
+        [mx my mz] n]
+    (fn [u v]
+      (let [a (first ((brep-line [u1 v1 0] [u2 v1 0]) u))
+            b (second ((brep-line [u1 v1 0] [u1 v2 0]) v))]
+        (cond 
+          (and (= 0 mx) (= 0 my)) [a b mz]
+          (and (= 0 mx) (= 0 mz)) [a my b]
+          (and (= 0 my) (= 0 mz)) [mx a b])))))
+
+#+END_SRC
+
+*** cylinder
+#+BEGIN_SRC clojure
+(defn cylinder [r h]
+  (fn [x y z]
+    (max (- (Math/sqrt (+ (* x x) (* y y))) r)
+         (- z h) (- (- h) z))))
+
+#+END_SRC
+
+*** translate
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn translate
+  [pts [mx my mz]]
+  (map #(map + % [mx my mz]) pts))
+#+END_SRC
+
+It makes sense to have a higher-order function version of translate. This keeps the representation as FREP/BREP for as long as possible, keeping things small and concise. The idea is you can build up complex higher order functions to fully describe a part or assembly and sample it late (eg. only 'call' the function in a rendering method.)
+
+To wrap both brep surfaces (f u v) and curves (f t), I currently am using & params to allow any number of params in the translate function.
+
+I suspect there is a more effective approach, perhaps using a defmacro? Or some other quote/unqote approach that still uses defn.
+
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn brep-translate
+  [f [mx my mz]]
+  (fn [& params]
+    (mapv + (apply f params) [mx my mz]))) 
+
+#+END_SRC
+
+*** rotate
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn sin-cos [theta]
+  "give the results of sin and cos of theta(degrees) as [s c]"
+  [(Math/sin (Math/toRadians theta)) 
+   (Math/cos (Math/toRadians theta))])
+
+(defn- rotate-pt-helper
+  [[a b] theta]
+  (let [[s-t c-t] (sin-cos theta)]
+    [(- (* a c-t) (* b s-t))
+     (+ (* b c-t) (* a s-t))]))
+
+(defn rotate-pt
+  [pt axis theta]
+  (let [[x y z] pt]
+    (cond
+      (= axis :x) (into [x] (rotate-pt-helper [y z] theta))
+      (= axis :y) (apply #(into [] [%2 y %1]) (rotate-pt-helper [z x] theta))
+      (= axis :z) (into (rotate-pt-helper [x y] theta) [z]))))
+
+(s/fdef rotate-pt
+  :args (s/cat :pt ::pt3d :axis ::axis :theta number?)
+  :ret  ::pt)
+
+(defn rotate-about-axis
+  [pts axis theta]
+  (map #(rotate-pt % axis theta) pts))
+
+(defn rotate-euler
+  [pts [th-x th-y th-z]]
+  (-> pts
+    (rotate-about-axis :z th-z)
+    (rotate-about-axis :y th-y)
+    (rotate-about-axis :x th-x)))
+
+(def isometric-euler-angles [30 45 0])
+
+#+END_SRC
+
+This is a higher-order function approach to rotate.
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn brep-rotate
+  [f [th-x th-y th-z]]
+  (fn [& params]
+    (-> (apply f params)
+        (rotate-pt :z th-z)
+        (rotate-pt :y th-y)
+        (rotate-pt :x th-x))))
+
+#+END_SRC
+
+*** circle
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn brep-circle
+  [r]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* r (Math/cos t))
+          y (* r (Math/sin t))]
+      [x y 0])))
+
+#+END_SRC
+*** sphere
+Following is an example of FREP and BREP functions for a sphere. I have some idea functions for tying both reps together into a single function.
+
+The potential challenges will arise with boolean CSG operations (union, difference, intersection) as they are quite easy with FREP, but quite difficult with BREP.
+
+The BREPs for compound shapes could easily diverge in data structure from FREP... for example, a box in BREP might be defined by having a group of parameterized faces which need to be handled in some appropriate manner.
+
+The sphere is a bit simplistic because the BREP and FREP both map cleanly onto one another, but it is not a guarantee that every shape you might want to build has such properties.
+
+#+BEGIN_SRC clojure :tangle ./param.clj
+;; Functional Representation
+;; SDF signed distance functions
+
+(defn frep-sphere [r]
+  (fn [[x y z]]
+    (+ (* x x) (* y y) (* z z) (- (* r r)))))
+
+;; Boundary Representation
+(defn brep-sphere
+  [r]
+  (fn [u v]
+    (let [[u v] (map #(* 2 Math/PI %) [u v])
+          x (* r (Math/sin u) (Math/cos v))
+          y (* r (Math/sin u) (Math/sin v))
+          z (* r (Math/cos u))]
+      [x y z])))
+
+(defn sphere-idea-1
+  [r]
+  {:frep (frep-sphere r)
+   :brep (brep-sphere r)})
+
+(defn sphere-idea-2
+  [r]
+  (let [frep (frep-sphere r)
+        brep (brep-sphere r)]
+    (fn
+      ([x y z] (frep x y z))
+      ([u v] (brep u v)))))
+
+#+END_SRC
+
+*** rendering
+It might be worth making a multimethod for rendering brep (and eventually frep) solids. Rendering approaches so far:
+- dot
+- slice
+- quad
+
+#+BEGIN_SRC clojure :tangle ./param.clj
+(comment
+ ;; I forget how to do this...
+ ;; look up examples (in scad-clj for instance)
+ (defmulti render
+   (fn [approach body] approach))
+
+ (defmethod render :quad [_ body] "quad")
+ (defmethod render :default [_ body] "default")
+)
+#+END_SRC
+
+**** dot-rendering
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn render-dot
+  [f]
+  (let [step 0.025]
+    (map d/dot (sample-2 f step step))))
+
+(defn render-dot-curve
+  [f]
+  (let [step 0.025]
+    (map d/dot (sample-1 f step))))
+
+#+END_SRC
+
+**** slice-rendering
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn render-slice
+  [f]
+  (let [step 0.025
+        slices (slice f step step)]
+    (map d/closed-path slices)))
+
+#+END_SRC
+
+**** quad-rendering
+#+BEGIN_SRC clojure :tangle ./param.clj
+(defn render-quad
+  [f]
+  (let [step 0.025
+        mesh (quad-mesh f step step)]
+    (map #(d/closed-path % "face") mesh)))
+
+#+END_SRC
+
+** doc
+*** intro
+#+BEGIN_SRC clojure :tangle ./param.md
+# Parametric WIP
+
+This is just a testing document for parametric ideas.
+My approach to 2D/3D drawing in stylo is messy. This is a brief exploration into Functional Rep, Boundary Rep, signed distance functions, parametric equations, and how to wire them all together in a useful way.
+
+What kind of model and data structure actually makes sense for drawing 2D and 3D diagrams?
+
+(ex
+ #+END_SRC
+
+#+BEGIN_SRC clojure :tangle ./param.md
+(ns param
+  (:require [hiccup.core :refer [h html]]
+            [stylo.draw :refer :all]))
+
+(load-file "param.clj")
+(use 'stylo.parametric)
+
+#+END_SRC
+
+*** render-area
+**** sphere-defs
+#+BEGIN_SRC clojure :tangle ./param.md
+(def xsphere
+  (-> (brep-sphere 8)
+      (brep-rotate isometric-euler-angles)
+      (brep-translate [10 10 0])))
+
+#+END_SRC
+
+**** dot-rendering
+#+BEGIN_SRC clojure :tangle ./param.md
+(def dot-sphere (render-dot xsphere))
+(figure [500 200 10] "dot-rendering" dot-sphere)
+
+#+END_SRC
+
+**** slice-rendering
+#+BEGIN_SRC clojure :tangle ./param.md
+(def slice-sphere (render-slice xsphere))
+(figure [500 200 10] "slice-rendering" slice-sphere)
+
+#+END_SRC
+
+**** quad-rendering
+#+BEGIN_SRC clojure :tangle ./param.md
+(def quad-sphere (render-quad xsphere))
+(figure [500 200 10] "quad-rendering" quad-sphere)
+
+#+END_SRC
+
+**** boxes
+#+BEGIN_SRC clojure :tangle ./param.md
+(def xrect
+  (-> (brep-axis-aligned-rect 12 20 [0 1 0])
+      (brep-rotate isometric-euler-angles)
+      (brep-translate [10 10 0])))
+
+(figure [500 200 10] "brep-rect-wip"
+        (render-dot xrect))
+
+#+END_SRC
+
+**** curves
+#+BEGIN_SRC clojure :tangle ./param.md
+(def xcirc
+  (-> (brep-circle 8)
+      (brep-rotate isometric-euler-angles)
+      (brep-translate [10 10 0])))
+
+(figure [500 200 10] "brep-rect-wip"
+        (render-dot-curve xcirc))
+
+#+END_SRC
+*** doc-end
+ #+BEGIN_SRC clojure :tangle ./param.md
+ ex)
+
+ .
+
+ #+END_SRC

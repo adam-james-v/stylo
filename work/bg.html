@@ -1,0 +1,3851 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Background Generator</title>
+<style>
+/*!
+MIT License
+
+Copyright (c) 2016 Fabien Sa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+
+/*
+| The mu framework v0.3.1
+| BafS 2016-2018
+*/
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+body {
+  font: 18px/1.6 Georgia, "Times New Roman", Times, serif;
+}
+
+table, input {
+  font-size: 16px;
+}
+
+button, select {
+  font-size: 14px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 1.2;
+}
+
+.ln {
+  stroke: #2e3440;
+  stroke-width: 2px;
+}
+
+.clr {
+  fill: none;
+}
+
+.attn {
+  fill: rgb(234, 82, 111);
+}
+
+rect, line, path, polygon, polyline {
+  vector-effect: non-scaling-stroke;
+}
+
+table {
+  width: auto;
+}
+
+th, td {
+  vertical-align: top;
+  padding: 5px;
+  border: 1px solid #ddd;
+}
+
+table ul {
+  list-style-type: none;
+  padding-left: 4px;
+  margin: 0;
+}
+
+table li:before {
+  content: ▢ ;
+}
+
+table p {
+  margin: 0;
+}
+
+.figure {
+  padding-left: 7px;
+}
+
+.figure p {
+  font-size: smaller;
+  font-style: italic;
+}
+
+@media (print) {
+
+  .pagebreak {
+    page-break-after: always;
+  }
+
+}
+
+body {
+  margin: 40px auto;
+  max-width: 760px;
+  color: #444;
+  padding: 0 20px;
+}
+
+a {
+  color: #07c;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #059;
+  text-decoration: underline;
+}
+
+hr {
+  border: 0;
+  margin: 25px 0;
+}
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  text-align: left;
+  padding-bottom: 25px;
+}
+
+td, th {
+  padding: 5px;
+  vertical-align: bottom;
+}
+
+td, th, hr {
+  border-bottom: 1px solid #ddd;
+}
+
+code, pre {
+  background: #eee;
+}
+
+pre {
+  padding: 8px;
+  white-space: pre-wrap;
+}
+
+button, select {
+  background: #ddd;
+  border: 0;
+  padding: 9px 20px;
+}
+
+input {
+  padding: 5px;
+  vertical-align: bottom;
+}
+
+button:hover {
+  background: #eee;
+}
+
+textarea {
+  border-color: #ccc;
+}
+
+.row {
+  display: block;
+  width: auto;
+  min-height: 1px;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.row, .c {
+  float: left;
+}
+
+table, .g2, .g3, .g3-2, .m2, .m3, .m3-2 {
+  width: 100%;
+}
+
+.g2 {
+  width: 50%;
+}
+
+.m2 {
+  margin-left: 50%;
+}
+
+.g3 {
+  width: 33.33%;
+}
+
+.g3-2 {
+  width: 66.66%;
+}
+
+.m3 {
+  margin-left: 33.33%;
+}
+
+.m3-2 {
+  margin-left: 66.66%;
+}</style>
+</head>
+<body>
+<main>
+<h1>Background Generator</h1>
+<p>This is a simple background generator. It is fun.</p>
+<div>4</div>
+<div>
+<p>This is rendered by the hiccup compiler.</p>
+</div>
+<h2>Method</h2>
+<p>It just randomly prints "\" or "/" in a grid filling up your canvas.</p>
+<div>
+</div>
+<div>
+<div class="figure">
+<svg height="300" viewbox="-1 -1 300 300" width="300" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(10)">
+<rect fill="hsl(107, 56%, 85%)" height="30" stroke-width="2" stroke="hsl(107, 56%, 85%)" width="30">
+</rect>
+<g transform="translate(0 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(0 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(1 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(2 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(3 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(4 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(5 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(6 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(7 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(8 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(9 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(10 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(11 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(12 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(13 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(14 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(15 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(16 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(17 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(18 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(19 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(20 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(21 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(22 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(23 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(24 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(25 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(26 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(27 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(28 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 0)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 1)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 2)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 3)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 4)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 5)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 6)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 7)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 8)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 9)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 10)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 11)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 12)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 13)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 14)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 15)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 16)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 17)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 18)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 19)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 20)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 21)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 22)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 23)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 24)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 25)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 26)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 27)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 28)">
+<polyline fill="rgba(0,0,0,0)" points="0,0 1,1 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+<g transform="translate(29 29)">
+<polyline fill="rgba(0,0,0,0)" points="0,1 1,0 " stroke-linecap="round" stroke-width="2" stroke="hsl(50, 97%, 29%)">
+</polyline>
+</g>
+</g>
+</svg>
+<p>wasd</p>
+</div>
+</div>
+</main>
+</body>
+</html>

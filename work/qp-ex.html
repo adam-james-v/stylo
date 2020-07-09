@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>qp-ex</title>
+<style>
+/*!
+MIT License
+
+Copyright (c) 2016 Fabien Sa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+
+/*
+| The mu framework v0.3.1
+| BafS 2016-2018
+*/
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+body {
+  font: 18px/1.6 Georgia, "Times New Roman", Times, serif;
+}
+
+table, input {
+  font-size: 16px;
+}
+
+button, select {
+  font-size: 14px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 1.2;
+}
+
+.ln {
+  stroke: #2e3440;
+  stroke-width: 2px;
+}
+
+.clr {
+  fill: none;
+}
+
+.attn {
+  fill: rgb(234, 82, 111);
+}
+
+rect, line, path, polygon, polyline {
+  vector-effect: non-scaling-stroke;
+}
+
+table {
+  width: auto;
+}
+
+th, td {
+  vertical-align: top;
+  padding: 5px;
+  border: 1px solid #ddd;
+}
+
+table ul {
+  list-style-type: none;
+  padding-left: 4px;
+  margin: 0;
+}
+
+table li:before {
+  content: ▢ ;
+}
+
+table p {
+  margin: 0;
+}
+
+.figure {
+  padding-left: 7px;
+}
+
+.figure p {
+  font-size: smaller;
+  font-style: italic;
+}
+
+@media (print) {
+
+  .pagebreak {
+    page-break-after: always;
+  }
+
+}
+
+body {
+  margin: 40px auto;
+  max-width: 760px;
+  color: #444;
+  padding: 0 20px;
+}
+
+a {
+  color: #07c;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #059;
+  text-decoration: underline;
+}
+
+hr {
+  border: 0;
+  margin: 25px 0;
+}
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  text-align: left;
+  padding-bottom: 25px;
+}
+
+td, th {
+  padding: 5px;
+  vertical-align: bottom;
+}
+
+td, th, hr {
+  border-bottom: 1px solid #ddd;
+}
+
+code, pre {
+  background: #eee;
+}
+
+pre {
+  padding: 8px;
+  white-space: pre-wrap;
+}
+
+button, select {
+  background: #ddd;
+  border: 0;
+  padding: 9px 20px;
+}
+
+input {
+  padding: 5px;
+  vertical-align: bottom;
+}
+
+button:hover {
+  background: #eee;
+}
+
+textarea {
+  border-color: #ccc;
+}
+
+.row {
+  display: block;
+  width: auto;
+  min-height: 1px;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.row, .c {
+  float: left;
+}
+
+table, .g2, .g3, .g3-2, .m2, .m3, .m3-2 {
+  width: 100%;
+}
+
+.g2 {
+  width: 50%;
+}
+
+.m2 {
+  margin-left: 50%;
+}
+
+.g3 {
+  width: 33.33%;
+}
+
+.g3-2 {
+  width: 66.66%;
+}
+
+.m3 {
+  margin-left: 33.33%;
+}
+
+.m3-2 {
+  margin-left: 66.66%;
+}</style>
+</head>
+<body>
+<main>
+<div>
+</div>
+<div>
+<svg style="width: 0; height: 0; position: absolute;">
+<pattern height="0.5" id="BvHatch" patternUnits="userSpaceOnUse" width="0.2">
+<rect height="0.5" style="fill:rgb(211, 126, 120);" width="0.1">
+</rect>
+<g transform="translate(0.1,0)">
+<rect height="0.5" style="fill:rgb(235, 171, 164);" width="0.1">
+</rect>
+</g>
+</pattern>
+<pattern height="0.2" id="BhHatch" patternUnits="userSpaceOnUse" width="0.5">
+<rect height="0.1" style="fill:rgb(211, 126, 120);" width="0.5">
+</rect>
+<g transform="translate(0,0.1)">
+<rect height="0.1" style="fill:rgb(235, 171, 164);" width="0.5">
+</rect>
+</g>
+</pattern>
+<pattern height="0.5" id="FvHatch" patternUnits="userSpaceOnUse" width="0.2">
+<rect height="0.5" style="fill:rgb(111, 131, 156);" width="0.1">
+</rect>
+<g transform="translate(0.1,0)">
+<rect height="0.5" style="fill:rgb(120, 168, 227);" width="0.1">
+</rect>
+</g>
+</pattern>
+<pattern height="0.2" id="FhHatch" patternUnits="userSpaceOnUse" width="0.5">
+<rect height="0.1" style="fill:rgb(111, 131, 156);" width="0.5">
+</rect>
+<g transform="translate(0,0.1)">
+<rect height="0.1" style="fill:rgb(120, 168, 227);" width="0.5">
+</rect>
+</g>
+</pattern>
+</svg>
+<style>
+.ln{stroke:#2e3440;stroke-width:1.5;}
+rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
+.attn{fill:rgb(234,82,111);}
+.clr{fill:rgba(0,0,0,0);}
+</style>
+<style>table{width:auto;}th, td{vertical-align:top;padding:5px;border: 1px solid #ddd;}table ul {list-style-type:none;padding-left:4px;margin:0}table p {margin:0}table li:before {content:'▢ ';}@media print {.pagebreak {page-break-before:always;}}.figure{padding-left:7px;}.figure p{font-size:smaller;font-style:italic;}.trim{fill:#fff;stroke:#fff !important;}.A{fill:rgb(235, 235, 220);}.Aw{fill:rgb(242, 242, 242);}.B{fill:rgb(178, 113, 106);}.Bv{fill:url(#BvHatch);}.Bh{fill:url(#BhHatch);}.C{fill:rgb(65, 95, 135);}.Cw{fill:rgba(140, 154, 168);}.Cw-a{fill:rgba(140, 154, 168, 0.5);}.D{fill:rgb(240, 185, 158);}.E{fill:rgb(158, 189, 221);}.F{fill:rgb(111, 131, 156);}.Fv{fill:url(#FvHatch);}.Fh{fill:url(#FhHatch);}</style>
+</div>
+<h1>Example begins</h1>
+<div>
+<h2>
+<img src="./resources/berry.png" style="width:50px;padding-right:10px;display:inline;" />The Blueberry Method</h2>
+</div>
+<p>1. Draw a diagonal line on the wrong side of 4 squares designated for the Blueberry.</p>
+<p>2. Place a Blueberry square RST onto the corners that meet in the middle of 4 selected units. Sew on the diagonal lines. Press two towards the corner, and then press the opposite two away from the corner. This will help to nest the seams together when completing The Blueberry. Trim.</p>
+<p>3. Sew the seams together and your Blueberry will be complete.</p>
+<div>
+<div class="figure">
+<svg height="160" viewbox="-1 -1 700 160" width="700" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(22.5)">
+<g transform="translate(0.1 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+<g transform="translate(1.5 0)">
+<g transform="rotate(90 0.625 0.625)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+</g>
+<g transform="translate(1.75 1.75)">
+<g transform="rotate(180 0.625 0.625)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+</g>
+<g transform="translate(0 1.75)">
+<g transform="rotate(270 0.625 0.625)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+<g transform="translate(0.5 5.375)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">mark on</text>
+</g>
+<g transform="translate(0.175 6.25)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">wrong side</text>
+</g>
+<g transform="translate(5 0)">
+<rect class="ln A" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+<g transform="translate(3 0)">
+<g transform="rotate(90 1.25 1.25)">
+<rect class="ln Bv" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+<g transform="translate(3 3)">
+<g transform="rotate(180 1.25 1.25)">
+<rect class="ln A" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+<g transform="translate(0 3)">
+<g transform="rotate(270 1.25 1.25)">
+<rect class="ln Bh" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(5.825 6.25)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">sew diagonals</text>
+</g>
+<g transform="translate(12.25 0)">
+<rect class="ln A" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+<g transform="translate(1.4 1.4)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln trim" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="translate(0.075 0.075)">
+<g transform="rotate(180 0.55 0.55)">
+<polygon class="ln Cw-a" points="0,0.95 0.95,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+<g transform="translate(3 0)">
+<g transform="rotate(90 1.25 1.25)">
+<rect class="ln Bh" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+<g transform="translate(1.4 1.4)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln trim" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="translate(0.075 0.075)">
+<g transform="rotate(180 0.55 0.55)">
+<polygon class="ln Cw-a" points="0,0.95 0.95,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(3 3)">
+<g transform="rotate(180 1.25 1.25)">
+<rect class="ln A" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+<g transform="translate(1.4 1.4)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln trim" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="translate(0.075 0.075)">
+<g transform="rotate(180 0.55 0.55)">
+<polygon class="ln Cw-a" points="0,0.95 0.95,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(0 3)">
+<g transform="rotate(270 1.25 1.25)">
+<rect class="ln Bh" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<rect class="ln Cw" height="1.25" width="1.25">
+</rect>
+<polyline fill="rgba(0,0,0,0)" points="-0.1,1.35 1.35,-0.1 " stroke-dasharray="4, 5" stroke-linecap="round" stroke-width="1.5" stroke="black">
+</polyline>
+</g>
+<g transform="translate(1.4 1.4)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln trim" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="translate(0.075 0.075)">
+<g transform="rotate(180 0.55 0.55)">
+<polygon class="ln Cw-a" points="0,0.95 0.95,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(14.625 6.25)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">trim</text>
+</g>
+<g transform="translate(19.5 0)">
+<rect class="ln A" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln C" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="scale(0.625)">
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="1.35,1.35 -0.1,-0.1 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+<g transform="translate(3 0)">
+<g transform="rotate(90 1.25 1.25)">
+<rect class="ln Bh" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln C" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="scale(0.625)">
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="-0.1,-0.1 1.35,1.35 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(3 3)">
+<g transform="rotate(180 1.25 1.25)">
+<rect class="ln A" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln C" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="scale(0.625)">
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="1.35,1.35 -0.1,-0.1 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(0 3)">
+<g transform="rotate(270 1.25 1.25)">
+<rect class="ln Bh" height="2.5" width="2.5">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.625 0.625)">
+<polygon class="ln C" points="0,1.25 1.25,0 0,0 ">
+</polygon>
+</g>
+<g transform="scale(0.625)">
+<g>
+<marker id="head" markerHeight="1" markerWidth="0.5" orient="auto" refX="0.025" refY="0.25">
+<path d="M0,0 V0.5 L0.25,0.25 Z" fill="black">
+</path>
+</marker>
+<polyline fill="rgba(0,0,0,0)" marker-end="url(#head)" points="-0.1,-0.1 1.35,1.35 " stroke-width="2" stroke="black">
+</polyline>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(21.625 6.25)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">press</text>
+</g>
+<g transform="translate(26.75 0.5)">
+<rect class="ln A" height="2" width="2">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.375 0.375)">
+<polygon class="ln C" points="0,0.75 0.75,0 0,0 ">
+</polygon>
+</g>
+</g>
+<g transform="translate(2 0)">
+<g transform="rotate(90 1 1)">
+<rect class="ln Bh" height="2" width="2">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.375 0.375)">
+<polygon class="ln C" points="0,0.75 0.75,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(2 2)">
+<g transform="rotate(180 1 1)">
+<rect class="ln A" height="2" width="2">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.375 0.375)">
+<polygon class="ln C" points="0,0.75 0.75,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(0 2)">
+<g transform="rotate(270 1 1)">
+<rect class="ln Bh" height="2" width="2">
+</rect>
+<g transform="translate(1.25 1.25)">
+<g transform="rotate(180 0.375 0.375)">
+<polygon class="ln C" points="0,0.75 0.75,0 0,0 ">
+</polygon>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g transform="translate(27.5 6.25)">
+<text fill="black" font-family="Verdana" font-size="12" transform="translate(0,0) scale(0.05)" x="-4" y="4">sew seams</text>
+</g>
+</g>
+</svg>
+<p>Blueberry Point Method</p>
+</div>
+</div>
+<p>That's the end of the sample.</p>
+</main>
+</body>
+</html>

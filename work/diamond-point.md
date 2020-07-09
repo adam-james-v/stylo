@@ -1,0 +1,12 @@
+<<diamond-01>>
+<<diamond-02>>
+<<blueberry-method-text>>
+<<blueberry-method-diagram>>
+<<templates-start-text>>
+<<template-a>>
+<<template-b>>
+<<template-c>>
+<<template-d>>
+<<template-e>>
+<<template-f>>
+<<templates-end-text>>
