@@ -1,5 +1,4 @@
-(ns stylo.draw
-  #_(:require [hiccup.def :refer [defelem]]))
+(ns stylo.draw)
 
 (defn svg
   [[w h sc] & content]
@@ -84,6 +83,50 @@
     [(+ (/ (- xmax xmin) 2.0) xmin)
      (+ (/ (- ymax ymin) 2.0) ymin)]))
 
+(defn distance
+  "compute distance between two points"
+  [a b]
+  (let [v (map - b a)
+        v2 (apply + (map * v v))]
+    (Math/sqrt v2)))
+
+(defn -line
+  [a b]
+  (fn [t]
+    (cond
+      (= (float t) 0.0) a
+      (= (float t) 1.0) b
+      :else
+      (mapv + a (map * (map - b a) (repeat t))))))
+
+(defn slope
+  [f]
+  (let [[x1 y1] (f 0)
+        [x2 y2] (f 1)]
+    (/ (- y2 y1) (- x2 x1))))
+
+(defn parallel?
+  [la lb]
+  (= (slope la) (slope lb)))
+
+(defn angle-between-lines
+  [la lb]
+  (if-not (parallel? la lb)  
+    (let [m1 (slope la)
+          m2 (slope lb)]
+      (Math/atan (/ (- m1 m2) 
+                    (+ 1 (* m1 m2)))))
+    0))
+
+(defn d->t
+  [f d]
+  (let [l (distance (f 0) (f 1))]
+    (/ d l)))
+
+(defn t->d
+  [f t]
+  (distance (f 0) (f t)))
+
 (defn perpendicular
   [[x y]]
   [(- y) x])
@@ -98,6 +141,9 @@
   [a b]
   (- (* (first a) (second b)) 
      (* (second a) (first b))))
+
+;; this should be improved
+;; currently can cause divide by zero issues
 
 (defn line-intersection
   [[a b] [c d]]
@@ -262,6 +308,28 @@
           (map + a [0 0.5]))
      (arw (map + mid [0 (* 1.75 label-offset)]) 
           (map - b [0 0.5])))))
+
+(defn dimension
+  [a b]
+  (let [text (format "%.2f" (distance a b))
+        label-offset (* 0.225 (count text))
+        label-angle (Math/toDegrees (angle-between-lines (-line a b) (-line [0 0] [1 0])))
+        [ao bo] (offset-edge [a b] 2)
+        mid (bb-center [ao bo])
+        arw-a (-line mid ao)
+        arw-b (-line mid bo)
+        arw-t (- 1 (d->t arw-a 0.5))
+        mid-t (d->t arw-a (* 1.75 label-offset))
+        la (-line a ao)
+        lb (-line b bo)
+        [lat1 lat2] (map (partial d->t la) [0.5 2.5])
+        [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
+    (list
+     (arw (arw-a mid-t) (arw-a arw-t))
+     (arw (arw-b mid-t) (arw-b arw-t))
+     (ln (la lat1) (la lat2))
+     (ln (lb lbt1) (lb lbt2))
+     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 2 (label text)))))))
 
 (defn dot
   [[x y]]

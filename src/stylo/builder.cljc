@@ -18,6 +18,7 @@
            tb |
            ex |
            kl |
+           kl-hidden |
            para)+
 
 para = (i-code |
@@ -25,7 +26,7 @@ para = (i-code |
         str |
         em |
         para-t)+ <nl> (<nl>+)?
-<para-t> = #'[^`\\n*#{}\\-\\!]+'
+<para-t> = #'[^`\\n*#{}\\-\\!\\[\\]]+'
 
 hd = #'^#{1,} .+' <nl>? <bl>?
 
@@ -76,6 +77,7 @@ nl = #'\n' ")
 (def -ex (gen-ext-str "ex"))
 (def -tb (gen-ext-str "tb"))
 (def -kl (gen-ext-str "kl"))
+(def -kl-hidden (gen-ext-str "kl-hidden"))
 
 ;; fix this transform. It doesn't work without a fn being run
 
@@ -89,7 +91,11 @@ nl = #'\n' ")
 
 (defn transform-kl
   [text]
-  [:div.cm-container [:code.clj text]])
+  [:div.cm-container [:code.clj.block text]])
+
+(defn transform-kl-hidden
+  [text]
+  [:div.hidden [:code.clj.block text]])
 
 (declare ->hiccup)
 (declare doc-parse)
@@ -160,17 +166,18 @@ nl = #'\n' ")
 
 ;; Usage ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def doc-parse (insta/parser (str -md -tb -ex -kl)))
+(def doc-parse (insta/parser (str -md -tb -ex -kl -kl-hidden)))
 
 (defn ->hiccup
   [tree]
-  (let [transformations {:an transform-anchor
+  (let [transformations {:anc transform-anchor
                          :em transform-emphasis
                          :str transform-strong
                          :img transform-image
                          :tb transform-table
                          :ex transform-ex
                          :kl transform-kl
+                         :kl-hidden transform-kl-hidden
                          :code transform-pre-code
                          :i-code transform-inline-code
                          :ul-i transform-unordered-item

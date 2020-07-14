@@ -46,6 +46,7 @@ Some additional notes about deps:
 <<ns-draw>>
 <<draw-containers>>
 <<draw-helpers>>
+<<draw-parametric>>
 <<draw-offset>>
 <<draw-transforms>>
 <<draw-shapes>>
@@ -258,6 +259,7 @@ This is the base style set used in all themes.
 <<style-base-tables>>
 <<style-base-figures>>
 <<style-base-code>>
+<<style-base-hidden>>
 <<style-base-pagebreak>>
 <<style-base-build>>
 #+end_src
@@ -317,18 +319,25 @@ These styles are used within the draw namespace.
 #+NAME: style-base-code
 #+BEGIN_SRC clojure
 (def code
-  [[:code {:padding (u/px 8)
-           :background "#2e3440"
-           :color "#dedee9"
-           :white-space "pre-wrap"
-           :display "inline-block"
-           :width (u/percent 100)}]])
+  [[:code.block {:padding (u/px 8)
+                 :background "#2e3440"
+                 :color "#dedee9"
+                 :white-space "pre-wrap"
+                 :display "inline-block"
+                 :width (u/percent 100)}]])
 
 #+END_SRC
 
 #+RESULTS[2342df20361e21aa93ed992c794f248f81cefa1d]: style-base-code
 : #'stylo.style.base/code
 
+*** hidden
+#+NAME: style-base-hidden
+#+BEGIN_SRC clojure
+(def hidden
+  [[:.hidden {:display "none"}]])
+
+#+END_SRC
 *** pagebreak
 #+NAME: style-base-pagebreak
 #+BEGIN_SRC clojure
@@ -347,6 +356,7 @@ These styles are used within the draw namespace.
    tables
    figures
    code
+   hidden
    pagebreak))
 
 (def style-str
@@ -1512,17 +1522,12 @@ Combine all of the definitions to build the style.
 * draw
 The draw namespace contains functions that produce svg elements.
 
-** todo
-- [ ] confirm that hiccup.def/defelem is NOT needed
-- [ ] implement grid-figure function
-- [ ] write better prose for 'containers' section
-- [ ] 
+The draw ns is effectively just a helpful set of wrappers around existing SVG functionality.
 
 ** ns
 #+NAME: ns-draw
 #+BEGIN_SRC clojure
-(ns stylo.draw
-  #_(:require [hiccup.def :refer [defelem]]))
+(ns stylo.draw)
 
 #+END_SRC
 
@@ -1621,6 +1626,54 @@ Containers are functions that wrap visual elements like 2D or 3D drawings.
 
 #+END_SRC
 
+** parametric
+#+NAME: draw-parametric
+#+BEGIN_SRC clojure
+(defn distance
+  "compute distance between two points"
+  [a b]
+  (let [v (map - b a)
+        v2 (apply + (map * v v))]
+    (Math/sqrt v2)))
+
+(defn -line
+  [a b]
+  (fn [t]
+    (cond
+      (= (float t) 0.0) a
+      (= (float t) 1.0) b
+      :else
+      (mapv + a (map * (map - b a) (repeat t))))))
+
+(defn slope
+  [f]
+  (let [[x1 y1] (f 0)
+        [x2 y2] (f 1)]
+    (/ (- y2 y1) (- x2 x1))))
+
+(defn parallel?
+  [la lb]
+  (= (slope la) (slope lb)))
+
+(defn angle-between-lines
+  [la lb]
+  (if-not (parallel? la lb)  
+    (let [m1 (slope la)
+          m2 (slope lb)]
+      (Math/atan (/ (- m1 m2) 
+                    (+ 1 (* m1 m2)))))
+    0))
+
+(defn d->t
+  [f d]
+  (let [l (distance (f 0) (f 1))]
+    (/ d l)))
+
+(defn t->d
+  [f t]
+  (distance (f 0) (f t)))
+
+#+END_SRC
 ** offset
 An implementation of polygon path offsetting.
 #+NAME: draw-offset
@@ -1639,6 +1692,9 @@ An implementation of polygon path offsetting.
   [a b]
   (- (* (first a) (second b)) 
      (* (second a) (first b))))
+
+;; this should be improved
+;; currently can cause divide by zero issues
 
 (defn line-intersection
   [[a b] [c d]]
@@ -1774,6 +1830,28 @@ An implementation of polygon path offsetting.
      (arw (map + mid [0 (* 1.75 label-offset)]) 
           (map - b [0 0.5])))))
 
+(defn dimension
+  [a b]
+  (let [text (format "%.2f" (distance a b))
+        label-offset (* 0.225 (count text))
+        label-angle (Math/toDegrees (angle-between-lines (-line a b) (-line [0 0] [1 0])))
+        [ao bo] (offset-edge [a b] 2)
+        mid (bb-center [ao bo])
+        arw-a (-line mid ao)
+        arw-b (-line mid bo)
+        arw-t (- 1 (d->t arw-a 0.5))
+        mid-t (d->t arw-a (* 1.75 label-offset))
+        la (-line a ao)
+        lb (-line b bo)
+        [lat1 lat2] (map (partial d->t la) [0.5 2.5])
+        [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
+    (list
+     (arw (arw-a mid-t) (arw-a arw-t))
+     (arw (arw-b mid-t) (arw-b arw-t))
+     (ln (la lat1) (la lat2))
+     (ln (lb lbt1) (lb lbt2))
+     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 2 (label text)))))))
+
 (defn dot
   [[x y]]
   [:circle {:class ["attn"]
@@ -1864,6 +1942,7 @@ The linked code uses Eclipse Public License, which permits use in open source wo
            tb |
            ex |
            kl |
+           kl-hidden |
            para)+
 
 para = (i-code |
@@ -1871,7 +1950,7 @@ para = (i-code |
         str |
         em |
         para-t)+ <nl> (<nl>+)?
-<para-t> = #'[^`\\n*#{}\\-\\!]+'
+<para-t> = #'[^`\\n*#{}\\-\\!\\[\\]]+'
 
 hd = #'^#{1,} .+' <nl>? <bl>?
 
@@ -1927,6 +2006,7 @@ nl = #'\n' ")
 (def -ex (gen-ext-str "ex"))
 (def -tb (gen-ext-str "tb"))
 (def -kl (gen-ext-str "kl"))
+(def -kl-hidden (gen-ext-str "kl-hidden"))
 
 ;; fix this transform. It doesn't work without a fn being run
 
@@ -1940,7 +2020,11 @@ nl = #'\n' ")
 
 (defn transform-kl
   [text]
-  [:div.cm-container [:code.clj text]])
+  [:div.cm-container [:code.clj.block text]])
+
+(defn transform-kl-hidden
+  [text]
+  [:div.hidden [:code.clj.block text]])
 
 #+END_SRC
 
@@ -2021,17 +2105,18 @@ nl = #'\n' ")
 #+BEGIN_SRC clojure
 ;; Usage ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def doc-parse (insta/parser (str -md -tb -ex -kl)))
+(def doc-parse (insta/parser (str -md -tb -ex -kl -kl-hidden)))
 
 (defn ->hiccup
   [tree]
-  (let [transformations {:an transform-anchor
+  (let [transformations {:anc transform-anchor
                          :em transform-emphasis
                          :str transform-strong
                          :img transform-image
                          :tb transform-table
                          :ex transform-ex
                          :kl transform-kl
+                         :kl-hidden transform-kl-hidden
                          :code transform-pre-code
                          :i-code transform-inline-code
                          :ul-i transform-unordered-item

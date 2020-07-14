@@ -28,12 +28,15 @@
                   :font-style "italic"}]]])
 
 (def code
-  [[:code {:padding (u/px 8)
-           :background "#2e3440"
-           :color "#dedee9"
-           :white-space "pre-wrap"
-           :display "inline-block"
-           :width (u/percent 100)}]])
+  [[:code.block {:padding (u/px 8)
+                 :background "#2e3440"
+                 :color "#dedee9"
+                 :white-space "pre-wrap"
+                 :display "inline-block"
+                 :width (u/percent 100)}]])
+
+(def hidden
+  [[:.hidden {:display "none"}]])
 
 (def pagebreak
   [(at-media {:print ""}
@@ -45,6 +48,7 @@
    tables
    figures
    code
+   hidden
    pagebreak))
 
 (def style-str
