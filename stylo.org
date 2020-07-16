@@ -41,18 +41,6 @@ Some additional notes about deps:
 
 ** code-structure
 *** sources
-**** draw
-#+begin_src clojure :tangle ./src/stylo/draw.cljc
-<<ns-draw>>
-<<draw-containers>>
-<<draw-helpers>>
-<<draw-parametric>>
-<<draw-offset>>
-<<draw-transforms>>
-<<draw-shapes>>
-<<draw-annotations>>
-#+end_src
-
 **** builder
 #+begin_src clojure :tangle ./src/stylo/builder.cljc
 <<ns-builder>>
@@ -242,13 +230,9 @@ Each theme's source is ported from a plain .css file into hiccup style syntax. O
 
 It's valuable to have the styles in clojure data structures in case there is need to programmatically manipulate styles in the future. For example, if I want to create a macro that packages up 'lightweight components', I may wish to attach style vectors directly to the rest of the component's definition.
 
-The focus of all styles is simplicity. They are classless (or as close as possible), work on mobile displays with minimal special-casing, and are easy to understand. They also look very nice without being overly designed.
+The focus of all styles is simplicity. They are classless (or as close as possible), work on mobile displays with minimal special-casing, and are easy to understand. They also look nice without being overly designed.
 
-Clean.
-Minimal.
-Simple.
-
-IDEA: make it possible for users to easily provide their own themes. Perhaps this is best done by treating themes as extensions?
+I am currently only using *mu*, it might make sense to pull out the other themes to keep the core of stylo small.
 
 ** style-base
 This is the base style set used in all themes.
@@ -1525,8 +1509,7 @@ The draw namespace contains functions that produce svg elements.
 The draw ns is effectively just a helpful set of wrappers around existing SVG functionality.
 
 ** ns
-#+NAME: ns-draw
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (ns stylo.draw)
 
 #+END_SRC
@@ -1534,8 +1517,7 @@ The draw ns is effectively just a helpful set of wrappers around existing SVG fu
 ** containers
 Containers are functions that wrap visual elements like 2D or 3D drawings.
 
-#+NAME: draw-containers
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn svg
   [[w h sc] & content]
   [:svg {:width w
@@ -1579,8 +1561,7 @@ Containers are functions that wrap visual elements like 2D or 3D drawings.
 #+END_SRC
 
 ** helpers
-#+NAME: draw-helpers
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn pt-str
   [pts]
   (apply str (map #(apply str (interleave % ["," " "])) pts)))
@@ -1627,8 +1608,7 @@ Containers are functions that wrap visual elements like 2D or 3D drawings.
 #+END_SRC
 
 ** parametric
-#+NAME: draw-parametric
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn distance
   "compute distance between two points"
   [a b]
@@ -1676,8 +1656,7 @@ Containers are functions that wrap visual elements like 2D or 3D drawings.
 #+END_SRC
 ** offset
 An implementation of polygon path offsetting.
-#+NAME: draw-offset
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn perpendicular
   [[x y]]
   [(- y) x])
@@ -1728,18 +1707,21 @@ An implementation of polygon path offsetting.
   (let [n (count v)]
     (map #(get v %) (filter even? (range n)))))
 
+(defn wrap-list-once
+  [s]
+  (conj (drop-last s) (last s)))
+
 (defn offset
   [pts d]
   (let [edges (cycle-pairs pts)
         opts (mapcat #(offset-edge % d) edges)
         oedges (every-other (cycle-pairs opts))
         edge-pairs (cycle-pairs oedges)]
-    (map #(apply line-intersection %) edge-pairs)))
+    (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
 
 #+END_SRC
 ** transforms
-#+NAME: draw-transforms
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn sc
   [sc & elems]
   (into [:g {:transform (scale-str sc)}] elems))
@@ -1755,8 +1737,7 @@ An implementation of polygon path offsetting.
 #+END_SRC
 
 ** annotations
-#+NAME: draw-annotations
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn label
   [text]
   [:text {:fill "black"
@@ -1850,7 +1831,7 @@ An implementation of polygon path offsetting.
      (arw (arw-b mid-t) (arw-b arw-t))
      (ln (la lat1) (la lat2))
      (ln (lb lbt1) (lb lbt2))
-     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 2 (label text)))))))
+     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 1.5 (label text)))))))
 
 (defn dot
   [[x y]]
@@ -1860,8 +1841,7 @@ An implementation of polygon path offsetting.
 #+END_SRC
 
 ** shapes
-#+NAME: draw-shapes
-#+BEGIN_SRC clojure
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (defn rect
   ([w h]
    (rect w h nil))
@@ -1902,6 +1882,494 @@ An implementation of polygon path offsetting.
              :d (apply str (interleave path-strs (repeat " ")))}])))
 
 #+END_SRC
+** 3d
+*** renderable-objects
+Renderable objects are maps containing vertices, edges, and faces. Each entity can be assigned additional data like color.
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(def entity-defaults
+  {:color "#2e3440"
+   :fill "#a3be8c"})
+
+(defn entity
+  ([vl]
+   (entity entity-defaults vl))
+  
+  ([attr-map vl]
+   {:val vl
+    :attrs (merge entity-defaults attr-map)}))
+
+#+END_SRC
+
+*** extrude
+The extrude function will work on XY-plane shapes. So, a list of nodes and edges where nodes are [x y].
+
+Then, to extrude, take a height value, and all nodes are transformed with appropriate Z values.
+
+For the easiest implementation, assume extrusion always happens from z=0 to z=h
+
+All I have to do is copy the nodes, attach z 0 to one 'set' and z h to the other.
+
+The extrude-pt ignores any existing Z values.
+This is equivalent to 'projecting' the given pt onto the XY plane (sets Z to zero), and extruding from there.
+
+EXTRUDE needs to add edges and faces. The extrude- fn currently only changes nodes, which will break the edges.
+
+I can either update the edge indices (and add new edges) 
+
+OR
+
+---> Add the new nodes AFTER existing nodes (don't interleave), then no indices have to change, only new edges (and faces) are appended onto their appropriate lists.
+
+
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn polygon-2d
+  "creates a closed 2d polygon tracing the list of points"
+  [pts]
+  (let [edges (map vec (partition 2 1 (concat 
+                                       (range (count pts))
+                                       [0])))]
+    {:nodes (map entity pts)
+     :edges (map entity edges) 
+     :faces (list (entity (vec (range (count edges)))))}))
+
+#+END_SRC
+
+*** circle
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn parametric-circle
+  [r]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* r (Math/cos t))
+          y (* r (Math/sin t))]
+      [x y])))
+
+(defn circle
+  [r]
+  (let [circle-fn (parametric-circle r)]
+    (polygon-2d (map circle-fn (range 0 1 0.025)))))
+
+#+END_SRC
+
+*** ellipse
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn parametric-ellipse
+  [rx ry]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* rx (Math/cos t))
+          y (* ry (Math/sin t))]
+      [x y])))
+
+(defn ellipse
+  [rx ry]
+  (let [ellipse-fn (parametric-ellipse rx ry)]
+    (polygon-2d (map ellipse-fn (range 0 1 0.025)))))
+
+#+END_SRC
+
+*** regular-polygon
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn regular-polygon-pts
+  [r n]
+  (let [angle (* 2 Math/PI (/ 1 n))]
+    (for [step (range n)]
+      [(* r (Math/cos (* step angle)))
+       (* r (Math/sin (* step angle)))])))
+
+(defn regular-polygon
+  [r n]
+  (polygon-2d (regular-polygon-pts r n)))
+
+#+END_SRC
+
+**** notes on vertical faces
+This seems hacky, maybe I should entirely rethink how I store objects. However, the make-vert-face function DOES work with the current approach.
+
+What it does is take advantage of the node/edge order when an extrude- fn runs.
+
+We know that the sketch's original edges make up the first n edges, where N is the count of the edges in the sketch.
+
+We know that (range 0 n) indices always point to the original edges.
+We know that (because of how extrude- works) (range (inc n) (* 2 n)) is the set of edges making up the top plane
+We know that the remaining indices (range (* 2 n) (* 3 n)) are the vertical edges.
+
+We also know that extruding a polygon will always result in rectangular faces parallel to the extrude direction (assumed to be Z).
+
+Using these facts, we can directly build the face by doing arithmetic on indices.
+
+We pass the 'starting' idx, which will always be in (range 0 n) and just do the weird math in the fn.
+
+The math was taken from diagrams that I sketched for myself. 
+
+NOTE: this is probably a dumb way of doing things. Need to research better approaches.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn make-vert-face
+  [sk idx]
+  (let [n (count (:edges sk))
+        indices (vec (take (* 2 n) (cycle (range (* 2 n) (* 3 n)))))]
+    [idx (get indices (inc idx)) (+ n idx) (get indices idx)]))
+
+(defn extrude-
+  [sk h]
+  (let [nodes (map :val (:nodes sk))
+        bnodes (map #(conj % 0) nodes)
+        tnodes (map #(conj % h) nodes)
+        xnodes (concat bnodes tnodes)
+
+        nedges (count (:edges sk))
+        bidx (concat (range nedges) [0])
+        tidx (concat (range nedges (* 2 nedges)) [nedges])
+        bedges (map :val (:edges sk))
+        tedges (map vec (partition 2 1 tidx))
+        medges (map vec (partition 2 (interleave bidx tidx)))
+        xedges (concat bedges tedges medges)
+
+        bfaces (map :val (:faces sk))
+        mfaces (map #(make-vert-face sk %) (range (count nodes)))
+        tfaces (list (vec (drop-last tidx)))
+        xfaces (concat bfaces mfaces tfaces)]
+    (-> sk
+        (assoc :nodes (map entity xnodes))
+        (assoc :edges (drop-last (map entity xedges)))
+        (assoc :faces (map entity xfaces)))))
+
+#+END_SRC
+
+*** join
+Like union, join takes two solids and merges them into one solid. Unlike union, join does NOT calculate intersections, trims, extensions, etc. It is a 'dumb union'.
+
+As such, this is just a starting point, not a fully useful function.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn shift-indices
+  [entity shift-val]
+  (let [shifter (fn [v]
+                  (mapv #(+ shift-val %) v))]
+    (update entity :val shifter)))
+
+(defn join-two
+  [a b]
+  (let [anodes (:nodes a)
+        aedges (:edges a)
+        afaces (:faces a)
+        bnodes (:nodes b)
+        bedges (map #(shift-indices % (count anodes)) (:edges b))
+        bfaces (map #(shift-indices % (count aedges)) (:faces b))
+        unodes (concat anodes bnodes)
+        uedges (concat aedges bedges)
+        ufaces (concat afaces bfaces)]
+    {:nodes unodes
+     :edges uedges
+     :faces ufaces}))
+
+(defn join
+  [& solids]
+  (reduce join-two solids))
+
+#+END_SRC
+
+*** transforms
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn scl [theta]
+  [(Math/sin (Math/toRadians theta)) (Math/cos (Math/toRadians theta))])
+
+(defn -rot-pt
+  [[a b] theta]
+  (let [[s-t c-t] (scl theta)]
+    [(- (* a c-t) (* b s-t))
+     (+ (* b c-t) (* a s-t))]))
+
+(defn rot-pt
+  [axis theta [x y z]]
+  (cond
+   (= axis :x) (into [x] (-rot-pt [y z] theta))
+   (= axis :y) (apply #(into [] [%2 y %1]) (-rot-pt [z x] theta))
+   (= axis :z) (into (-rot-pt [x y] theta) [z])))
+
+(defn -rot
+  [ro axis theta]
+  (let [nodes (map :val (:nodes ro))
+        rnodes (mapv (partial rot-pt axis theta) nodes)]
+    (assoc ro :nodes (mapv entity rnodes))))
+
+(defn rot-
+  [ro [th-x th-y th-z]]
+  (-> ro
+    (-rot :z th-z)
+    (-rot :y th-y)
+    (-rot :x th-x)))
+
+(defn mv-pt
+  [delta pt]
+  (mapv + delta pt))
+
+(defn mv-
+  [ro delta]
+  (let [nodes (map :val (:nodes ro))
+        rnodes (mapv (partial mv-pt delta) nodes)]
+    (assoc ro :nodes (mapv entity rnodes))))
+
+#+END_SRC
+
+*** sketches
+**** changes to data structure ideas
+Currently, 'edges' is just a list of lines. This doesn't provide enough detail up front to make poly-path faces (faces with holes). I need to have a list of closed paths.
+
+- could make a function that searches the edge list for loops
+
+- could add a :paths key that specifies loops at creation time instead.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn sk->3d
+  [sk]
+  (let [nodes-2d (map :val (:nodes sk))
+        nodes-3d (map #(entity (conj % 0)) nodes-2d)]
+    (assoc sk :nodes nodes-3d)))
+
+#+END_SRC
+
+*** render
+**** main
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(def axes
+  {:nodes (map entity [[0 0 0]
+                       [1 0 0]
+                       [0 1 0]
+                       [0 0 1]])
+   :edges (map #(apply entity %) [[{:color "red"} [0 1]]
+                                  [{:color "green"} [0 2]]
+                                  [{:color "blue"} [0 3]]])})
+
+(defn ln-col
+  [a b col]
+  [:polyline.clr {:stroke-linecap "round"
+                  :stroke col
+                  :stroke-width "2"
+                  :points (pt-str [a b])}])
+
+(defn shape-col
+  [pts col]
+  [:polygon {:stroke "slategray"
+             :fill col
+             :stroke-width "2"
+             :points (pt-str pts)}])
+
+(defn face->edges
+  [ro face]
+  (let [edges (mapv :val (:edges ro))]
+    (mapv #(get edges %) face)))
+
+(defn edge->nodes
+  [ro edge]
+  (let [nodes (mapv :val (:nodes ro))]
+    (mapv #(get nodes %) edge)))
+
+(defn face->nodes
+  [ro face]
+  (let [edges (face->edges ro face)]
+    (into [] (distinct (mapcat (partial edge->nodes ro) edges)))))
+
+(def iso-euler-angles [30 45 0])
+(def origin-angle-adjust-a [90 0 0])
+(def origin-angle-adjust-b [0 90 0])
+(defn orient-iso
+  [ro]
+  (-> ro
+      (rot- origin-angle-adjust-a)
+      (rot- origin-angle-adjust-b)
+      (rot- iso-euler-angles)))
+
+(defn orient-top
+  [ro]
+  (rot- ro [0 0 270]))
+
+(defn orient-front
+  [ro]
+  (rot- ro [90 0 270]))
+
+(defn orient-right
+  [ro]
+  (rot- ro [90 0 0]))
+
+(defn draw-edges
+  ([ro]
+   (draw-edges ro orient-iso))
+  
+  ([ro orientation]
+   (let [ro (orientation ro)
+         nodes (map :val (:nodes ro))
+         edges (:edges ro)]
+     (for [edge edges]
+       (let [col (:color (:attrs edge))
+             [n0 n1] (:val edge)
+             [xa ya _] (nth nodes n0)
+             [xb yb _] (nth nodes n1)]
+         (poly-path [[[xa ya] [xb yb]]])
+         #_(ln-col [xa ya] [xb yb] col))))))
+#+END_SRC
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn all-true?
+  [l]
+  (let [s (into #{} l)]
+    (if (= 2 (count s))
+      false
+      (true? (first s)))))
+
+(defn all-false?
+  [l]
+  (let [s (into #{} l)]
+    (if (= 2 (count s))
+      false
+      (false? (first s)))))
+
+(defn loop-masks
+  [edges]
+  (let [indices (map first edges)]
+    (for [idx indices]
+      (mapv #(= idx (last %)) edges))))
+
+(defn find-loops
+  ([edges]
+   (find-loops edges []))
+  ([edges acc]
+   (let [idx (first (first edges))
+         mask (mapv #(= idx (last %)) edges)
+         no-loops (all-false? mask)
+         n-edges (inc (count (take-while false? mask)))]
+     (if no-loops
+       acc
+       (recur 
+        (drop n-edges edges)
+        (conj acc (take n-edges edges)))))))
+
+(defn loop-between
+  [e1 e2]
+  (let [[n1 n2] e1
+        [n4 n3] e2]
+    (list [n1 n2]
+          [n2 n3]
+          [n3 n4]
+          [n4 n1])))
+
+(defn make-loops
+  [edges]
+  (let [edges (concat edges [(first edges)])
+        pairs (partition 2 1 edges)]
+    (map #(apply loop-between %) pairs)))
+
+(defn get-loops
+  [edges]
+  (let [#_edges #_(drop-last edges) ;;error in extrude adds extra edge at end of list.... fix 
+        found (find-loops edges)
+        to-remove (zipmap (apply concat found) (range (count (apply concat found))))
+        remaining (drop-while #(contains? to-remove %) edges)
+        made (make-loops remaining)]
+    found #_(concat found made)))
+
+#+END_SRC
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn loop->pts
+  [ro loop]
+  (let [nodes (mapv :val (:nodes ro))
+        indices (map first loop)
+        pts (mapv #(get nodes %) indices)]
+    pts))
+
+(defn draw-loops
+  [ro]
+  (let [nodes (map :val (:nodes ro))
+        edges (:edges ro)
+        loops (get-loops (map :val edges))
+        paths (map (partial loop->pts ro) loops)]
+    (for [path paths #_(take 6 paths)]
+      (closed-path path))))
+
+#+END_SRC
+**** WIP-draw-fns
+I have an idea to have 'assemblies' which can be maps containing lists of 
+
+#+BEGIN_SRC clojure :tangle :tangle ./src/stylo/draw.cljc
+;; rename this? widget, chunk, solid, something else...
+(defn object?
+  [item]
+  (and (map? item)
+       (and
+        (contains? item :nodes)
+        (contains? item :edges)
+        (contains? item :faces))))
+
+;; object looks like:
+;; {:nodes [] :edges [] :faces []}
+
+;; asm looks like:
+;; [object object object ..]
+
+(defn get-nested-objects
+  [ro]
+  (filter seqable? ro))
+
+(defn draw-edges-recursive
+  [ro]
+  (if (and (coll? ro) 
+           (not (object? ro)))
+    (concat (map draw-edges-recursive ro))
+    (draw-edges ro identity)))
+
+(defn draw-faces
+  ([ro]
+   (draw-faces [ro orient-iso]))
+
+  ([ro orientation]
+   (let [ro (orientation ro)
+         nodes (map :val (:nodes ro))
+         faces (:faces ro)]
+     (for [face faces]
+       (let [fill (:fill (:attrs face))
+             pts-3d (face->nodes ro (:val face))
+             pts-2d (map #(take 2 %) pts-3d)]
+         (shape-col pts-2d fill))))))
+
+#+END_SRC
+
+**** cad-view
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn get-2d-pts
+  [ro]
+  (bb-center 
+   (map #(into [] (take 2 %))
+        (map :val (:nodes ro)))))
+
+(defn get-move-coords
+  [[w h sc] ro]
+  (let [dc (get-2d-pts ro)
+        wc (mapv #(* (/ % 2.0) sc) [w h])]
+    (mapv - wc dc)))
+
+(defn center-view
+  [[w h sc] ro]
+  (let [coords (get-move-coords [w h (/ 1 sc)] ro)]
+    (mv coords (draw-edges-recursive ro))))
+
+;; iso, top, front, right
+(defn cad-view
+  [[w h sc] descr ro]
+  (let [qw (/ w 2.0)
+        qh (/ h 2.0)]
+    (quadrant-figure 
+     [w h sc] 
+     descr
+     (center-view [qw qh sc] (orient-iso ro))
+     (center-view [qw qh sc] (orient-top ro))
+     (center-view [qw qh sc] (orient-front ro))
+     (center-view [qw qh sc] (orient-right ro)))))
+
+#+END_SRC
+
 * builder
 *** repl-load
 #+BEGIN_SRC clojure
@@ -2345,510 +2813,7 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
       tfrms)]))
 
 #+END_SRC
-** chunk
-Chunk is the 'pet name' for the 3D diagram functionality.
-
-*** quick-load-for-repl
-#+BEGIN_SRC clojure
-(load-file "chunk.clj")
-(use 'stylo.chunk)
-
-#+END_SRC
-*** ns
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(ns stylo.chunk
-  (:require [stylo.draw :refer :all]))
-
-#+END_SRC
-
-*** renderable-objects
-Renderable objects are maps containing vertices, edges, and faces. Each entity can be assigned additional data like color.
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(def entity-defaults
-  {:color "#2e3440"
-   :fill "#a3be8c"})
-
-(defn entity
-  ([vl]
-   (entity entity-defaults vl))
-  
-  ([attr-map vl]
-   {:val vl
-    :attrs (merge entity-defaults attr-map)}))
-
-#+END_SRC
-
-*** extrude
-The extrude function will work on XY-plane shapes. So, a list of nodes and edges where nodes are [x y].
-
-Then, to extrude, take a height value, and all nodes are transformed with appropriate Z values.
-
-For the easiest implementation, assume extrusion always happens from z=0 to z=h
-
-All I have to do is copy the nodes, attach z 0 to one 'set' and z h to the other.
-
-The extrude-pt ignores any existing Z values.
-This is equivalent to 'projecting' the given pt onto the XY plane (sets Z to zero), and extruding from there.
-
-EXTRUDE needs to add edges and faces. The extrude- fn currently only changes nodes, which will break the edges.
-
-I can either update the edge indices (and add new edges) 
-
-OR
-
----> Add the new nodes AFTER existing nodes (don't interleave), then no indices have to change, only new edges (and faces) are appended onto their appropriate lists.
-
-
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn polygon-2d
-  "creates a closed 2d polygon tracing the list of points"
-  [pts]
-  (let [edges (map vec (partition 2 1 (concat 
-                                       (range (count pts))
-                                       [0])))]
-    {:nodes (map entity pts)
-     :edges (map entity edges) 
-     :faces (list (entity (vec (range (count edges)))))}))
-
-#+END_SRC
-
-*** circle
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn parametric-circle
-  [r]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* r (Math/cos t))
-          y (* r (Math/sin t))]
-      [x y])))
-
-(defn circle
-  [r]
-  (let [circle-fn (parametric-circle r)]
-    (polygon-2d (map circle-fn (range 0 1 0.025)))))
-
-#+END_SRC
-
-*** ellipse
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn parametric-ellipse
-  [rx ry]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* rx (Math/cos t))
-          y (* ry (Math/sin t))]
-      [x y])))
-
-(defn ellipse
-  [rx ry]
-  (let [ellipse-fn (parametric-ellipse rx ry)]
-    (polygon-2d (map ellipse-fn (range 0 1 0.025)))))
-
-#+END_SRC
-
-*** regular-polygon
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn regular-polygon-pts
-  [r n]
-  (let [angle (* 2 Math/PI (/ 1 n))]
-    (for [step (range n)]
-      [(* r (Math/cos (* step angle)))
-       (* r (Math/sin (* step angle)))])))
-
-(defn regular-polygon
-  [r n]
-  (polygon-2d (regular-polygon-pts r n)))
-
-#+END_SRC
-
-**** notes on vertical faces
-This seems hacky, maybe I should entirely rethink how I store objects. However, the make-vert-face function DOES work with the current approach.
-
-What it does is take advantage of the node/edge order when an extrude- fn runs.
-
-We know that the sketch's original edges make up the first n edges, where N is the count of the edges in the sketch.
-
-We know that (range 0 n) indices always point to the original edges.
-We know that (because of how extrude- works) (range (inc n) (* 2 n)) is the set of edges making up the top plane
-We know that the remaining indices (range (* 2 n) (* 3 n)) are the vertical edges.
-
-We also know that extruding a polygon will always result in rectangular faces parallel to the extrude direction (assumed to be Z).
-
-Using these facts, we can directly build the face by doing arithmetic on indices.
-
-We pass the 'starting' idx, which will always be in (range 0 n) and just do the weird math in the fn.
-
-The math was taken from diagrams that I sketched for myself. 
-
-NOTE: this is probably a dumb way of doing things. Need to research better approaches.
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn make-vert-face
-  [sk idx]
-  (let [n (count (:edges sk))
-        indices (vec (take (* 2 n) (cycle (range (* 2 n) (* 3 n)))))]
-    [idx (get indices (inc idx)) (+ n idx) (get indices idx)]))
-
-(defn extrude-
-  [sk h]
-  (let [nodes (map :val (:nodes sk))
-        bnodes (map #(conj % 0) nodes)
-        tnodes (map #(conj % h) nodes)
-        xnodes (concat bnodes tnodes)
-
-        nedges (count (:edges sk))
-        bidx (concat (range nedges) [0])
-        tidx (concat (range nedges (* 2 nedges)) [nedges])
-        bedges (map :val (:edges sk))
-        tedges (map vec (partition 2 1 tidx))
-        medges (map vec (partition 2 (interleave bidx tidx)))
-        xedges (concat bedges tedges medges)
-
-        bfaces (map :val (:faces sk))
-        mfaces (map #(make-vert-face sk %) (range (count nodes)))
-        tfaces (list (vec (drop-last tidx)))
-        xfaces (concat bfaces mfaces tfaces)]
-    (-> sk
-        (assoc :nodes (map entity xnodes))
-        (assoc :edges (drop-last (map entity xedges)))
-        (assoc :faces (map entity xfaces)))))
-
-#+END_SRC
-
-*** join
-Like union, join takes two solids and merges them into one solid. Unlike union, join does NOT calculate intersections, trims, extensions, etc. It is a 'dumb union'.
-
-As such, this is just a starting point, not a fully useful function.
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn shift-indices
-  [entity shift-val]
-  (let [shifter (fn [v]
-                  (mapv #(+ shift-val %) v))]
-    (update entity :val shifter)))
-
-(defn join-two
-  [a b]
-  (let [anodes (:nodes a)
-        aedges (:edges a)
-        afaces (:faces a)
-        bnodes (:nodes b)
-        bedges (map #(shift-indices % (count anodes)) (:edges b))
-        bfaces (map #(shift-indices % (count aedges)) (:faces b))
-        unodes (concat anodes bnodes)
-        uedges (concat aedges bedges)
-        ufaces (concat afaces bfaces)]
-    {:nodes unodes
-     :edges uedges
-     :faces ufaces}))
-
-(defn join
-  [& solids]
-  (reduce join-two solids))
-
-#+END_SRC
-
-*** transforms
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn scl [theta]
-  [(Math/sin (Math/toRadians theta)) (Math/cos (Math/toRadians theta))])
-
-(defn -rot-pt
-  [[a b] theta]
-  (let [[s-t c-t] (scl theta)]
-    [(- (* a c-t) (* b s-t))
-     (+ (* b c-t) (* a s-t))]))
-
-(defn rot-pt
-  [axis theta [x y z]]
-  (cond
-   (= axis :x) (into [x] (-rot-pt [y z] theta))
-   (= axis :y) (apply #(into [] [%2 y %1]) (-rot-pt [z x] theta))
-   (= axis :z) (into (-rot-pt [x y] theta) [z])))
-
-(defn -rot
-  [ro axis theta]
-  (let [nodes (map :val (:nodes ro))
-        rnodes (mapv (partial rot-pt axis theta) nodes)]
-    (assoc ro :nodes (mapv entity rnodes))))
-
-(defn rot-
-  [ro [th-x th-y th-z]]
-  (-> ro
-    (-rot :z th-z)
-    (-rot :y th-y)
-    (-rot :x th-x)))
-
-(defn mv-pt
-  [delta pt]
-  (mapv + delta pt))
-
-(defn mv-
-  [ro delta]
-  (let [nodes (map :val (:nodes ro))
-        rnodes (mapv (partial mv-pt delta) nodes)]
-    (assoc ro :nodes (mapv entity rnodes))))
-
-#+END_SRC
-
-*** sketches
-**** changes to data structure ideas
-Currently, 'edges' is just a list of lines. This doesn't provide enough detail up front to make poly-path faces (faces with holes). I need to have a list of closed paths.
-
-- could make a function that searches the edge list for loops
-
-- could add a :paths key that specifies loops at creation time instead.
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn sk->3d
-  [sk]
-  (let [nodes-2d (map :val (:nodes sk))
-        nodes-3d (map #(entity (conj % 0)) nodes-2d)]
-    (assoc sk :nodes nodes-3d)))
-
-#+END_SRC
-
-*** draw
-**** main
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(def axes
-  {:nodes (map entity [[0 0 0]
-                       [1 0 0]
-                       [0 1 0]
-                       [0 0 1]])
-   :edges (map #(apply entity %) [[{:color "red"} [0 1]]
-                                  [{:color "green"} [0 2]]
-                                  [{:color "blue"} [0 3]]])})
-
-(defn ln-col
-  [a b col]
-  [:polyline.clr {:stroke-linecap "round"
-                  :stroke col
-                  :stroke-width "2"
-                  :points (pt-str [a b])}])
-
-(defn shape-col
-  [pts col]
-  [:polygon {:stroke "slategray"
-             :fill col
-             :stroke-width "2"
-             :points (pt-str pts)}])
-
-(defn face->edges
-  [ro face]
-  (let [edges (mapv :val (:edges ro))]
-    (mapv #(get edges %) face)))
-
-(defn edge->nodes
-  [ro edge]
-  (let [nodes (mapv :val (:nodes ro))]
-    (mapv #(get nodes %) edge)))
-
-(defn face->nodes
-  [ro face]
-  (let [edges (face->edges ro face)]
-    (into [] (distinct (mapcat (partial edge->nodes ro) edges)))))
-
-(def iso-euler-angles [30 45 0])
-(def origin-angle-adjust-a [90 0 0])
-(def origin-angle-adjust-b [0 90 0])
-(defn orient-iso
-  [ro]
-  (-> ro
-      (rot- origin-angle-adjust-a)
-      (rot- origin-angle-adjust-b)
-      (rot- iso-euler-angles)))
-
-(defn orient-top
-  [ro]
-  (rot- ro [0 0 270]))
-
-(defn orient-front
-  [ro]
-  (rot- ro [90 0 270]))
-
-(defn orient-right
-  [ro]
-  (rot- ro [90 0 0]))
-
-(defn draw-edges
-  ([ro]
-   (draw-edges ro orient-iso))
-  
-  ([ro orientation]
-   (let [ro (orientation ro)
-         nodes (map :val (:nodes ro))
-         edges (:edges ro)]
-     (for [edge edges]
-       (let [col (:color (:attrs edge))
-             [n0 n1] (:val edge)
-             [xa ya _] (nth nodes n0)
-             [xb yb _] (nth nodes n1)]
-         (poly-path [[[xa ya] [xb yb]]])
-         #_(ln-col [xa ya] [xb yb] col))))))
-#+END_SRC
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn all-true?
-  [l]
-  (let [s (into #{} l)]
-    (if (= 2 (count s))
-      false
-      (true? (first s)))))
-
-(defn all-false?
-  [l]
-  (let [s (into #{} l)]
-    (if (= 2 (count s))
-      false
-      (false? (first s)))))
-
-(defn loop-masks
-  [edges]
-  (let [indices (map first edges)]
-    (for [idx indices]
-      (mapv #(= idx (last %)) edges))))
-
-(defn find-loops
-  ([edges]
-   (find-loops edges []))
-  ([edges acc]
-   (let [idx (first (first edges))
-         mask (mapv #(= idx (last %)) edges)
-         no-loops (all-false? mask)
-         n-edges (inc (count (take-while false? mask)))]
-     (if no-loops
-       acc
-       (recur 
-        (drop n-edges edges)
-        (conj acc (take n-edges edges)))))))
-
-(defn loop-between
-  [e1 e2]
-  (let [[n1 n2] e1
-        [n4 n3] e2]
-    (list [n1 n2]
-          [n2 n3]
-          [n3 n4]
-          [n4 n1])))
-
-(defn make-loops
-  [edges]
-  (let [edges (concat edges [(first edges)])
-        pairs (partition 2 1 edges)]
-    (map #(apply loop-between %) pairs)))
-
-(defn get-loops
-  [edges]
-  (let [#_edges #_(drop-last edges) ;;error in extrude adds extra edge at end of list.... fix 
-        found (find-loops edges)
-        to-remove (zipmap (apply concat found) (range (count (apply concat found))))
-        remaining (drop-while #(contains? to-remove %) edges)
-        made (make-loops remaining)]
-    found #_(concat found made)))
-
-#+END_SRC
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn loop->pts
-  [ro loop]
-  (let [nodes (mapv :val (:nodes ro))
-        indices (map first loop)
-        pts (mapv #(get nodes %) indices)]
-    pts))
-
-(defn draw-loops
-  [ro]
-  (let [nodes (map :val (:nodes ro))
-        edges (:edges ro)
-        loops (get-loops (map :val edges))
-        paths (map (partial loop->pts ro) loops)]
-    (for [path paths #_(take 6 paths)]
-      (closed-path path))))
-
-#+END_SRC
-**** WIP-draw-fns
-I have an idea to have 'assemblies' which can be maps containing lists of 
-
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-;; rename this? widget, chunk, solid, something else...
-(defn object?
-  [item]
-  (and (map? item)
-       (and
-        (contains? item :nodes)
-        (contains? item :edges)
-        (contains? item :faces))))
-
-;; object looks like:
-;; {:nodes [] :edges [] :faces []}
-
-;; asm looks like:
-;; [object object object ..]
-
-(defn get-nested-objects
-  [ro]
-  (filter seqable? ro))
-
-(defn draw-edges-recursive
-  [ro]
-  (if (and (coll? ro) 
-           (not (object? ro)))
-    (concat (map draw-edges-recursive ro))
-    (draw-edges ro identity)))
-
-(defn draw-faces
-  ([ro]
-   (draw-faces [ro orient-iso]))
-
-  ([ro orientation]
-   (let [ro (orientation ro)
-         nodes (map :val (:nodes ro))
-         faces (:faces ro)]
-     (for [face faces]
-       (let [fill (:fill (:attrs face))
-             pts-3d (face->nodes ro (:val face))
-             pts-2d (map #(take 2 %) pts-3d)]
-         (shape-col pts-2d fill))))))
-
-#+END_SRC
-
-**** cad-view
-#+BEGIN_SRC clojure :tangle ./chunk.clj
-(defn get-2d-pts
-  [ro]
-  (bb-center 
-   (map #(into [] (take 2 %))
-        (map :val (:nodes ro)))))
-
-(defn get-move-coords
-  [[w h sc] ro]
-  (let [dc (get-2d-pts ro)
-        wc (mapv #(* (/ % 2.0) sc) [w h])]
-    (mapv - wc dc)))
-
-(defn center-view
-  [[w h sc] ro]
-  (let [coords (get-move-coords [w h (/ 1 sc)] ro)]
-    (mv coords (draw-edges-recursive ro))))
-
-;; iso, top, front, right
-(defn cad-view
-  [[w h sc] descr ro]
-  (let [qw (/ w 2.0)
-        qh (/ h 2.0)]
-    (quadrant-figure 
-     [w h sc] 
-     descr
-     (center-view [qw qh sc] (orient-iso ro))
-     (center-view [qw qh sc] (orient-top ro))
-     (center-view [qw qh sc] (orient-front ro))
-     (center-view [qw qh sc] (orient-right ro)))))
-
-#+END_SRC
-* work
-** parametric
+** param
 Consider different representations of geometric objects:
 
 FREP: Functional Representation
@@ -3174,88 +3139,3 @@ It might be worth making a multimethod for rendering brep (and eventually frep) 
     (map #(d/closed-path % "face") mesh)))
 
 #+END_SRC
-
-** doc
-*** intro
-#+BEGIN_SRC clojure :tangle ./param.md
-# Parametric WIP
-
-This is just a testing document for parametric ideas.
-My approach to 2D/3D drawing in stylo is messy. This is a brief exploration into Functional Rep, Boundary Rep, signed distance functions, parametric equations, and how to wire them all together in a useful way.
-
-What kind of model and data structure actually makes sense for drawing 2D and 3D diagrams?
-
-(ex
- #+END_SRC
-
-#+BEGIN_SRC clojure :tangle ./param.md
-(ns param
-  (:require [hiccup.core :refer [h html]]
-            [stylo.draw :refer :all]))
-
-(load-file "param.clj")
-(use 'stylo.parametric)
-
-#+END_SRC
-
-*** render-area
-**** sphere-defs
-#+BEGIN_SRC clojure :tangle ./param.md
-(def xsphere
-  (-> (brep-sphere 8)
-      (brep-rotate isometric-euler-angles)
-      (brep-translate [10 10 0])))
-
-#+END_SRC
-
-**** dot-rendering
-#+BEGIN_SRC clojure :tangle ./param.md
-(def dot-sphere (render-dot xsphere))
-(figure [500 200 10] "dot-rendering" dot-sphere)
-
-#+END_SRC
-
-**** slice-rendering
-#+BEGIN_SRC clojure :tangle ./param.md
-(def slice-sphere (render-slice xsphere))
-(figure [500 200 10] "slice-rendering" slice-sphere)
-
-#+END_SRC
-
-**** quad-rendering
-#+BEGIN_SRC clojure :tangle ./param.md
-(def quad-sphere (render-quad xsphere))
-(figure [500 200 10] "quad-rendering" quad-sphere)
-
-#+END_SRC
-
-**** boxes
-#+BEGIN_SRC clojure :tangle ./param.md
-(def xrect
-  (-> (brep-axis-aligned-rect 12 20 [0 1 0])
-      (brep-rotate isometric-euler-angles)
-      (brep-translate [10 10 0])))
-
-(figure [500 200 10] "brep-rect-wip"
-        (render-dot xrect))
-
-#+END_SRC
-
-**** curves
-#+BEGIN_SRC clojure :tangle ./param.md
-(def xcirc
-  (-> (brep-circle 8)
-      (brep-rotate isometric-euler-angles)
-      (brep-translate [10 10 0])))
-
-(figure [500 200 10] "brep-rect-wip"
-        (render-dot-curve xcirc))
-
-#+END_SRC
-*** doc-end
- #+BEGIN_SRC clojure :tangle ./param.md
- ex)
-
- .
-
- #+END_SRC

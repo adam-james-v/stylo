@@ -5,7 +5,7 @@ My approach to 2D/3D drawing in stylo is messy. This is a brief exploration into
 
 What kind of model and data structure actually makes sense for drawing 2D and 3D diagrams?
 
-{ex}
+(ex
 
 (ns param
   (:require [hiccup.core :refer [h html]]
@@ -44,6 +44,6 @@ What kind of model and data structure actually makes sense for drawing 2D and 3D
 (figure [500 200 10] "brep-rect-wip"
         (render-dot-curve xcirc))
 
-{ex}
+ex)
 
 .
