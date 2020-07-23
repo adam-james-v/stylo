@@ -164,8 +164,6 @@ nl = #'\n' ")
                        (mapv #(conj [:th] (->hiccup (doc-parse (str (s/trim %) "\n\n")))) (rest (first seq))))]]
     (conj [:table] head body)))
 
-;; Usage ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (def doc-parse (insta/parser (str -md -tb -ex -kl -kl-hidden)))
 
 (defn ->hiccup

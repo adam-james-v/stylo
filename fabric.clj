@@ -64,11 +64,6 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
      [x2 y]
      [0 y2]]))
 
-(defn dot
-  [[x y]]
-  [:circle {:class "attn"
-            :cx x :cy y :r 0.175}])
-
 (defn stack
   [elem n]
   (let [spc 0.185
@@ -77,3 +72,129 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
      (map 
       (fn [[x y]] [:g {:transform (translate-str x y)} elem]) 
       tfrms)]))
+
+(def scale-1-to-1 146)
+
+(defn polygon-template
+  [name pts]
+  (list
+   (polygon-d pts)
+   (polygon (offset pts 0.25))
+   (mv (bb-center pts) (label name))
+   (map #(mv % (sc 0.25 (dot [0 0 ]))) pts)))
+
+(defn diamond-template
+  [name w h hof]
+  (let [pts (diamond-pts w h hof)
+        half-w (/ w 2.0)]
+    (concat
+     (polygon-template name pts)
+     (ln-d [half-w 0] [half-w h]))))
+
+(defn colorize-template
+  [template colour]
+  (assoc-in (second template) [1 :class] (str "ln " colour)))
+
+(defn seamless-piece
+  [template colour]
+  (assoc-in (first template) [1 :class] (str "ln " colour)))
+
+(def bb-heading
+  [:h2 
+   [:img {:style "width:50px;padding-right:10px;display:inline;"
+          :src "./berry.png"}] 
+   "The Blueberry Method"])
+
+(def bb-instructions
+  [:ol
+   [:li "Draw a diagonal line on the wrong side of 4 squares designated for the Blueberry."]
+   [:li "Place a Blueberry square RST onto the corners that meet in the middle of 4 selected units. Sew on the diagonal lines. Press two towards the corner, and then press the opposite two away from the corner. This will help to nest the seams together when completing The Blueberry. Trim."]
+   [:li "Sew the seams together and your Blueberry will be complete."]])
+
+(defn bb-a
+  [berry-b]
+  (list
+   (sq 1.25 berry-b)
+   (ln-d [-0.1 1.35] [1.35 -0.1])))
+
+(defn bb-b
+  [berry-b col]
+  (list
+   (sq 2.5 col)
+   (mv [1.25 1.25] (bb-a berry-b))))
+
+(defn bb-c
+  [berry-b col]
+  (list
+   (sq 2.5 col)
+   (mv [1.25 1.25] (bb-a berry-b))
+   (mv [1.4 1.4] (rot 180 [0.625 0.625] (hst 1.25 "trim"))
+       (mv [0.075 0.075] (rot 180 [0.55 0.55] (hst 0.95 berry-b))))))
+
+(defn bb-d
+  [berry-f col out?]
+  (list
+   (sq 2.5 col)
+   (mv [1.25 1.25] (rot 180 [0.625 0.625] (hst 1.25 berry-f))
+       (if out?
+         [:g {:transform "scale(0.625)"} (arw [-0.1 -0.1] [1.35 1.35])]
+         [:g {:transform "scale(0.625)"} (arw [1.35 1.35] [-0.1 -0.1])]))))
+
+(defn bb-e
+  [berry-f col]
+  (list
+   (sq 2 col)
+   (mv [1.25 1.25] (rot 180 [0.375 0.375] (hst 0.75 berry-f)))))
+
+(defn bb-method
+  "Blueberry Method Snippet expecting strings of CSS classes for each colour in the diagram.
+
+  berry-f is the front berry colour.
+  berry-b is the back berry colour.
+  a is top left square colour.
+  b is top right square colour.
+  c is bottom right square colour.
+  d is bottom left square colour."
+  [berry-f berry-b col-a col-b col-c col-d]
+  [:div.bb-method
+   bb-heading
+   bb-instructions
+   [:div {:class "figure"}
+    (svg [700 160 22.5]
+         (mv [0.1 1.25]
+             (bb-a berry-b)
+             (mv [1.75    0] (rot  90 [0.625 0.625] (bb-a berry-b)))
+             (mv [1.75 1.75] (rot 180 [0.625 0.625] (bb-a berry-b)))
+             (mv [   0 1.75] (rot 270 [0.625 0.625] (bb-a berry-b))))
+         (mv [0.5 5.375] (label "mark on"))
+         (mv [0.175 6.25] (label "wrong side"))
+         
+         (mv [5 0]
+             (bb-b berry-b col-a)
+             (mv [3 0] (rot  90 [1.25 1.25] (bb-b berry-b col-b)))
+             (mv [3 3] (rot 180 [1.25 1.25] (bb-b berry-b col-c)))
+             (mv [0 3] (rot 270 [1.25 1.25] (bb-b berry-b col-d))))
+         (mv [5.825 6.25] (label "sew diagonals"))
+         
+         (mv [12.25 0]
+             (bb-c berry-b col-a)
+             (mv [3 0] (rot  90 [1.25 1.25] (bb-c berry-b col-b)))
+             (mv [3 3] (rot 180 [1.25 1.25] (bb-c berry-b col-c)))
+             (mv [0 3] (rot 270 [1.25 1.25] (bb-c berry-b col-d))))
+         (mv [14.625 6.25] (label "trim"))
+         
+         (mv [19.5 0]
+             (bb-d berry-f col-a false)
+             (mv [3 0] (rot  90 [1.25 1.25] (bb-d berry-f col-b true)))
+             (mv [3 3] (rot 180 [1.25 1.25] (bb-d berry-f col-c false)))
+             (mv [0 3] (rot 270 [1.25 1.25] (bb-d berry-f col-d true))))
+         (mv [21.625 6.25] (label "press"))
+         
+         (mv [26.75 0.5]
+             (bb-e berry-f col-a)
+             (mv [2 0] (rot  90 [1 1] (bb-e berry-f col-b)))
+             (mv [2 2] (rot 180 [1 1] (bb-e berry-f col-c)))
+             (mv [0 2] (rot 270 [1 1] (bb-e berry-f col-d))))
+         (mv [27.5 6.25] (label "sew seams")))
+
+    [:p "Blueberry Point Method"]]])

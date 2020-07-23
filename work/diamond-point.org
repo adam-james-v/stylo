@@ -1,4 +1,12 @@
 * pattern
+#+Title: diamond-point
+#+SUBTITLE: document rendering library
+#+AUTHOR: adam-james
+#+STARTUP: overview
+#+PROPERTY: header-args :cache yes :noweb yes :results inline :mkdirp yes :padline yes :async
+#+HTML_DOCTYPE: html5
+#+OPTIONS: toc:2 num:nil html-style:nil html-postamble:nil html-preamble:nil html5-fancy:t
+
 ** srcs
 #+begin_src clojure :tangle ./diamond-point.md
 <<diamond-01>>

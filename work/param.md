@@ -1,4 +1,4 @@
-# Parametric WIP
+# Parametric WIP.
 
 This is just a testing document for parametric ideas.
 My approach to 2D/3D drawing in stylo is messy. This is a brief exploration into Functional Rep, Boundary Rep, signed distance functions, parametric equations, and how to wire them all together in a useful way.

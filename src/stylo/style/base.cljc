@@ -7,6 +7,8 @@
   [[:.ln {:stroke "#2e3440" :stroke-width (u/px 2)}]
    [:.clr {:fill "none"}]
    [:.attn {:fill "rgb(234, 82, 111)"}]
+   [:.attn-ln {:stroke "rgb(234, 82, 111)"
+               :stroke-width (u/px 3)}]
    [:.face {:fill "#a3be8c"
            :fill-rule "evenodd"}]
    [:rect :line :path :polygon :polyline :circle {:vector-effect "non-scaling-stroke"}]])

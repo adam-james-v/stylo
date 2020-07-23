@@ -1,4 +1,31 @@
-(ns stylo.draw)
+(ns stylo.draw
+  (:require [stylo.draw :as d]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.test :as test]))
+
+;; this was the ns for param.clj... I'm in the middle of cleaning this up.
+#_(ns stylo.parametric
+  (:require [stylo.draw :as d]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.test :as test]))
+
+(s/def ::pt2d (s/tuple number? number?))
+(s/def ::pt3d (s/tuple number? number? number?))
+(s/def ::pt (s/or :xy ::pt2d :xyz ::pt3d))
+(s/def ::pts (s/* ::pt))
+(s/def ::axis #{:x :y :z})
+
+(s/def ::parameter (s/and number? #(<= 0 % 1)))
+(s/def ::surface-parameter (s/tuple ::parameter ::parameter))
+(s/def ::quad (s/tuple number? number? number? number?))
+(s/def ::path (s/* ::pt))
+
+
+;; potential issue: ::quad is indistinguishable from ::pt2d because they are both just tuples with numbers
 
 (defn svg
   [[w h sc] & content]
@@ -35,24 +62,22 @@
        (svg [qw qh sc] q4)]
       [:p descr]])))
 
-(defn grid-figure
-  "creates a figure with an evenly-spaced WxH grid of svg elements."
-  []
-  "NOT IMPLEMENTED YET")
+(defn point-to-string
+  [pt]
+  (apply str (interpose "," pt)))
 
 (defn pt-str
   [pts]
-  (apply str (map #(apply str (interleave % ["," " "])) pts)))
+  (apply str (interpose " " (map point-to-string pts))))
 
 (defn path-str
   [pts]
   (let [line-to #(str "L" (first %) " " (second %))
         move-to #(str "M" (first %) " " (second %))]
-    (str (move-to (first pts)) " "
-         (apply str (interleave 
-                     (map line-to (rest pts))
-                     (repeat " ")))
-         "Z")))
+    (str 
+     (move-to (first pts)) " "
+     (apply str (interpose " " (map line-to (rest pts))))
+     " Z")))
 
 (defn scale-str
   [sc]
@@ -84,122 +109,58 @@
      (+ (/ (- ymax ymin) 2.0) ymin)]))
 
 (defn distance
-  "compute distance between two points"
+  "Computes the distance between two points."
   [a b]
   (let [v (map - b a)
         v2 (apply + (map * v v))]
     (Math/sqrt v2)))
 
-(defn -line
+(defn *c3d
+  "calculates cross product of two 3d-vectors"
   [a b]
-  (fn [t]
-    (cond
-      (= (float t) 0.0) a
-      (= (float t) 1.0) b
-      :else
-      (mapv + a (map * (map - b a) (repeat t))))))
+  (let [[a1 a2 a3] a
+        [b1 b2 b3] b
+        i (- (* a2 b3) (* a3 b2))
+        j (- (* a3 b1) (* a1 b3))
+        k (- (* a1 b2) (* a2 b1))]
+    [i j k]))
 
-(defn slope
-  [f]
-  (let [[x1 y1] (f 0)
-        [x2 y2] (f 1)]
-    (/ (- y2 y1) (- x2 x1))))
+(defn rect
+  ([w h]
+   (rect w h nil))
+  ([w h col]
+   [:rect {:class ["ln" (if col col "clr")]
+           :width w
+           :height h}]))
 
-(defn parallel?
-  [la lb]
-  (= (slope la) (slope lb)))
+(defn polygon
+  ([pts]
+   (polygon pts nil))
+  ([pts col]
+   [:polygon {:class ["ln" (if col col "clr")]
+              :points (pt-str pts)}]))
 
-(defn angle-between-lines
-  [la lb]
-  (if-not (parallel? la lb)  
-    (let [m1 (slope la)
-          m2 (slope lb)]
-      (Math/atan (/ (- m1 m2) 
-                    (+ 1 (* m1 m2)))))
-    0))
+(defn polygon-d
+  ([pts]
+   (polygon-d pts nil))
+  ([pts col]
+   [:polygon {:class ["ln-d" (if col col "clr")]
+              :points (pt-str pts)}]))
 
-(defn d->t
-  [f d]
-  (let [l (distance (f 0) (f 1))]
-    (/ d l)))
+(defn closed-path
+  ([pts]
+   (closed-path pts nil))
+  ([pts col]
+   [:path {:class ["ln" (if col col "clr")]
+           :d (path-str pts)}]))
 
-(defn t->d
-  [f t]
-  (distance (f 0) (f t)))
-
-(defn perpendicular
-  [[x y]]
-  [(- y) x])
-
-(defn normalize
-  "find the unit vector of a given vector"
-  [v]
-  (let [m (Math/sqrt (reduce + (map * v v)))]
-    (mapv / v (repeat m))))
-
-(defn det
-  [a b]
-  (- (* (first a) (second b)) 
-     (* (second a) (first b))))
-
-;; this should be improved
-;; currently can cause divide by zero issues
-
-(defn line-intersection
-  [[a b] [c d]]
-  (let [[ax ay] a
-        [bx by] b
-        [cx cy] c
-        [dx dy] d
-        xdiff [(- ax bx) (- cx dx)]
-        ydiff [(- ay by) (- cy dy)]
-        div (det xdiff ydiff)
-        d [(det a b) (det c d)]
-        x (/ (det d xdiff) div)
-        y (/ (det d ydiff) div)]
-    [x y]))
-
-(defn offset-edge
-  [[a b] d]
-  (let [p (perpendicular (mapv - b a))
-        pd (map * (normalize p) (repeat (- d)))
-        xa (mapv + a pd)
-        xb (mapv + b pd)]
-    [xa xb]))
-
-(defn cycle-pairs
-  [pts]
-  (let [n (count pts)]
-    (vec (take n (partition 2 1 (cycle pts))))))
-
-(defn every-other
-  [v]
-  (let [n (count v)]
-    (map #(get v %) (filter even? (range n)))))
-
-(defn wrap-list-once
-  [s]
-  (conj (drop-last s) (last s)))
-
-(defn offset
-  [pts d]
-  (let [edges (cycle-pairs pts)
-        opts (mapcat #(offset-edge % d) edges)
-        oedges (every-other (cycle-pairs opts))
-        edge-pairs (cycle-pairs oedges)]
-    (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
-
-(defn sc
-  [sc & elems]
-  (into [:g {:transform (scale-str sc)}] elems))
-
-(defn mv
-  [[x y] & elems]
-  (into [:g {:transform (translate-str x y)}] elems))
-
-(defn rot
-  [r [x y] & elems]
-  (into [:g {:transform (rotate-str r [x y])}] elems))
+(defn poly-path
+  ([paths]
+   (poly-path paths nil))
+  ([paths col]
+   (let [path-strs (map path-str paths)]
+     [:path {:class ["ln" (if col col "clr")]
+             :d (apply str (interleave path-strs (repeat " ")))}])))
 
 (defn label
   [text]
@@ -301,44 +262,283 @@
   [:circle {:class ["attn"]
             :cx x :cy y :r 0.125}])
 
-(defn rect
-  ([w h]
-   (rect w h nil))
-  ([w h col]
-   [:rect {:fill (if col col "black")
-           :stroke (if col col "black")
-           :stroke-width 2
-           :width w
-           :height h}]))
+(defn attn-ln
+  [a b]
+  [:polyline {:class ["attn-ln" "clr"]
+              :points (pt-str [a b])}])
 
-(defn polygon
-  ([pts]
-   (polygon pts nil))
-  ([pts col]
-   [:polygon {:class ["ln" (if col col "clr")]
-              :points (pt-str pts)}]))
+(defn attn-circle
+  [[x y] r]
+  [:circle {:class ["attn-ln" "clr"]
+            :cx x :cy y :r r}])
 
-(defn polygon-d
-  ([pts]
-   (polygon-d pts nil))
-  ([pts col]
-   [:polygon {:class ["ln-d" (if col col "clr")]
-              :points (pt-str pts)}]))
+(defn sc
+  [sc & elems]
+  (into [:g {:transform (scale-str sc)}] elems))
 
-(defn closed-path
-  ([pts]
-   (closed-path pts nil))
-  ([pts col]
-   [:path {:class ["ln" (if col col "clr")]
-           :d (path-str pts)}]))
+(defn mv
+  [[x y] & elems]
+  (into [:g {:transform (translate-str x y)}] elems))
 
-(defn poly-path
-  ([paths]
-   (poly-path paths nil))
-  ([paths col]
-   (let [path-strs (map path-str paths)]
-     [:path {:class ["ln" (if col col "clr")]
-             :d (apply str (interleave path-strs (repeat " ")))}])))
+(defn rot
+  [r [x y] & elems]
+  (into [:g {:transform (rotate-str r [x y])}] elems))
+
+(defn circular-pattern
+  "Patterns n elements along an arc defined by angle."
+  [[angle n rx ry] & elems]
+  (let [delta (/ angle n)]
+    (for [a (range n)]
+      (rot (* a delta) [rx ry] elems))))
+
+(defn perpendicular
+  [[x y]]
+  [(- y) x])
+
+(defn normalize
+  "find the unit vector of a given vector"
+  [v]
+  (let [m (Math/sqrt (reduce + (map * v v)))]
+    (mapv / v (repeat m))))
+
+(defn det
+  [a b]
+  (- (* (first a) (second b)) 
+     (* (second a) (first b))))
+
+;; this should be improved
+;; currently can cause divide by zero issues
+
+(defn line-intersection
+  [[a b] [c d]]
+  (let [[ax ay] a
+        [bx by] b
+        [cx cy] c
+        [dx dy] d
+        xdiff [(- ax bx) (- cx dx)]
+        ydiff [(- ay by) (- cy dy)]
+        div (det xdiff ydiff)
+        d [(det a b) (det c d)]
+        x (/ (det d xdiff) div)
+        y (/ (det d ydiff) div)]
+    [x y]))
+
+(defn offset-edge
+  [[a b] d]
+  (let [p (perpendicular (mapv - b a))
+        pd (map * (normalize p) (repeat (- d)))
+        xa (mapv + a pd)
+        xb (mapv + b pd)]
+    [xa xb]))
+
+(defn cycle-pairs
+  [pts]
+  (let [n (count pts)]
+    (vec (take n (partition 2 1 (cycle pts))))))
+
+(defn every-other
+  [v]
+  (let [n (count v)]
+    (map #(get v %) (filter even? (range n)))))
+
+(defn wrap-list-once
+  [s]
+  (conj (drop-last s) (last s)))
+
+(defn offset
+  [pts d]
+  (let [edges (cycle-pairs pts)
+        opts (mapcat #(offset-edge % d) edges)
+        oedges (every-other (cycle-pairs opts))
+        edge-pairs (cycle-pairs oedges)]
+    (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
+
+;; this fn will tell you the parameter that correspondss to the distance along the line
+(defn d->t
+  [f d]
+  (let [l (distance (f 0) (f 1))]
+    (/ d l)))
+
+;; fn will tell you the distance along the line that parameter's point is.
+(defn t->d
+  [f t]
+  (distance (f 0) (f t)))
+
+(defn -line
+  [a b]
+  (fn [t]
+    (cond
+      (= (float t) 0.0) a
+      (= (float t) 1.0) b
+      :else
+      (mapv + a (map * (map - b a) (repeat t))))))
+
+(defn slope
+  [f]
+  (let [[x1 y1] (f 0)
+        [x2 y2] (f 1)]
+    (/ (- y2 y1) (- x2 x1))))
+
+(defn parallel?
+  [la lb]
+  (= (slope la) (slope lb)))
+
+(defn angle-between-lines
+  [la lb]
+  (if-not (parallel? la lb)  
+    (let [m1 (slope la)
+          m2 (slope lb)]
+      (Math/atan (/ (- m1 m2) 
+                    (+ 1 (* m1 m2)))))
+    0))
+
+(defn sample-1
+  [f step]
+  (let [t (range 0 1 step)]
+    (map f t)))
+
+(defn sample-2
+  [f & steps]
+  (for [u (range 0 1 (first steps))
+        v (range 0 1 (second steps))]
+    (f u v)))
+
+(defn sample
+  [f & steps]
+  (let [n-params (count steps)]
+    (if (= 1 n-params)
+      (sample-1 f (first steps))
+      (sample-2 f (first steps) (second steps)))))
+
+;; slice only makes sense with 2+ dims? 
+(defn slice
+  [f u-step v-step]
+  (for [u (range 0 1 u-step)]
+    (for [v (range 0 1 v-step)]
+      (f u v))))
+
+(defn quad-path
+  [u v u-step v-step]
+  [[u v]
+   [(+ u u-step) v]
+   [(+ u u-step) (+ v v-step)]
+   [u (+ v v-step)]])
+
+;; quad-mesh only makes sense for surfaces (f u v)
+(defn quad-mesh
+  [f u-step v-step]
+  (for [u (range 0 1 u-step)
+        v (range 0 1 v-step)]
+    (map #(apply f %) (quad-path u v u-step v-step))))
+
+(defn translate
+  [pts [mx my mz]]
+  (map #(map + % [mx my mz]) pts))
+
+(defn brep-translate
+  [f [mx my mz]]
+  (fn [& params]
+    (mapv + (apply f params) [mx my mz])))
+
+(defn sin-cos [theta]
+  "give the results of sin and cos of theta(degrees) as [s c]"
+  [(Math/sin (Math/toRadians theta)) 
+   (Math/cos (Math/toRadians theta))])
+
+(defn- rotate-pt-helper
+  [[a b] theta]
+  (let [[s-t c-t] (sin-cos theta)]
+    [(- (* a c-t) (* b s-t))
+     (+ (* b c-t) (* a s-t))]))
+
+(defn rotate-pt
+  [pt axis theta]
+  (let [[x y z] pt]
+    (cond
+      (= axis :x) (into [x] (rotate-pt-helper [y z] theta))
+      (= axis :y) (apply #(into [] [%2 y %1]) (rotate-pt-helper [z x] theta))
+      (= axis :z) (into (rotate-pt-helper [x y] theta) [z]))))
+
+(s/fdef rotate-pt
+  :args (s/cat :pt ::pt3d :axis ::axis :theta number?)
+  :ret  ::pt)
+
+(defn rotate-about-axis
+  [pts axis theta]
+  (map #(rotate-pt % axis theta) pts))
+
+(defn rotate-euler
+  [pts [th-x th-y th-z]]
+  (-> pts
+    (rotate-about-axis :z th-z)
+    (rotate-about-axis :y th-y)
+    (rotate-about-axis :x th-x)))
+
+(def isometric-euler-angles [30 45 0])
+
+(defn brep-rotate
+  [f [th-x th-y th-z]]
+  (fn [& params]
+    (-> (apply f params)
+        (rotate-pt :z th-z)
+        (rotate-pt :y th-y)
+        (rotate-pt :x th-x))))
+
+(defn -circle
+  [r]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* r (Math/cos t))
+          y (* r (Math/sin t))]
+      [x y 0])))
+
+(defn circle
+  [r]
+  (let [circle-fn (-circle r)]
+    (polygon-2d (map circle-fn (range 0 1 0.025)))))
+
+(defn -ellipse
+  [rx ry]
+  (fn [t]
+    (let [t (* 2 Math/PI t)
+          x (* rx (Math/cos t))
+          y (* ry (Math/sin t))]
+      [x y])))
+
+(defn ellipse
+  [rx ry]
+  (let [ellipse-fn (-ellipse rx ry)]
+    (polygon-2d (map ellipse-fn (range 0 1 0.025)))))
+
+;; Functional Representation
+;; SDF signed distance functions
+
+(defn frep-sphere [r]
+  (fn [[x y z]]
+    (+ (* x x) (* y y) (* z z) (- (* r r)))))
+
+;; Boundary Representation
+(defn brep-sphere
+  [r]
+  (fn [u v]
+    (let [[u v] (map #(* 2 Math/PI %) [u v])
+          x (* r (Math/sin u) (Math/cos v))
+          y (* r (Math/sin u) (Math/sin v))
+          z (* r (Math/cos u))]
+      [x y z])))
+
+(defn sphere-idea-1
+  [r]
+  {:frep (frep-sphere r)
+   :brep (brep-sphere r)})
+
+(defn sphere-idea-2
+  [r]
+  (let [frep (frep-sphere r)
+        brep (brep-sphere r)]
+    (fn
+      ([x y z] (frep x y z))
+      ([u v] (brep u v)))))
 
 (def entity-defaults
   {:color "#2e3440"
@@ -361,32 +561,6 @@
     {:nodes (map entity pts)
      :edges (map entity edges) 
      :faces (list (entity (vec (range (count edges)))))}))
-
-(defn parametric-circle
-  [r]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* r (Math/cos t))
-          y (* r (Math/sin t))]
-      [x y])))
-
-(defn circle
-  [r]
-  (let [circle-fn (parametric-circle r)]
-    (polygon-2d (map circle-fn (range 0 1 0.025)))))
-
-(defn parametric-ellipse
-  [rx ry]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* rx (Math/cos t))
-          y (* ry (Math/sin t))]
-      [x y])))
-
-(defn ellipse
-  [rx ry]
-  (let [ellipse-fn (parametric-ellipse rx ry)]
-    (polygon-2d (map ellipse-fn (range 0 1 0.025)))))
 
 (defn regular-polygon-pts
   [r n]
@@ -499,29 +673,6 @@
         nodes-3d (map #(entity (conj % 0)) nodes-2d)]
     (assoc sk :nodes nodes-3d)))
 
-(def axes
-  {:nodes (map entity [[0 0 0]
-                       [1 0 0]
-                       [0 1 0]
-                       [0 0 1]])
-   :edges (map #(apply entity %) [[{:color "red"} [0 1]]
-                                  [{:color "green"} [0 2]]
-                                  [{:color "blue"} [0 3]]])})
-
-(defn ln-col
-  [a b col]
-  [:polyline.clr {:stroke-linecap "round"
-                  :stroke col
-                  :stroke-width "2"
-                  :points (pt-str [a b])}])
-
-(defn shape-col
-  [pts col]
-  [:polygon {:stroke "slategray"
-             :fill col
-             :stroke-width "2"
-             :points (pt-str pts)}])
-
 (defn face->edges
   [ro face]
   (let [edges (mapv :val (:edges ro))]
@@ -572,84 +723,9 @@
              [n0 n1] (:val edge)
              [xa ya _] (nth nodes n0)
              [xb yb _] (nth nodes n1)]
-         (poly-path [[[xa ya] [xb yb]]])
-         #_(ln-col [xa ya] [xb yb] col))))))
+         (poly-path [[[xa ya] [xb yb]]]))))))
 
-(defn all-true?
-  [l]
-  (let [s (into #{} l)]
-    (if (= 2 (count s))
-      false
-      (true? (first s)))))
-
-(defn all-false?
-  [l]
-  (let [s (into #{} l)]
-    (if (= 2 (count s))
-      false
-      (false? (first s)))))
-
-(defn loop-masks
-  [edges]
-  (let [indices (map first edges)]
-    (for [idx indices]
-      (mapv #(= idx (last %)) edges))))
-
-(defn find-loops
-  ([edges]
-   (find-loops edges []))
-  ([edges acc]
-   (let [idx (first (first edges))
-         mask (mapv #(= idx (last %)) edges)
-         no-loops (all-false? mask)
-         n-edges (inc (count (take-while false? mask)))]
-     (if no-loops
-       acc
-       (recur 
-        (drop n-edges edges)
-        (conj acc (take n-edges edges)))))))
-
-(defn loop-between
-  [e1 e2]
-  (let [[n1 n2] e1
-        [n4 n3] e2]
-    (list [n1 n2]
-          [n2 n3]
-          [n3 n4]
-          [n4 n1])))
-
-(defn make-loops
-  [edges]
-  (let [edges (concat edges [(first edges)])
-        pairs (partition 2 1 edges)]
-    (map #(apply loop-between %) pairs)))
-
-(defn get-loops
-  [edges]
-  (let [#_edges #_(drop-last edges) ;;error in extrude adds extra edge at end of list.... fix 
-        found (find-loops edges)
-        to-remove (zipmap (apply concat found) (range (count (apply concat found))))
-        remaining (drop-while #(contains? to-remove %) edges)
-        made (make-loops remaining)]
-    found #_(concat found made)))
-
-(defn loop->pts
-  [ro loop]
-  (let [nodes (mapv :val (:nodes ro))
-        indices (map first loop)
-        pts (mapv #(get nodes %) indices)]
-    pts))
-
-(defn draw-loops
-  [ro]
-  (let [nodes (map :val (:nodes ro))
-        edges (:edges ro)
-        loops (get-loops (map :val edges))
-        paths (map (partial loop->pts ro) loops)]
-    (for [path paths #_(take 6 paths)]
-      (closed-path path))))
-
-;; rename this? widget, chunk, solid, something else...
+;; this was an older version of draw-edges
 (defn object?
   [item]
   (and (map? item)
@@ -658,36 +734,16 @@
         (contains? item :edges)
         (contains? item :faces))))
 
-;; object looks like:
-;; {:nodes [] :edges [] :faces []}
-
-;; asm looks like:
-;; [object object object ..]
-
 (defn get-nested-objects
   [ro]
   (filter seqable? ro))
 
-(defn draw-edges-recursive
+(defn draw-edges-old
   [ro]
   (if (and (coll? ro) 
            (not (object? ro)))
     (concat (map draw-edges-recursive ro))
     (draw-edges ro identity)))
-
-(defn draw-faces
-  ([ro]
-   (draw-faces [ro orient-iso]))
-
-  ([ro orientation]
-   (let [ro (orientation ro)
-         nodes (map :val (:nodes ro))
-         faces (:faces ro)]
-     (for [face faces]
-       (let [fill (:fill (:attrs face))
-             pts-3d (face->nodes ro (:val face))
-             pts-2d (map #(take 2 %) pts-3d)]
-         (shape-col pts-2d fill))))))
 
 (defn get-2d-pts
   [ro]
