@@ -5,6 +5,10 @@
 
 (def draw
   [[:.ln {:stroke "#2e3440" :stroke-width (u/px 2)}]
+   [:.ln-d {:stroke "#2e3440" 
+            :stroke-width (u/px 2)
+            :stroke-linecap "round"
+            :stroke-dasharray "4, 5"}]
    [:.clr {:fill "none"}]
    [:.attn {:fill "rgb(234, 82, 111)"}]
    [:.attn-ln {:stroke "rgb(234, 82, 111)"

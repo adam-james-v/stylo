@@ -27,7 +27,10 @@ Some additional notes about deps:
 
 #+NAME: deps.edn
 #+begin_src clojure :tangle ./deps.edn
-{:deps 
+{:paths
+ ["src" "tests" "./"]
+ 
+ :deps 
  {org.clojure/clojure            {:mvn/version "1.10.1"}
   org.clojure/clojurescript      {:mvn/version "1.10.597"}
   org.clojure/test.check         {:mvn/version "0.9.0"}
@@ -253,6 +256,10 @@ These styles are used within the draw namespace.
 #+BEGIN_SRC clojure :tangle ./src/stylo/style/base.cljc
 (def draw
   [[:.ln {:stroke "#2e3440" :stroke-width (u/px 2)}]
+   [:.ln-d {:stroke "#2e3440" 
+            :stroke-width (u/px 2)
+            :stroke-linecap "round"
+            :stroke-dasharray "4, 5"}]
    [:.clr {:fill "none"}]
    [:.attn {:fill "rgb(234, 82, 111)"}]
    [:.attn-ln {:stroke "rgb(234, 82, 111)"
@@ -535,16 +542,7 @@ One thing that this ns currently handles poorly is that parametric functions, sv
 ** ns
 #+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
 (ns stylo.draw
-  (:require [stylo.draw :as d]
-            [clojure.spec.alpha :as s]
-            [clojure.spec.test.alpha :as stest]
-            [clojure.spec.gen.alpha :as gen]
-            [clojure.test :as test]))
-
-;; this was the ns for param.clj... I'm in the middle of cleaning this up.
-#_(ns stylo.parametric
-  (:require [stylo.draw :as d]
-            [clojure.spec.alpha :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
             [clojure.spec.gen.alpha :as gen]
             [clojure.test :as test]))
@@ -592,7 +590,7 @@ Containers are functions that wrap visual elements like 2D or 3D drawings.
   [[w h sc] & content]
   [:svg {:width w
          :height h
-         :viewbox (str "-1 -1 " w " " h)
+         :ViewBox (str "-1 -1 " w " " h)
          :xmlns "http://www.w3.org/2000/svg"}
    [:g {:transform (str "scale(" sc ")")} content]])
 
@@ -681,6 +679,19 @@ It might be a good approach to compute symbolically. Look into computer algebra 
 It might be good to use a math library that already exists.
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn round
+  [num places]
+  (let [d (Math/pow 10 places)]
+    (/ (Math/round (* num d)) d)))
+
+(defn to-deg
+  [rad]
+  (* rad (/ 180 Math/PI)))
+
+(defn to-rad
+  [deg]
+  (* deg (/ Math/PI 180)))
+
 (defn bb-center
   [pts]
   (let [xs (map first pts)
@@ -708,258 +719,6 @@ It might be good to use a math library that already exists.
         j (- (* a3 b1) (* a1 b3))
         k (- (* a1 b2) (* a2 b1))]
     [i j k]))
-
-#+END_SRC
-
-** svg-shapes
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn rect
-  ([w h]
-   (rect w h nil))
-  ([w h col]
-   [:rect {:class ["ln" (if col col "clr")]
-           :width w
-           :height h}]))
-
-(defn polygon
-  ([pts]
-   (polygon pts nil))
-  ([pts col]
-   [:polygon {:class ["ln" (if col col "clr")]
-              :points (pt-str pts)}]))
-
-(defn polygon-d
-  ([pts]
-   (polygon-d pts nil))
-  ([pts col]
-   [:polygon {:class ["ln-d" (if col col "clr")]
-              :points (pt-str pts)}]))
-
-(defn closed-path
-  ([pts]
-   (closed-path pts nil))
-  ([pts col]
-   [:path {:class ["ln" (if col col "clr")]
-           :d (path-str pts)}]))
-
-(defn poly-path
-  ([paths]
-   (poly-path paths nil))
-  ([paths col]
-   (let [path-strs (map path-str paths)]
-     [:path {:class ["ln" (if col col "clr")]
-             :d (apply str (interleave path-strs (repeat " ")))}])))
-
-#+END_SRC
-
-** svg-annotations
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn label
-  [text]
-  [:text {:fill "black"
-          :x -4
-          :y 4
-          :font-family "Verdana"
-          :font-size 12
-          :transform "translate(0,0) scale(0.05)"} text])
-
-(defn ln
-  [a b]
-  [:polyline {:stroke-linecap "round"
-              :stroke "black"
-              :stroke-width "2"
-              :fill "rgba(0,0,0,0)"
-              :points (pt-str [a b])}])
-
-(defn ln-d
-  [a b]
-  [:polyline {:stroke-linecap "round"
-              :stroke-dasharray "4, 5"
-              :stroke "black"
-              :stroke-width "1.5"
-              :fill "rgba(0,0,0,0)"
-              :points (pt-str [a b])}])
-
-(defn arw
-  [a b]
-  [:g {}
-   [:marker {:id "head"
-             :orient "auto"
-             :markerWidth "0.5"
-             :markerHeight "1"
-             :refX "0.025"
-             :refY "0.25"}
-    [:path {:d "M0,0 V0.5 L0.25,0.25 Z"
-            :fill "black"}]]
-   [:polyline {:marker-end "url(#head)"
-               :stroke "black"
-               :stroke-width "2"
-               :fill "rgba(0,0,0,0)"
-               :points (pt-str [a b])}]])
-
-(defn h-dimension
-  [a b text]
-  (let [a (map - a [0 2])
-        b (map - b [0 2])
-        mid (bb-center [a b])
-        label-offset (* 0.225 (count text))]
-    (list 
-     (mv (map - mid [label-offset 0]) (sc 2 (label text)))
-     (ln (map - a [0 0.75]) (map + a [0 1.5]))
-     (ln (map - b [0 0.75]) (map + b [0 1.5]))
-     (arw (map - mid [(* 1.75 label-offset) 0])  
-          (map + a [0.5 0]))
-     (arw (map + mid [(* 1.75 label-offset) 0]) 
-          (map - b [0.5 0])))))
-
-(defn v-dimension
-  [a b text]
-  (let [a (map + a [2 0])
-        b (map + b [2 0])
-        mid (bb-center [a b])
-        label-offset (* 0.225 (count text))]
-    (list 
-     (mv (map - mid [label-offset 0]) (rot 90 [label-offset 0] (sc 2(label text))))
-     (ln (map - a [1.5 0]) (map + a [0.75 0]))
-     (ln (map - b [1.5 0]) (map + b [0.75 0]))
-     (arw (map - mid [0 (* 1.75 label-offset)])  
-          (map + a [0 0.5]))
-     (arw (map + mid [0 (* 1.75 label-offset)]) 
-          (map - b [0 0.5])))))
-
-(defn dimension
-  [a b]
-  (let [text (format "%.2f" (distance a b))
-        label-offset (* 0.225 (count text))
-        label-angle (Math/toDegrees (angle-between-lines (-line a b) (-line [0 0] [1 0])))
-        [ao bo] (offset-edge [a b] 2)
-        mid (bb-center [ao bo])
-        arw-a (-line mid ao)
-        arw-b (-line mid bo)
-        arw-t (- 1 (d->t arw-a 0.5))
-        mid-t (d->t arw-a (* 1.75 label-offset))
-        la (-line a ao)
-        lb (-line b bo)
-        [lat1 lat2] (map (partial d->t la) [0.5 2.5])
-        [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
-    (list
-     (arw (arw-a mid-t) (arw-a arw-t))
-     (arw (arw-b mid-t) (arw-b arw-t))
-     (ln (la lat1) (la lat2))
-     (ln (lb lbt1) (lb lbt2))
-     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 1.5 (label text)))))))
-
-(defn dot
-  [[x y]]
-  [:circle {:class ["attn"]
-            :cx x :cy y :r 0.125}])
-
-(defn attn-ln
-  [a b]
-  [:polyline {:class ["attn-ln" "clr"]
-              :points (pt-str [a b])}])
-
-(defn attn-circle
-  [[x y] r]
-  [:circle {:class ["attn-ln" "clr"]
-            :cx x :cy y :r r}])
-  
-#+END_SRC
-
-** svg-transforms
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn sc
-  [sc & elems]
-  (into [:g {:transform (scale-str sc)}] elems))
-
-(defn mv
-  [[x y] & elems]
-  (into [:g {:transform (translate-str x y)}] elems))
-
-(defn rot
-  [r [x y] & elems]
-  (into [:g {:transform (rotate-str r [x y])}] elems))
-
-#+END_SRC
-
-** svg-patterning
-The circular pattern is useful, but it might be better not to include rx ry in the function, or make them optional. 
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn circular-pattern
-  "Patterns n elements along an arc defined by angle."
-  [[angle n rx ry] & elems]
-  (let [delta (/ angle n)]
-    (for [a (range n)]
-      (rot (* a delta) [rx ry] elems))))
-
-#+END_SRC
-
-** offset
-An implementation of polygon path offsetting.
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn perpendicular
-  [[x y]]
-  [(- y) x])
-
-(defn normalize
-  "find the unit vector of a given vector"
-  [v]
-  (let [m (Math/sqrt (reduce + (map * v v)))]
-    (mapv / v (repeat m))))
-
-(defn det
-  [a b]
-  (- (* (first a) (second b)) 
-     (* (second a) (first b))))
-
-;; this should be improved
-;; currently can cause divide by zero issues
-
-(defn line-intersection
-  [[a b] [c d]]
-  (let [[ax ay] a
-        [bx by] b
-        [cx cy] c
-        [dx dy] d
-        xdiff [(- ax bx) (- cx dx)]
-        ydiff [(- ay by) (- cy dy)]
-        div (det xdiff ydiff)
-        d [(det a b) (det c d)]
-        x (/ (det d xdiff) div)
-        y (/ (det d ydiff) div)]
-    [x y]))
-
-(defn offset-edge
-  [[a b] d]
-  (let [p (perpendicular (mapv - b a))
-        pd (map * (normalize p) (repeat (- d)))
-        xa (mapv + a pd)
-        xb (mapv + b pd)]
-    [xa xb]))
-
-(defn cycle-pairs
-  [pts]
-  (let [n (count pts)]
-    (vec (take n (partition 2 1 (cycle pts))))))
-
-(defn every-other
-  [v]
-  (let [n (count v)]
-    (map #(get v %) (filter even? (range n)))))
-
-(defn wrap-list-once
-  [s]
-  (conj (drop-last s) (last s)))
-
-(defn offset
-  [pts d]
-  (let [edges (cycle-pairs pts)
-        opts (mapcat #(offset-edge % d) edges)
-        oedges (every-other (cycle-pairs opts))
-        edge-pairs (cycle-pairs oedges)]
-    (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
 
 #+END_SRC
 
@@ -1148,11 +907,6 @@ This is a higher-order function approach to rotate.
           y (* r (Math/sin t))]
       [x y 0])))
 
-(defn circle
-  [r]
-  (let [circle-fn (-circle r)]
-    (polygon-2d (map circle-fn (range 0 1 0.025)))))
-
 #+END_SRC
 *** ellipse
 #+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
@@ -1163,11 +917,6 @@ This is a higher-order function approach to rotate.
           x (* rx (Math/cos t))
           y (* ry (Math/sin t))]
       [x y])))
-
-(defn ellipse
-  [rx ry]
-  (let [ellipse-fn (-ellipse rx ry)]
-    (polygon-2d (map ellipse-fn (range 0 1 0.025)))))
 
 #+END_SRC
 
@@ -1210,6 +959,258 @@ The sphere is a bit simplistic because the BREP and FREP both map cleanly onto o
     (fn
       ([x y z] (frep x y z))
       ([u v] (brep u v)))))
+
+#+END_SRC
+
+** svg-shapes
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn rect
+  ([w h]
+   (rect w h nil))
+  ([w h col]
+   [:rect {:class ["ln" (if col col "clr")]
+           :width w
+           :height h}]))
+
+(defn polygon
+  ([pts]
+   (polygon pts nil))
+  ([pts col]
+   [:polygon {:class ["ln" (if col col "clr")]
+              :points (pt-str pts)}]))
+
+(defn polygon-d
+  ([pts]
+   (polygon-d pts nil))
+  ([pts col]
+   [:polygon {:class ["ln-d" (if col col "clr")]
+              :points (pt-str pts)}]))
+
+(defn closed-path
+  ([pts]
+   (closed-path pts nil))
+  ([pts col]
+   [:path {:class ["ln" (if col col "clr")]
+           :d (path-str pts)}]))
+
+(defn poly-path
+  ([paths]
+   (poly-path paths nil))
+  ([paths col]
+   (let [path-strs (map path-str paths)]
+     [:path {:class ["ln" (if col col "clr")]
+             :d (apply str (interleave path-strs (repeat " ")))}])))
+
+#+END_SRC
+
+** svg-transforms
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn sc
+  [sc & elems]
+  (into [:g {:transform (scale-str sc)}] elems))
+
+(defn mv
+  [[x y] & elems]
+  (into [:g {:transform (translate-str x y)}] elems))
+
+(defn rot
+  [r [x y] & elems]
+  (into [:g {:transform (rotate-str r [x y])}] elems))
+
+#+END_SRC
+
+** offset
+An implementation of polygon path offsetting.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn perpendicular
+  [[x y]]
+  [(- y) x])
+
+(defn normalize
+  "find the unit vector of a given vector"
+  [v]
+  (let [m (Math/sqrt (reduce + (map * v v)))]
+    (mapv / v (repeat m))))
+
+(defn det
+  [a b]
+  (- (* (first a) (second b)) 
+     (* (second a) (first b))))
+
+;; this should be improved
+;; currently can cause divide by zero issues
+
+(defn line-intersection
+  [[a b] [c d]]
+  (let [[ax ay] a
+        [bx by] b
+        [cx cy] c
+        [dx dy] d
+        xdiff [(- ax bx) (- cx dx)]
+        ydiff [(- ay by) (- cy dy)]
+        div (det xdiff ydiff)
+        d [(det a b) (det c d)]
+        x (/ (det d xdiff) div)
+        y (/ (det d ydiff) div)]
+    [x y]))
+
+(defn offset-edge
+  [[a b] d]
+  (let [p (perpendicular (mapv - b a))
+        pd (map * (normalize p) (repeat (- d)))
+        xa (mapv + a pd)
+        xb (mapv + b pd)]
+    [xa xb]))
+
+(defn cycle-pairs
+  [pts]
+  (let [n (count pts)]
+    (vec (take n (partition 2 1 (cycle pts))))))
+
+(defn every-other
+  [v]
+  (let [n (count v)]
+    (map #(get v %) (filter even? (range n)))))
+
+(defn wrap-list-once
+  [s]
+  (conj (drop-last s) (last s)))
+
+(defn offset
+  [pts d]
+  (let [edges (cycle-pairs pts)
+        opts (mapcat #(offset-edge % d) edges)
+        oedges (every-other (cycle-pairs opts))
+        edge-pairs (cycle-pairs oedges)]
+    (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
+
+#+END_SRC
+
+** svg-annotations
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn label
+  [text]
+  [:text {:fill "black"
+          :x -4
+          :y 4
+          :font-family "Verdana"
+          :font-size 12
+          :transform "translate(0,0) scale(0.05)"} text])
+
+(defn ln
+  [a b]
+  [:polyline {:stroke-linecap "round"
+              :stroke "black"
+              :stroke-width "2"
+              :fill "rgba(0,0,0,0)"
+              :points (pt-str [a b])}])
+
+(defn ln-d
+  [a b]
+  [:polyline {:stroke-linecap "round"
+              :stroke-dasharray "4, 5"
+              :stroke "black"
+              :stroke-width "1.5"
+              :fill "rgba(0,0,0,0)"
+              :points (pt-str [a b])}])
+
+(defn arw
+  [a b]
+  [:g {}
+   [:marker {:id "head"
+             :orient "auto"
+             :markerWidth "0.5"
+             :markerHeight "1"
+             :refX "0.025"
+             :refY "0.25"}
+    [:path {:d "M0,0 V0.5 L0.25,0.25 Z"
+            :fill "black"}]]
+   [:polyline {:marker-end "url(#head)"
+               :stroke "black"
+               :stroke-width "2"
+               :fill "rgba(0,0,0,0)"
+               :points (pt-str [a b])}]])
+
+(defn h-dimension
+  [a b text]
+  (let [a (map - a [0 2])
+        b (map - b [0 2])
+        mid (bb-center [a b])
+        label-offset (* 0.225 (count text))]
+    (list 
+     (mv (map - mid [label-offset 0]) (sc 2 (label text)))
+     (ln (map - a [0 0.75]) (map + a [0 1.5]))
+     (ln (map - b [0 0.75]) (map + b [0 1.5]))
+     (arw (map - mid [(* 1.75 label-offset) 0])  
+          (map + a [0.5 0]))
+     (arw (map + mid [(* 1.75 label-offset) 0]) 
+          (map - b [0.5 0])))))
+
+(defn v-dimension
+  [a b text]
+  (let [a (map + a [2 0])
+        b (map + b [2 0])
+        mid (bb-center [a b])
+        label-offset (* 0.225 (count text))]
+    (list 
+     (mv (map - mid [label-offset 0]) (rot 90 [label-offset 0] (sc 2(label text))))
+     (ln (map - a [1.5 0]) (map + a [0.75 0]))
+     (ln (map - b [1.5 0]) (map + b [0.75 0]))
+     (arw (map - mid [0 (* 1.75 label-offset)])  
+          (map + a [0 0.5]))
+     (arw (map + mid [0 (* 1.75 label-offset)]) 
+          (map - b [0 0.5])))))
+
+(defn dimension
+  [a b]
+  (let [text (str (round (distance a b) 3))
+        label-offset (* 0.225 (count text))
+        label-angle (to-deg (angle-between-lines (-line a b) (-line [0 0] [1 0])))
+        [ao bo] (offset-edge [a b] 2)
+        mid (bb-center [ao bo])
+        arw-a (-line mid ao)
+        arw-b (-line mid bo)
+        arw-t (- 1 (d->t arw-a 0.5))
+        mid-t (d->t arw-a (* 1.75 label-offset))
+        la (-line a ao)
+        lb (-line b bo)
+        [lat1 lat2] (map (partial d->t la) [0.5 2.5])
+        [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
+    (list
+     (arw (arw-a mid-t) (arw-a arw-t))
+     (arw (arw-b mid-t) (arw-b arw-t))
+     (ln (la lat1) (la lat2))
+     (ln (lb lbt1) (lb lbt2))
+     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 1.5 (label text)))))))
+
+(defn dot
+  [[x y]]
+  [:circle {:class ["attn"]
+            :cx x :cy y :r 0.125}])
+
+(defn attn-ln
+  [a b]
+  [:polyline {:class ["attn-ln" "clr"]
+              :points (pt-str [a b])}])
+
+(defn attn-circle
+  [[x y] r]
+  [:circle {:class ["attn-ln" "clr"]
+            :cx x :cy y :r r}])
+  
+#+END_SRC
+
+** svg-patterning
+The circular pattern is useful, but it might be better not to include rx ry in the function, or make them optional. 
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn circular-pattern
+  "Patterns n elements along an arc defined by angle."
+  [[angle n rx ry] & elems]
+  (let [delta (/ angle n)]
+    (for [a (range n)]
+      (rot (* a delta) [rx ry] elems))))
 
 #+END_SRC
 ** 3d
@@ -1482,7 +1483,7 @@ Currently, 'edges' is just a list of lines. This doesn't provide enough detail u
          (poly-path [[[xa ya] [xb yb]]]))))))
 
 ;; this was an older version of draw-edges
-(defn object?
+(defn obj?
   [item]
   (and (map? item)
        (and
@@ -1494,10 +1495,10 @@ Currently, 'edges' is just a list of lines. This doesn't provide enough detail u
   [ro]
   (filter seqable? ro))
 
-(defn draw-edges-old
+(defn draw-edges-recursive
   [ro]
   (if (and (coll? ro) 
-           (not (object? ro)))
+           (not (obj? ro)))
     (concat (map draw-edges-recursive ro))
     (draw-edges ro identity)))
 
@@ -1560,9 +1561,27 @@ Currently, 'edges' is just a list of lines. This doesn't provide enough detail u
 The base parser is derived in part from the following code:
 https://github.com/danneu/klobbdown/blob/master/src/klobbdown/parse.clj
 
-The linked code uses Eclipse Public License, which permits use in open source work. This parser is modified from its original version to allow for more comfortable document ergonomics. It is based off of markdown, but is not markdown.
+Things that don't work properly:
+- indented bullet lists
+- nested bullet lists
+- '---' should be horizontal separator, doesn't work
+- ordered lists don't work (numerical or alpha)
+- '[' and ']' don't work inside a paragraph
+- '{' and '}' don't work inside a paragraph
+- embedded html renders, but does have extra paragraphs being inserted. it seems that newlines in html snippets are causing empty p tags to exist
+
+
+- change names in the grammar to full-length names so that it's easier to read. eg. hd = heading, str = strong para = paragraph, etc.
+- change the keys in the transform map to match the name changes.
+
+- '-' and '!' sort of work. Both NEED a full line between anything preceding. Need to fix this to allow single newline paragraph separation.
+
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/builder.cljc
+;; old kinda working unordered lists.
+;; ul = ul-i+ <bl>
+;; ul-i = <'- '> #'.+' <nl>?
+
 (def -md ""
 "<root> = (hd |
            ul |
@@ -1581,7 +1600,8 @@ para = (i-code |
         str |
         em |
         para-t)+ <nl> (<nl>+)?
-<para-t> = #'[^`\\n*#{}\\-\\!\\[\\]]+'
+
+<para-t> = #'[^`\\n*#{}\\[\\]]+'
 
 hd = #'^#{1,} .+' <nl>? <bl>?
 
@@ -1591,8 +1611,8 @@ str = <'**'> str-t <'**'>
 em = <'*'> em-t <'*'>
 <em-t> = #'[^\\*]+'
 
-ul = ul-i+ <bl>
-ul-i = <'- '> #'.+' <nl>?
+ul = ul-i+ <nl>
+ul-i = <nl> <'- '> para-t <nl>?
 
 ol = ol-i+ <bl>
 ol-i = <ol-i-token> #'.*' <nl>?
@@ -1609,7 +1629,7 @@ anc = a-anc | t-anc
 <text> = #'[^]]+'
 <url> = #'[^>)]+'
 
-img = <'!'>
+img = <nl>? <'!'>
       <'['> alt <']'>
       <'('> path title? <')'> <nl> (<nl>+)?
 
@@ -1622,6 +1642,12 @@ spcs = spc+
 bl = #'\n\n'
 nl = #'\n' ")
 
+#+END_SRC
+
+*** parser-test
+#+BEGIN_SRC clojure :tangle ./test/stylo/builder_test.cljc
+(deftest parser
+"")
 #+END_SRC
 
 ** extensions
@@ -1860,6 +1886,8 @@ A watcher will be nice too, which can either be invoked with a flag to -main OR 
 
 #+END_SRC
 * extensions
+Extensions are currently saved into src/stylo/ext/ext_name.cljc
+
 Extensions are used to add functionality to the library that is clearly separated fom the core. The *fabric* extension is a great example: It has clear use in the context of creating quilt patterns, but is not general enough to be necessary in the core library.
 
 Fabric uses many functions from the *draw* namespace, but any new functionality is useful in the specific domain that the extension covers, which is quilt patterns in this case. For instance, the 'template' function uses polygon and offset, but creates a 'piece' that only really makes sense in quilts.
@@ -1868,20 +1896,20 @@ Fabric uses many functions from the *draw* namespace, but any new functionality 
 The extension used for creating quilt patterns. I think eventually I will separate things out into a program called qpunk which can be used specifically for creating quilt patterns. Qpunk would then pull in stylo as a library.
 
 *** ns
-#+BEGIN_SRC clojure :tangle ./fabric.clj
-(ns stylo.fabric
+#+BEGIN_SRC clojure :tangle ./src/stylo/ext/fabric.cljc
+(ns stylo.ext.fabric
   (:require [clojure.string :as s]
-            [hiccup.core :refer [h html]]
-            [hiccup.def :refer [defelem]]
-            [hiccup.page :as page]
-            [hiccup.form :as form]
-            [hiccup.element :as elem]
-            [stylo.draw :refer :all]))
+            [stylo.draw :as draw]
+            #_[hiccup.core :refer [h html]]
+            #_[hiccup.def :refer [defelem]]
+            #_[hiccup.page :as page]
+            #_[hiccup.form :as form]
+            #_[hiccup.element :as elem]))
 
 #+END_SRC
 
 *** styles
-#+BEGIN_SRC clojure :tangle ./fabric.clj
+#+BEGIN_SRC clojure :tangle ./src/stylo/ext/fabric.cljc
 (def fabric-styles
   [:style "
 .ln{stroke:#2e3440;stroke-width:1.5;}
@@ -1894,29 +1922,29 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
 #+END_SRC
 
 *** shapes
-#+BEGIN_SRC clojure :tangle ./fabric.clj
+#+BEGIN_SRC clojure :tangle ./src/stylo/ext/fabric.cljc
 (defn sq
   ([s]
    (sq s nil))
-  ([s fabric]
-   [:rect {:class ["ln" (if fabric fabric "clr")]
+  ([s class]
+   [:rect {:class ["ln" (if class class "clr")]
            :width s
            :height s}]))
 
 (defn rct
   ([[x y]]
    (rct [x y] nil))
-  ([[x y] fabric]
-   [:rect {:class ["ln" (if fabric fabric "clr")]
+  ([[x y] class]
+   [:rect {:class ["ln" (if class class "clr")]
            :width x
            :height y}]))
 
 (defn hst
   ([s]
    (hst s nil))
-  ([s fabric]
-   [:polygon {:class ["ln" (if fabric fabric "clr")]
-              :points (pt-str [[0 s] [s 0] [0 0]])}]))
+  ([s class]
+   [:polygon {:class ["ln" (if class class "clr")]
+              :points (draw/pt-str [[0 s] [s 0] [0 0]])}]))
 
 (defn hst-pts
   [s]
@@ -1926,11 +1954,11 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
   "draw a diamond of width and height with width offset and height offset factors."
   ([[w h wof hof]]
    (diamond [w h wof hof] nil))
-  ([[w h wof hof] fabric]
+  ([[w h wof hof] class]
    (let [wod (* w wof)
          hod (* h hof)]
-     [:polygon {:class ["ln" (if fabric fabric "clr")]
-                :points (pt-str [[wod 0]
+     [:polygon {:class ["ln" (if class class "clr")]
+                :points (draw/pt-str [[wod 0]
                                  [w hod]
                                  [wod h]
                                  [0 hod]])}])))
@@ -1946,14 +1974,14 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
 #+END_SRC
 
 *** tools
-#+BEGIN_SRC clojure :tangle ./fabric.clj
+#+BEGIN_SRC clojure :tangle ./src/stylo/ext/fabric.cljc
 (defn stack
   [elem n]
   (let [spc 0.185
         tfrms (map #(vector (* % spc) (* % spc)) (range n))]
     [:g {}
      (map 
-      (fn [[x y]] [:g {:transform (translate-str x y)} elem]) 
+      (fn [[x y]] [:g {:transform (draw/translate-str x y)} elem]) 
       tfrms)]))
 
 (def scale-1-to-1 146)
@@ -1961,10 +1989,10 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
 (defn polygon-template
   [name pts]
   (list
-   (polygon-d pts)
-   (polygon (offset pts 0.25))
-   (mv (bb-center pts) (label name))
-   (map #(mv % (sc 0.25 (dot [0 0 ]))) pts)))
+   (draw/polygon-d pts)
+   (draw/polygon (draw/offset pts 0.25))
+   (draw/mv (draw/bb-center pts) (draw/label name))
+   (map #(draw/mv % (draw/sc 0.25 (draw/dot [0 0]))) pts)))
 
 (defn diamond-template
   [name w h hof]
@@ -1972,9 +2000,9 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
         half-w (/ w 2.0)]
     (concat
      (polygon-template name pts)
-     (ln-d [half-w 0] [half-w h]))))
+     (draw/ln-d [half-w 0] [half-w h]))))
 
-(defn colorize-template
+(defn colourize-template
   [template colour]
   (assoc-in (second template) [1 :class] (str "ln " colour)))
 
@@ -1987,7 +2015,7 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
 *** blueberry-method-snippet
 This is used in every pattern, so it makes sense to pull it into its own function for easy re-use.
 
-#+BEGIN_SRC clojure :tangle ./fabric.clj
+#+BEGIN_SRC clojure :tangle ./src/stylo/ext/fabric.cljc
 
 (def bb-heading
   [:h2 
@@ -2005,36 +2033,36 @@ This is used in every pattern, so it makes sense to pull it into its own functio
   [berry-b]
   (list
    (sq 1.25 berry-b)
-   (ln-d [-0.1 1.35] [1.35 -0.1])))
+   (draw/ln-d [-0.1 1.35] [1.35 -0.1])))
 
 (defn bb-b
   [berry-b col]
   (list
    (sq 2.5 col)
-   (mv [1.25 1.25] (bb-a berry-b))))
+   (draw/mv [1.25 1.25] (bb-a berry-b))))
 
 (defn bb-c
   [berry-b col]
   (list
    (sq 2.5 col)
-   (mv [1.25 1.25] (bb-a berry-b))
-   (mv [1.4 1.4] (rot 180 [0.625 0.625] (hst 1.25 "trim"))
-       (mv [0.075 0.075] (rot 180 [0.55 0.55] (hst 0.95 berry-b))))))
+   (draw/mv [1.25 1.25] (bb-a berry-b))
+   (draw/mv [1.4 1.4] (draw/rot 180 [0.625 0.625] (hst 1.25 "trim"))
+            (draw/mv [0.075 0.075] (draw/rot 180 [0.55 0.55] (hst 0.95 berry-b))))))
 
 (defn bb-d
   [berry-f col out?]
   (list
    (sq 2.5 col)
-   (mv [1.25 1.25] (rot 180 [0.625 0.625] (hst 1.25 berry-f))
+   (draw/mv [1.25 1.25] (draw/rot 180 [0.625 0.625] (hst 1.25 berry-f))
        (if out?
-         [:g {:transform "scale(0.625)"} (arw [-0.1 -0.1] [1.35 1.35])]
-         [:g {:transform "scale(0.625)"} (arw [1.35 1.35] [-0.1 -0.1])]))))
+         [:g {:transform "scale(0.625)"} (draw/arw [-0.1 -0.1] [1.35 1.35])]
+         [:g {:transform "scale(0.625)"} (draw/arw [1.35 1.35] [-0.1 -0.1])]))))
 
 (defn bb-e
   [berry-f col]
   (list
    (sq 2 col)
-   (mv [1.25 1.25] (rot 180 [0.375 0.375] (hst 0.75 berry-f)))))
+   (draw/mv [1.25 1.25] (draw/rot 180 [0.375 0.375] (hst 0.75 berry-f)))))
 
 (defn bb-method
   "Blueberry Method Snippet expecting strings of CSS classes for each colour in the diagram.
@@ -2050,42 +2078,42 @@ This is used in every pattern, so it makes sense to pull it into its own functio
    bb-heading
    bb-instructions
    [:div {:class "figure"}
-    (svg [700 160 22.5]
-         (mv [0.1 1.25]
+    (draw/svg [700 160 22.5]
+         (draw/mv [0.1 1.25]
              (bb-a berry-b)
-             (mv [1.75    0] (rot  90 [0.625 0.625] (bb-a berry-b)))
-             (mv [1.75 1.75] (rot 180 [0.625 0.625] (bb-a berry-b)))
-             (mv [   0 1.75] (rot 270 [0.625 0.625] (bb-a berry-b))))
-         (mv [0.5 5.375] (label "mark on"))
-         (mv [0.175 6.25] (label "wrong side"))
+             (draw/mv [1.75    0] (draw/rot  90 [0.625 0.625] (bb-a berry-b)))
+             (draw/mv [1.75 1.75] (draw/rot 180 [0.625 0.625] (bb-a berry-b)))
+             (draw/mv [   0 1.75] (draw/rot 270 [0.625 0.625] (bb-a berry-b))))
+         (draw/mv [0.5 5.375] (draw/label "mark on"))
+         (draw/mv [0.175 6.25] (draw/label "wrong side"))
          
-         (mv [5 0]
+         (draw/mv [5 0]
              (bb-b berry-b col-a)
-             (mv [3 0] (rot  90 [1.25 1.25] (bb-b berry-b col-b)))
-             (mv [3 3] (rot 180 [1.25 1.25] (bb-b berry-b col-c)))
-             (mv [0 3] (rot 270 [1.25 1.25] (bb-b berry-b col-d))))
-         (mv [5.825 6.25] (label "sew diagonals"))
+             (draw/mv [3 0] (draw/rot  90 [1.25 1.25] (bb-b berry-b col-b)))
+             (draw/mv [3 3] (draw/rot 180 [1.25 1.25] (bb-b berry-b col-c)))
+             (draw/mv [0 3] (draw/rot 270 [1.25 1.25] (bb-b berry-b col-d))))
+         (draw/mv [5.825 6.25] (draw/label "sew diagonals"))
          
-         (mv [12.25 0]
+         (draw/mv [12.25 0]
              (bb-c berry-b col-a)
-             (mv [3 0] (rot  90 [1.25 1.25] (bb-c berry-b col-b)))
-             (mv [3 3] (rot 180 [1.25 1.25] (bb-c berry-b col-c)))
-             (mv [0 3] (rot 270 [1.25 1.25] (bb-c berry-b col-d))))
-         (mv [14.625 6.25] (label "trim"))
+             (draw/mv [3 0] (draw/rot  90 [1.25 1.25] (bb-c berry-b col-b)))
+             (draw/mv [3 3] (draw/rot 180 [1.25 1.25] (bb-c berry-b col-c)))
+             (draw/mv [0 3] (draw/rot 270 [1.25 1.25] (bb-c berry-b col-d))))
+         (draw/mv [14.625 6.25] (draw/label "trim"))
          
-         (mv [19.5 0]
+         (draw/mv [19.5 0]
              (bb-d berry-f col-a false)
-             (mv [3 0] (rot  90 [1.25 1.25] (bb-d berry-f col-b true)))
-             (mv [3 3] (rot 180 [1.25 1.25] (bb-d berry-f col-c false)))
-             (mv [0 3] (rot 270 [1.25 1.25] (bb-d berry-f col-d true))))
-         (mv [21.625 6.25] (label "press"))
+             (draw/mv [3 0] (draw/rot  90 [1.25 1.25] (bb-d berry-f col-b true)))
+             (draw/mv [3 3] (draw/rot 180 [1.25 1.25] (bb-d berry-f col-c false)))
+             (draw/mv [0 3] (draw/rot 270 [1.25 1.25] (bb-d berry-f col-d true))))
+         (draw/mv [21.625 6.25] (draw/label "press"))
          
-         (mv [26.75 0.5]
+         (draw/mv [26.75 0.5]
              (bb-e berry-f col-a)
-             (mv [2 0] (rot  90 [1 1] (bb-e berry-f col-b)))
-             (mv [2 2] (rot 180 [1 1] (bb-e berry-f col-c)))
-             (mv [0 2] (rot 270 [1 1] (bb-e berry-f col-d))))
-         (mv [27.5 6.25] (label "sew seams")))
+             (draw/mv [2 0] (draw/rot  90 [1 1] (bb-e berry-f col-b)))
+             (draw/mv [2 2] (draw/rot 180 [1 1] (bb-e berry-f col-c)))
+             (draw/mv [0 2] (draw/rot 270 [1 1] (bb-e berry-f col-d))))
+         (draw/mv [27.5 6.25] (draw/label "sew seams")))
 
     [:p "Blueberry Point Method"]]])
 

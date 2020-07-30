@@ -8,6 +8,10 @@
             [stylo.style.mu :as mu]
             [instaparse.core :as insta]))
 
+;; old kinda working unordered lists.
+;; ul = ul-i+ <bl>
+;; ul-i = <'- '> #'.+' <nl>?
+
 (def -md ""
 "<root> = (hd |
            ul |
@@ -26,7 +30,8 @@ para = (i-code |
         str |
         em |
         para-t)+ <nl> (<nl>+)?
-<para-t> = #'[^`\\n*#{}\\-\\!\\[\\]]+'
+
+<para-t> = #'[^`\\n*#{}\\[\\]]+'
 
 hd = #'^#{1,} .+' <nl>? <bl>?
 
@@ -36,8 +41,8 @@ str = <'**'> str-t <'**'>
 em = <'*'> em-t <'*'>
 <em-t> = #'[^\\*]+'
 
-ul = ul-i+ <bl>
-ul-i = <'- '> #'.+' <nl>?
+ul = ul-i+ <nl>
+ul-i = <nl> <'- '> para-t <nl>?
 
 ol = ol-i+ <bl>
 ol-i = <ol-i-token> #'.*' <nl>?
@@ -54,7 +59,7 @@ anc = a-anc | t-anc
 <text> = #'[^]]+'
 <url> = #'[^>)]+'
 
-img = <'!'>
+img = <nl>? <'!'>
       <'['> alt <']'>
       <'('> path title? <')'> <nl> (<nl>+)?
 
