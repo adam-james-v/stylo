@@ -1,11 +1,7 @@
 (ns stylo.ext.fabric
   (:require [clojure.string :as s]
             [stylo.draw :as draw]
-            #_[hiccup.core :refer [h html]]
-            #_[hiccup.def :refer [defelem]]
-            #_[hiccup.page :as page]
-            #_[hiccup.form :as form]
-            #_[hiccup.element :as elem]))
+            [stylo.svg :as svg]))
 
 (def fabric-styles
   [:style "
@@ -37,7 +33,7 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
    (hst s nil))
   ([s class]
    [:polygon {:class ["ln" (if class class "clr")]
-              :points (draw/pt-str [[0 s] [s 0] [0 0]])}]))
+              :points (svg/pt-str [[0 s] [s 0] [0 0]])}]))
 
 (defn hst-pts
   [s]
@@ -51,7 +47,7 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
    (let [wod (* w wof)
          hod (* h hof)]
      [:polygon {:class ["ln" (if class class "clr")]
-                :points (draw/pt-str [[wod 0]
+                :points (svg/pt-str [[wod 0]
                                  [w hod]
                                  [wod h]
                                  [0 hod]])}])))
@@ -70,7 +66,7 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
         tfrms (map #(vector (* % spc) (* % spc)) (range n))]
     [:g {}
      (map 
-      (fn [[x y]] [:g {:transform (draw/translate-str x y)} elem]) 
+      (fn [[x y]] [:g {:transform (svg/translate-str x y)} elem]) 
       tfrms)]))
 
 (def scale-1-to-1 146)
@@ -78,10 +74,10 @@ rect, line, path, polygon, polyline {vector-effect:non-scaling-stroke;}
 (defn polygon-template
   [name pts]
   (list
-   (draw/polygon-d pts)
-   (draw/polygon (draw/offset pts 0.25))
-   (draw/mv (draw/bb-center pts) (draw/label name))
-   (map #(draw/mv % (draw/sc 0.25 (draw/dot [0 0]))) pts)))
+   (svg/polygon pts)
+   (svg/polygon (draw/offset pts 0.25))
+   (svg/translate (draw/bb-center pts) (svg/label name))
+   (map #(svg/translate % (svg/scale 0.25 (svg/dot [0 0]))) pts)))
 
 (defn diamond-template
   [name w h hof]

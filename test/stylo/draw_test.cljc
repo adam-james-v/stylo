@@ -9,7 +9,3 @@
 
 (load-file "src/stylo/draw.cljc")
 (run-tests)
-
-(deftest path-str-test
-  (is (= (draw/path-str [[0 0] [1 1] [2 2]]) "M0 0 L1 1 L2 2 Z")
-      "unexpected path string."))

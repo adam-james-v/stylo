@@ -2,29 +2,21 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
             [clojure.spec.gen.alpha :as gen]
-            [clojure.test :as test]))
-
-(s/def ::pt2d (s/tuple number? number?))
-(s/def ::pt3d (s/tuple number? number? number?))
-(s/def ::pt (s/or :xy ::pt2d :xyz ::pt3d))
-(s/def ::pts (s/* ::pt))
-(s/def ::axis #{:x :y :z})
-
-(s/def ::parameter (s/and number? #(<= 0 % 1)))
-(s/def ::surface-parameter (s/tuple ::parameter ::parameter))
-(s/def ::quad (s/tuple number? number? number? number?))
-(s/def ::path (s/* ::pt))
-
-
-;; potential issue: ::quad is indistinguishable from ::pt2d because they are both just tuples with numbers
-
-(defn svg
-  [[w h sc] & content]
-  [:svg {:width w
-         :height h
-         :ViewBox (str "-1 -1 " w " " h)
-         :xmlns "http://www.w3.org/2000/svg"}
-   [:g {:transform (str "scale(" sc ")")} content]])
+            [clojure.test :as test]
+            [stylo.svg :refer [svg
+                               circle
+                               ellipse
+                               line
+                               path
+                               closed-path
+                               polygon
+                               polyline
+                               rect
+                               scale
+                               translate
+                               rotate
+                               label
+                               arrow]]))
 
 (defn figure
   ([descr content]
@@ -52,41 +44,6 @@
        (svg [qw qh sc] q3)
        (svg [qw qh sc] q4)]
       [:p descr]])))
-
-(defn point-to-string
-  [pt]
-  (apply str (interpose "," pt)))
-
-(defn pt-str
-  [pts]
-  (apply str (interpose " " (map point-to-string pts))))
-
-(defn path-str
-  [pts]
-  (let [line-to #(str "L" (first %) " " (second %))
-        move-to #(str "M" (first %) " " (second %))]
-    (str 
-     (move-to (first pts)) " "
-     (apply str (interpose " " (map line-to (rest pts))))
-     " Z")))
-
-(defn scale-str
-  [sc]
-  (str "scale(" sc ")"))
-
-(defn translate-str
-  [x y]
-  (str "translate(" x " " y ")"))
-
-(defn rotate-str
-  ([r]
-   (str "rotate(" r ")"))
-  ([r [x y]]
-   (str "rotate(" r " " x " " y ")")))
-
-(defn hsl-str
-  [h s l]
-  (str "hsl(" h ", " s "%, " l "%)"))
 
 (defn round
   [num places]
@@ -118,6 +75,21 @@
   (let [v (map - b a)
         v2 (apply + (map * v v))]
     (Math/sqrt v2)))
+
+(defn perpendicular
+  [[x y]]
+  [(- y) x])
+
+(defn normalize
+  "find the unit vector of a given vector"
+  [v]
+  (let [m (Math/sqrt (reduce + (map * v v)))]
+    (mapv / v (repeat m))))
+
+(defn det
+  [a b]
+  (- (* (first a) (second b)) 
+     (* (second a) (first b))))
 
 (defn *c3d
   "calculates cross product of two 3d-vectors"
@@ -207,7 +179,7 @@
         v (range 0 1 v-step)]
     (map #(apply f %) (quad-path u v u-step v-step))))
 
-(defn translate
+(defn translate-p
   [pts [mx my mz]]
   (map #(map + % [mx my mz]) pts))
 
@@ -306,70 +278,6 @@
       ([x y z] (frep x y z))
       ([u v] (brep u v)))))
 
-(defn rect
-  ([w h]
-   (rect w h nil))
-  ([w h col]
-   [:rect {:class ["ln" (if col col "clr")]
-           :width w
-           :height h}]))
-
-(defn polygon
-  ([pts]
-   (polygon pts nil))
-  ([pts col]
-   [:polygon {:class ["ln" (if col col "clr")]
-              :points (pt-str pts)}]))
-
-(defn polygon-d
-  ([pts]
-   (polygon-d pts nil))
-  ([pts col]
-   [:polygon {:class ["ln-d" (if col col "clr")]
-              :points (pt-str pts)}]))
-
-(defn closed-path
-  ([pts]
-   (closed-path pts nil))
-  ([pts col]
-   [:path {:class ["ln" (if col col "clr")]
-           :d (path-str pts)}]))
-
-(defn poly-path
-  ([paths]
-   (poly-path paths nil))
-  ([paths col]
-   (let [path-strs (map path-str paths)]
-     [:path {:class ["ln" (if col col "clr")]
-             :d (apply str (interleave path-strs (repeat " ")))}])))
-
-(defn sc
-  [sc & elems]
-  (into [:g {:transform (scale-str sc)}] elems))
-
-(defn mv
-  [[x y] & elems]
-  (into [:g {:transform (translate-str x y)}] elems))
-
-(defn rot
-  [r [x y] & elems]
-  (into [:g {:transform (rotate-str r [x y])}] elems))
-
-(defn perpendicular
-  [[x y]]
-  [(- y) x])
-
-(defn normalize
-  "find the unit vector of a given vector"
-  [v]
-  (let [m (Math/sqrt (reduce + (map * v v)))]
-    (mapv / v (repeat m))))
-
-(defn det
-  [a b]
-  (- (* (first a) (second b)) 
-     (* (second a) (first b))))
-
 ;; this should be improved
 ;; currently can cause divide by zero issues
 
@@ -417,79 +325,6 @@
         edge-pairs (cycle-pairs oedges)]
     (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
 
-(defn label
-  [text]
-  [:text {:fill "black"
-          :x -4
-          :y 4
-          :font-family "Verdana"
-          :font-size 12
-          :transform "translate(0,0) scale(0.05)"} text])
-
-(defn ln
-  [a b]
-  [:polyline {:stroke-linecap "round"
-              :stroke "black"
-              :stroke-width "2"
-              :fill "rgba(0,0,0,0)"
-              :points (pt-str [a b])}])
-
-(defn ln-d
-  [a b]
-  [:polyline {:stroke-linecap "round"
-              :stroke-dasharray "4, 5"
-              :stroke "black"
-              :stroke-width "1.5"
-              :fill "rgba(0,0,0,0)"
-              :points (pt-str [a b])}])
-
-(defn arw
-  [a b]
-  [:g {}
-   [:marker {:id "head"
-             :orient "auto"
-             :markerWidth "0.5"
-             :markerHeight "1"
-             :refX "0.025"
-             :refY "0.25"}
-    [:path {:d "M0,0 V0.5 L0.25,0.25 Z"
-            :fill "black"}]]
-   [:polyline {:marker-end "url(#head)"
-               :stroke "black"
-               :stroke-width "2"
-               :fill "rgba(0,0,0,0)"
-               :points (pt-str [a b])}]])
-
-(defn h-dimension
-  [a b text]
-  (let [a (map - a [0 2])
-        b (map - b [0 2])
-        mid (bb-center [a b])
-        label-offset (* 0.225 (count text))]
-    (list 
-     (mv (map - mid [label-offset 0]) (sc 2 (label text)))
-     (ln (map - a [0 0.75]) (map + a [0 1.5]))
-     (ln (map - b [0 0.75]) (map + b [0 1.5]))
-     (arw (map - mid [(* 1.75 label-offset) 0])  
-          (map + a [0.5 0]))
-     (arw (map + mid [(* 1.75 label-offset) 0]) 
-          (map - b [0.5 0])))))
-
-(defn v-dimension
-  [a b text]
-  (let [a (map + a [2 0])
-        b (map + b [2 0])
-        mid (bb-center [a b])
-        label-offset (* 0.225 (count text))]
-    (list 
-     (mv (map - mid [label-offset 0]) (rot 90 [label-offset 0] (sc 2(label text))))
-     (ln (map - a [1.5 0]) (map + a [0.75 0]))
-     (ln (map - b [1.5 0]) (map + b [0.75 0]))
-     (arw (map - mid [0 (* 1.75 label-offset)])  
-          (map + a [0 0.5]))
-     (arw (map + mid [0 (* 1.75 label-offset)]) 
-          (map - b [0 0.5])))))
-
 (defn dimension
   [a b]
   (let [text (str (round (distance a b) 3))
@@ -506,33 +341,11 @@
         [lat1 lat2] (map (partial d->t la) [0.5 2.5])
         [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
     (list
-     (arw (arw-a mid-t) (arw-a arw-t))
-     (arw (arw-b mid-t) (arw-b arw-t))
-     (ln (la lat1) (la lat2))
-     (ln (lb lbt1) (lb lbt2))
-     (mv (map - mid [label-offset 0]) (rot label-angle [label-offset 0] (sc 1.5 (label text)))))))
-
-(defn dot
-  [[x y]]
-  [:circle {:class ["attn"]
-            :cx x :cy y :r 0.125}])
-
-(defn attn-ln
-  [a b]
-  [:polyline {:class ["attn-ln" "clr"]
-              :points (pt-str [a b])}])
-
-(defn attn-circle
-  [[x y] r]
-  [:circle {:class ["attn-ln" "clr"]
-            :cx x :cy y :r r}])
-
-(defn circular-pattern
-  "Patterns n elements along an arc defined by angle."
-  [[angle n rx ry] & elems]
-  (let [delta (/ angle n)]
-    (for [a (range n)]
-      (rot (* a delta) [rx ry] elems))))
+     (arrow (arw-a mid-t) (arw-a arw-t))
+     (arrow (arw-b mid-t) (arw-b arw-t))
+     (line (la lat1) (la lat2))
+     (line (lb lbt1) (lb lbt2))
+     (translate (map - mid [label-offset 0]) (rotate label-angle [label-offset 0] (scale 1.5 (label text)))))))
 
 (def entity-defaults
   {:color "#2e3440"
@@ -717,7 +530,7 @@
              [n0 n1] (:val edge)
              [xa ya _] (nth nodes n0)
              [xb yb _] (nth nodes n1)]
-         (poly-path [[[xa ya] [xb yb]]]))))))
+         (path [[xa ya] [xb yb]]))))))
 
 ;; this was an older version of draw-edges
 (defn obj?
@@ -754,7 +567,7 @@
 (defn center-view
   [[w h sc] ro]
   (let [coords (get-move-coords [w h (/ 1 sc)] ro)]
-    (mv coords (draw-edges-recursive ro))))
+    (translate coords (draw-edges-recursive ro))))
 
 ;; iso, top, front, right
 (defn cad-view
