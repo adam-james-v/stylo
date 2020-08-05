@@ -16,35 +16,16 @@
   (apply str (interpose "," pt)))
 
 (defn str->pt
-  [str]
-  (mapv read-string (s/split str #",")))
+  [s]
+  (mapv read-string (s/split s #",")))
 
 (defn points->str
   [pts]
   (apply str (interpose " " (map pt->str pts))))
 
 (defn str->points
-  [str]
-  (mapv str->pt (s/split str #" ")))
-
-(defn closed-path-str
-  [pts]
-  (let [line-to #(str "L" (first %) " " (second %))
-        move-to #(str "M" (first %) " " (second %))]
-    (str 
-     (move-to (first pts)) " "
-     (apply str (interpose " " (map line-to (rest pts))))
-     " Z")))
-
-(defn closed-path->pts
-  [str]
-  (as-> str s
-    (s/split s #"\s")
-    (drop-last s)
-    (mapcat #(s/split % #"\D") s)
-    (filter #(not (= % "")) s)
-    (mapv read-string s)
-    (partition 2 s)))
+  [s]
+  (mapv str->pt (s/split s #" ")))
 
 (defn scale-str
   [sc]
@@ -53,7 +34,7 @@
 (defn translate-str
   [x y]
   (str "translate(" x " " y ")"))
-
+ 
 (defn rotate-str
   ([r]
    (str "rotate(" r ")"))
@@ -64,16 +45,65 @@
   [h s l]
   (str "hsl(" h ", " s "%, " l "%)"))
 
-;; list of svg shapes:
-;;
-;; circle
-;; ellipse
-;; line
-;; path
-;; polygon
-;; polyline
-;; rect
-;; text
+(defn closed-path-str
+  [pts]
+  (let [line-to #(str "L" (first %) " " (second %))
+        move-to #(str "M" (first %) " " (second %))]
+    (str 
+     (move-to (first pts)) " "
+     (apply str (interpose " " (map line-to (rest pts))))
+     " Z")))
+
+(defn path->pts
+  [s]
+  (as-> s s
+    (s/replace s #"Z" "") ;; removes Z at end of path
+    (s/split s #"\s") ;; split string at spaces
+    (mapcat #(s/split % #"[A-Z]") s) ;;splits on alpha chars
+    (filter #(not (= % "")) s)
+    (mapv read-string s)
+    (partition 2 s)))
+
+(defn xf-kv->str
+  [[k v]]
+  (let [k (symbol k)
+        v (apply list v)]
+    (str k v)))
+
+(defn str->xf-kv
+  [s]
+  (let [split (s/split s #"\(")
+        key (keyword (first split))
+        val (vec (read-string (str "(" (second split))))]
+    [key val]))
+
+(defn xf-map->str
+  [m]
+  (apply str (interpose "\n" (map xf-kv->str m))))
+
+(defn str->xf-map
+  [s]
+  (if-let [s s]
+    (into {} (map str->xf-kv (s/split-lines s)))
+    {}))
+
+(def svg-elements 
+  #{:circle
+    :ellipse
+    :line
+    :path
+    :polygon
+    :polyline
+    :rect
+    :text
+    :g})
+
+(defn check-svg-impl
+  [multimethod]
+  (println "Missing Implementation for:"
+           (clojure.set/difference 
+            svg-elements
+            (into #{} (keys (methods multimethod))))))
 
 (defn circle
   [r]
@@ -109,6 +139,14 @@
   [w h]
   [:rect {:width w :height h :x 0 :y 0}])
 
+(defn text
+  [text]
+  [:text {:x 0 :y 0} text])
+
+(defn g
+  [& content]
+  [:g {:transform "translate(0 0)"} content])
+
 (defmulti translate-element 
   (fn [_ element]
     (first element)))
@@ -136,12 +174,9 @@
                       (update :y2 + y))]
     [k new-props]))
 
-;; path translate doesn't work with multiple paths yet.
-;; easy to fix, but I have to make the change still.
-
 (defmethod translate-element :path
   [[x y] [k props]]
-  (let [paths (map closed-path->pts (s/split-lines (:d props)))
+  (let [paths (map path->pts (s/split-lines (:d props)))
         new-paths (for [path paths] 
                     (closed-path-str (map #(map + [x y] %) path)))
         new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
@@ -162,17 +197,61 @@
     [k new-props]))
 
 (defmethod translate-element :rect
-  [[x y] elem]
-  (let [props (second elem)
-        new-props (-> props
+  [[x y] [k props]]
+  (let [new-props (-> props
                       (update :x + x)
                       (update :y + y))]
-    [:rect new-props]))
-  
+    [k new-props]))
+
+(defmethod translate-element :text
+  [[x y] [k props text]]
+  (let [new-props (-> props
+                      (update :x + x)
+                      (update :y + y))]
+    [k new-props text]))
+
+(defmethod translate-element :g
+  [[x y] [k props content]]
+  (let [xf (str->xf-map (:transform props))
+        new-xf (-> xf
+                   (update :translate #(map + [x y] %)))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    [k new-props content]))
+
+(defn element? [item]
+  (svg-elements (first item)))
+
 (defn translate
+  [[x y] & elems]
+  (let [elem (first elems)
+        elems (rest elems)]
+    (when elem
+      (cond
+        (and (element? elem) (= 0 (count elems)))
+        (translate-element [x y] elem)
+        
+        (and (element? elem) (< 0 (count elems)))
+        (concat
+         [(translate-element [x y] elem)]
+         [(translate [x y] elems)])
+      
+        :else
+        (recur [x y] (concat elem elems))))))
+
+;; this is the 'old' way.
+(defn translate-g
   [[x y] & elems]
   (into [:g {:transform (translate-str x y)}] elems))
 
+(defn scale-element
+  [[sx sy] [k props content]]
+  (let [xf (str->xf-map (:transform props))
+        new-xf (-> xf
+                   (update :scale (fnil #(map * [sx sy] %) [1 1])))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    [k new-props content]))
+
+;; this is the old method
 (defn scale
   [sc & elems]
   (into [:g {:transform (scale-str sc)}] elems))
