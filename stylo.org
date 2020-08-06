@@ -524,6 +524,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (ns stylo.svg
   (:require [clojure.string :as s]
+            [stylo.geom :as g]
             #?(:cljs 
                [cljs.reader :refer [read-string]])))
 
@@ -681,7 +682,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 
 (defn rect
   [w h]
-  [:rect {:width w :height h :x 0 :y 0}])
+  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
 
 (defn text
   [text]
@@ -697,7 +698,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 Translate works reasonably well. Currently there is a problem when translating :g tags if you don't already have a :translate key in the xf-map. I don't totally know why this is yet.
 
 *** translate
-**** multimethods
+**** translate-element
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defmulti translate-element 
   (fn [_ element]
@@ -802,15 +803,119 @@ Translate works reasonably well. Currently there is a problem when translating :
 #+END_SRC
 
 *** scale
+SVG items are assumed to be positioned and moved around from their bounding box centers. This means that scaling an element will NOT move it's center position.
+
 **** scale-element
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(defn scale-element
+(defn scale-element-by-transform
   [[sx sy] [k props content]]
   (let [xf (str->xf-map (:transform props))
         new-xf (-> xf
                    (update :scale (fnil #(map * [sx sy] %) [1 1])))
         new-props (assoc props :transform (xf-map->str new-xf))]
     [k new-props content]))
+
+(defmulti scale-element 
+  (fn [_ element]
+    (first element)))
+
+
+;; transforms are applied directly to the properties of shapes.
+;; I have scale working the same way. One issue is that scaling a circle
+;; turns it into an ellipse. This impl WILL change the shape to ellipse if non-uniform scaling is applied.
+
+(defmethod scale-element :circle
+  [[sx sy] [k props]]
+  (let [circle? (= sx sy)
+        r (:r props)
+        new-props (if circle?
+                    (assoc props :r (* r sx))
+                    (-> props
+                        (dissoc :r)
+                        (assoc :rx (* sx r))
+                        (assoc :ry (* sy r))))
+        k (if circle? :circle :ellipse)]
+    [k new-props]))
+
+(defmethod scale-element :ellipse
+  [[sx sy] [k props]]
+  (let [new-props (-> props
+                      (update :rx #(* sx %))
+                      (update :ry #(* sy %)))]
+    [k new-props]))
+
+;; find bounding box center
+;; translate bb-center to 0 0
+;; scale all x y values by * [sx sy]
+;; translate back to original bb-center
+
+(defmethod scale-element :line
+  [[sx sy] [k props]]
+  (let [[cx cy] (g/bb-center [[(:x1 props) (:y1 props)]
+                              [(:x2 props) (:y2 props)]])
+        new-props (-> props
+                      (update :x1 #(+ (* (- % cx) sx) cx))
+                      (update :y1 #(+ (* (- % cy) sy) cy))
+                      (update :x2 #(+ (* (- % cx) sx) cx))
+                      (update :y2 #(+ (* (- % cy) sy) cy)))]
+    [k new-props]))
+
+#+END_SRC
+
+Scale-element for path not finished yet.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defmethod scale-element :path
+  [[sx sy] [k props]]
+  (let [paths (map path->pts (s/split-lines (:d props)))
+        center (
+        new-paths (for [path paths] 
+                    (closed-path-str (map #(map + [x y] %) path)))
+        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
+    [k new-props]))
+
+#+END_SRC
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defn scale-pt-from-center
+  [[cx cy] [sx sy] [x y]]
+  [(+ (* (- x cx) sx) cx)
+   (+ (* (- y cy) sy) cy)])
+
+(defmethod scale-element :polygon
+  [[sx sy] [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial scale-pt-from-center center [sx sy])
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod scale-element :polyline
+  [[sx sy] [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial scale-pt-from-center center [sx sy])
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod scale-element :rect
+  [[sx sy] [k props]]
+  (let [cx (/ (:width props) 2.0)
+        cy (/ (:height props) 2.0)
+        w (* sx (:width props))
+        h (* sy (:height props))
+        new-props (-> props
+                      (assoc :width w)
+                      (assoc :height h)
+                      (update :x #(+ (* (- % cx) sx) cx))
+                      (update :y #(+ (* (- % cy) sy) cy)))]
+    [k new-props]))
 
 #+END_SRC
 
@@ -860,81 +965,21 @@ Translate works reasonably well. Currently there is a problem when translating :
                :points (points->str [a b])}]])
 
 #+END_SRC
-
-* draw
-The draw namespace contains functions that produce svg elements.
-
-The idea of the draw namespace is to wrap SVG functionality in Clojure functions.
-2D/3D sketches/solids should be abstracted further from the SVG wrappers.
-
-One thing that this ns currently handles poorly is that parametric functions, svg functions, and points functions are all mixed together. For example, (slope line) requires a parametric line as the input... but you wouldn't know that by looking.
-
-
+* geom
 ** ns
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(ns stylo.draw
-  (:require [clojure.spec.alpha :as s]
-            [clojure.spec.test.alpha :as stest]
-            [clojure.spec.gen.alpha :as gen]
-            [clojure.test :as test]
-            [stylo.svg :refer [svg
-                               circle
-                               ellipse
-                               line
-                               path
-                               closed-path
-                               polygon
-                               polyline
-                               rect
-                               scale
-                               translate
-                               rotate
-                               label
-                               arrow]]))
+#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
+(ns stylo.geom)
 
 #+END_SRC
 
-** containers
-Containers are functions that wrap visual elements like 2D or 3D drawings.
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn figure
-  ([descr content]
-   (figure [500 250 25] descr content))
-
-  ([[w h sc] descr & content]
-   [:div.figure
-    (svg [w h sc] content)
-    [:p descr]]))
-
-(defn quadrant-figure
-  ([descr q1 q2 q3 q4]
-   (quadrant-figure [720 720 25] descr q1 q2 q3 q4))
-  
-  ([[w h sc] descr q1 q2 q3 q4]
-   (let [qw (/ w 2.0)
-         qh (/ h 2.0)]
-     [:div.figure 
-      [:div 
-       {:style {:display "flex"
-                :flex-wrap "wrap"
-                :width (str w "px")}}
-       (svg [qw qh sc] q2)
-       (svg [qw qh sc] q1)
-       (svg [qw qh sc] q3)
-       (svg [qw qh sc] q4)]
-      [:p descr]])))
-
-#+END_SRC
-
-** geom-helpers
 With math-heavy work, it will become very important to handle floating point errors effectively.
 
 It might be a good approach to compute symbolically. Look into computer algebra systems. Automatic differentiation (forward automatic).
 
 It might be good to use a math library that already exists.
 
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+** maths
+#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
 (defn round
   [num places]
   (let [d (Math/pow 10 places)]
@@ -990,6 +1035,80 @@ It might be good to use a math library that already exists.
         j (- (* a3 b1) (* a1 b3))
         k (- (* a1 b2) (* a2 b1))]
     [i j k]))
+
+#+END_SRC
+
+* draw
+The draw namespace contains functions that produce svg elements.
+
+The idea of the draw namespace is to wrap SVG functionality in Clojure functions.
+2D/3D sketches/solids should be abstracted further from the SVG wrappers.
+
+One thing that this ns currently handles poorly is that parametric functions, svg functions, and points functions are all mixed together. For example, (slope line) requires a parametric line as the input... but you wouldn't know that by looking.
+
+** ns
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(ns stylo.draw
+  (:require [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as stest]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.test :as test]
+            [stylo.geom :refer [round
+                                to-deg
+                                to-rad
+                                bb-center
+                                distance
+                                perpendicular
+                                normalize
+                                det
+                                *c3d]]
+            [stylo.svg :refer [svg
+                               circle
+                               ellipse
+                               line
+                               path
+                               closed-path
+                               polygon
+                               polyline
+                               rect
+                               scale
+                               translate
+                               rotate
+                               label
+                               arrow]]))
+
+#+END_SRC
+
+** containers
+Containers are functions that wrap visual elements like 2D or 3D drawings.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+(defn figure
+  ([descr content]
+   (figure [500 250 25] descr content))
+
+  ([[w h sc] descr & content]
+   [:div.figure
+    (svg [w h sc] content)
+    [:p descr]]))
+
+(defn quadrant-figure
+  ([descr q1 q2 q3 q4]
+   (quadrant-figure [720 720 25] descr q1 q2 q3 q4))
+  
+  ([[w h sc] descr q1 q2 q3 q4]
+   (let [qw (/ w 2.0)
+         qh (/ h 2.0)]
+     [:div.figure 
+      [:div 
+       {:style {:display "flex"
+                :flex-wrap "wrap"
+                :width (str w "px")}}
+       (svg [qw qh sc] q2)
+       (svg [qw qh sc] q1)
+       (svg [qw qh sc] q3)
+       (svg [qw qh sc] q4)]
+      [:p descr]])))
 
 #+END_SRC
 

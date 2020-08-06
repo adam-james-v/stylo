@@ -1,5 +1,6 @@
 (ns stylo.svg
   (:require [clojure.string :as s]
+            [stylo.geom :as g]
             #?(:cljs 
                [cljs.reader :refer [read-string]])))
 
@@ -137,7 +138,7 @@
 
 (defn rect
   [w h]
-  [:rect {:width w :height h :x 0 :y 0}])
+  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
 
 (defn text
   [text]
@@ -243,13 +244,107 @@
   [[x y] & elems]
   (into [:g {:transform (translate-str x y)}] elems))
 
-(defn scale-element
+(defn scale-element-by-transform
   [[sx sy] [k props content]]
   (let [xf (str->xf-map (:transform props))
         new-xf (-> xf
                    (update :scale (fnil #(map * [sx sy] %) [1 1])))
         new-props (assoc props :transform (xf-map->str new-xf))]
     [k new-props content]))
+
+(defmulti scale-element 
+  (fn [_ element]
+    (first element)))
+
+
+;; transforms are applied directly to the properties of shapes.
+;; I have scale working the same way. One issue is that scaling a circle
+;; turns it into an ellipse. This impl WILL change the shape to ellipse if non-uniform scaling is applied.
+
+(defmethod scale-element :circle
+  [[sx sy] [k props]]
+  (let [circle? (= sx sy)
+        r (:r props)
+        new-props (if circle?
+                    (assoc props :r (* r sx))
+                    (-> props
+                        (dissoc :r)
+                        (assoc :rx (* sx r))
+                        (assoc :ry (* sy r))))
+        k (if circle? :circle :ellipse)]
+    [k new-props]))
+
+(defmethod scale-element :ellipse
+  [[sx sy] [k props]]
+  (let [new-props (-> props
+                      (update :rx #(* sx %))
+                      (update :ry #(* sy %)))]
+    [k new-props]))
+
+;; find bounding box center
+;; translate bb-center to 0 0
+;; scale all x y values by * [sx sy]
+;; translate back to original bb-center
+
+(defmethod scale-element :line
+  [[sx sy] [k props]]
+  (let [[cx cy] (g/bb-center [[(:x1 props) (:y1 props)]
+                              [(:x2 props) (:y2 props)]])
+        new-props (-> props
+                      (update :x1 #(+ (* (- % cx) sx) cx))
+                      (update :y1 #(+ (* (- % cy) sy) cy))
+                      (update :x2 #(+ (* (- % cx) sx) cx))
+                      (update :y2 #(+ (* (- % cy) sy) cy)))]
+    [k new-props]))
+
+(defmethod scale-element :path
+  [[sx sy] [k props]]
+  (let [paths (map path->pts (s/split-lines (:d props)))
+        center (
+        new-paths (for [path paths] 
+                    (closed-path-str (map #(map + [x y] %) path)))
+        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
+    [k new-props]))
+
+(defn scale-pt-from-center
+  [[cx cy] [sx sy] [x y]]
+  [(+ (* (- x cx) sx) cx)
+   (+ (* (- y cy) sy) cy)])
+
+(defmethod scale-element :polygon
+  [[sx sy] [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial scale-pt-from-center center [sx sy])
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod scale-element :polyline
+  [[sx sy] [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial scale-pt-from-center center [sx sy])
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod scale-element :rect
+  [[sx sy] [k props]]
+  (let [cx (/ (:width props) 2.0)
+        cy (/ (:height props) 2.0)
+        w (* sx (:width props))
+        h (* sy (:height props))
+        new-props (-> props
+                      (assoc :width w)
+                      (assoc :height h)
+                      (update :x #(+ (* (- % cx) sx) cx))
+                      (update :y #(+ (* (- % cy) sy) cy)))]
+    [k new-props]))
 
 ;; this is the old method
 (defn scale
