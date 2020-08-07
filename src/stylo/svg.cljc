@@ -62,8 +62,8 @@
     (s/split s #"\s") ;; split string at spaces
     (mapcat #(s/split % #"[A-Z]") s) ;;splits on alpha chars
     (filter #(not (= % "")) s)
-    (mapv read-string s)
-    (partition 2 s)))
+    (map read-string s)
+    (vec (map vec (partition 2 s)))))
 
 (defn xf-kv->str
   [[k v]]
@@ -142,11 +142,17 @@
 
 (defn text
   [text]
-  [:text {:x 0 :y 0} text])
+  (let [font-w 9.625
+        font-h 10
+        n-chars (count text)]
+    [:text {:x (/ (* n-chars font-w) -2.0)
+            :y (/ font-h 2.0)
+            :style {:font-family "monospace"
+                    :font-size 16}} text]))
 
 (defn g
   [& content]
-  [:g {:transform "translate(0 0)"} content])
+  (into [:g {}] content))
 
 (defmulti translate-element 
   (fn [_ element]
@@ -212,12 +218,12 @@
     [k new-props text]))
 
 (defmethod translate-element :g
-  [[x y] [k props content]]
+  [[x y] [k props & content]]
   (let [xf (str->xf-map (:transform props))
         new-xf (-> xf
-                   (update :translate #(map + [x y] %)))
+                   (update :translate (fnil #(map + [x y] %) [0 0])))
         new-props (assoc props :transform (xf-map->str new-xf))]
-    [k new-props content]))
+    (into [k new-props] content)))
 
 (defn element? [item]
   (svg-elements (first item)))
@@ -297,19 +303,22 @@
                       (update :y2 #(+ (* (- % cy) sy) cy)))]
     [k new-props]))
 
-(defmethod scale-element :path
-  [[sx sy] [k props]]
-  (let [paths (map path->pts (s/split-lines (:d props)))
-        center (
-        new-paths (for [path paths] 
-                    (closed-path-str (map #(map + [x y] %) path)))
-        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
-    [k new-props]))
-
 (defn scale-pt-from-center
   [[cx cy] [sx sy] [x y]]
   [(+ (* (- x cx) sx) cx)
    (+ (* (- y cy) sy) cy)])
+
+(defmethod scale-element :path
+  [[sx sy] [k props]]
+  (let [paths (map path->pts (s/split-lines (:d props)))
+        center (g/bb-center (apply concat paths))
+        new-paths (for [path paths] 
+                    (closed-path-str 
+                     (map 
+                      (partial scale-pt-from-center center [sx sy])
+                      path)))
+        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
+    [k new-props]))
 
 (defmethod scale-element :polygon
   [[sx sy] [k props]]
@@ -335,8 +344,8 @@
 
 (defmethod scale-element :rect
   [[sx sy] [k props]]
-  (let [cx (/ (:width props) 2.0)
-        cy (/ (:height props) 2.0)
+  (let [cx (+ (:x props) (/ (:width props) 2.0))
+        cy (+ (:y props) (/ (:height props) 2.0))
         w (* sx (:width props))
         h (* sy (:height props))
         new-props (-> props
@@ -346,8 +355,47 @@
                       (update :y #(+ (* (- % cy) sy) cy)))]
     [k new-props]))
 
-;; this is the old method
+(defmethod scale-element :text
+  [[sx sy] [k props text]]
+  (let [font-w 9.625
+        font-h 10
+        n-chars (count text)
+        cx (+ (:x props) (/ (* font-w n-chars) 2.0))
+        cy (+ (:y props) (/ font-h -2.0))
+        new-props (-> props
+                      (update-in [:style :font-size] #(* % sx))
+                      (update :x #(+ (* (- % cx) sx) cx))
+                      (update :y #(+ (* (- % cy) sy) cy)))]
+    [k new-props text]))
+
+(defmethod scale-element :g
+  [[sx sy] [k props & content]]
+  (let [xf (str->xf-map (:transform props))
+        new-xf (-> xf
+                   (update :scale (fnil #(map * [sx sy] %) [1 1])))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    (into [k new-props] content)))
+
 (defn scale
+  [sc & elems]
+  (let [[sx sy] (if (coll? sc) sc [sc sc])
+        elem (first elems)
+        elems (rest elems)]
+    (when elem
+      (cond
+        (and (element? elem) (= 0 (count elems)))
+        (scale-element [sx sy] elem)
+        
+        (and (element? elem) (< 0 (count elems)))
+        (concat
+         [(scale-element [sx sy] elem)]
+         [(scale [sx sy] elems)])
+        
+        :else
+        (recur [sx sy] (concat elem elems))))))
+
+;; this is the old method
+(defn scale-g
   [sc & elems]
   (into [:g {:transform (scale-str sc)}] elems))
 
