@@ -99,12 +99,13 @@
     :text
     :g})
 
-(defn check-svg-impl
-  [multimethod]
-  (println "Missing Implementation for:"
-           (clojure.set/difference 
-            svg-elements
-            (into #{} (keys (methods multimethod))))))
+#?(:clj
+   (defn check-svg-impl
+     [multimethod]
+     (println "Missing Implementation for:"
+              (clojure.set/difference 
+               svg-elements
+               (into #{} (keys (methods multimethod)))))))
 
 (defn circle
   [r]
@@ -251,17 +252,16 @@
   (into [:g {:transform (translate-str x y)}] elems))
 
 (defn scale-element-by-transform
-  [[sx sy] [k props content]]
+  [[sx sy] [k props & content]]
   (let [xf (str->xf-map (:transform props))
         new-xf (-> xf
                    (update :scale (fnil #(map * [sx sy] %) [1 1])))
         new-props (assoc props :transform (xf-map->str new-xf))]
-    [k new-props content]))
+    [k new-props] content))
 
 (defmulti scale-element 
   (fn [_ element]
     (first element)))
-
 
 ;; transforms are applied directly to the properties of shapes.
 ;; I have scale working the same way. One issue is that scaling a circle
@@ -399,6 +399,102 @@
   [sc & elems]
   (into [:g {:transform (scale-str sc)}] elems))
 
+(defn rotate-element-by-transform
+  ([deg [k props content]]
+   (rotate-element-by-transform deg [0 0] [k props content]))
+  
+  ([deg center [k props content]]
+   (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+         new-xf (-> xf
+                    (update-in [:rotate 0] + deg)
+                    (assoc-in [:rotate 1] (first center))
+                    (assoc-in [:rotate 2] (second center)))
+         new-props (assoc props :transform (xf-map->str new-xf))]
+     [k new-props content])))
+
+(defn rotate-pt
+  [deg [x y]]
+  (let [c (Math/cos (g/to-rad deg))
+        s (Math/sin (g/to-rad deg))]
+    [(- (* x c) (* y s))
+     (+ (* x s) (* y c))]))
+
+(defmulti rotate-element
+  (fn [_ element]
+    (first element)))
+
+(defmethod rotate-element :circle
+  [deg [k props]]
+  (rotate-element-by-transform deg [k props]))
+
+(defmethod rotate-element :ellipse
+  [deg [k props]]
+  (rotate-element-by-transform deg [k props]))
+
+(defn move-pt
+  [mv pt]
+  (mapv + pt mv))
+
+(defn rotate-pt-around-center
+  [deg center pt]
+  (->> pt
+       (move-pt (map - center))
+       (rotate-pt deg)
+       (move-pt center)))
+
+(defmethod rotate-element :line
+  [deg [k props]] 
+  (let [pts [[(:x1 props) (:y1 props)] [(:x2 props) (:y2 props)]]
+        center (g/bb-center pts)
+        [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg center) pts)
+        new-props (-> props
+                      (assoc :x1 x1)
+                      (assoc :y1 y1)
+                      (assoc :x2 x2)
+                      (assoc :y2 y2))]
+    [k new-props]))
+
+(defmethod rotate-element :path
+  [deg [k props]]
+  (let [paths (map path->pts (s/split-lines (:d props)))
+        center (g/bb-center (apply concat paths))
+        new-paths (for [path paths] 
+                    (closed-path-str 
+                     (map 
+                      (partial rotate-pt-around-center deg center) 
+                      path)))
+        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
+    [k new-props]))
+
+(defmethod rotate-element :polygon
+  [deg [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial rotate-pt-around-center deg center)
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod rotate-element :polyline
+  [deg [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial rotate-pt-around-center deg center)
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod rotate-element :rect
+  [deg [k props]]
+  (let [cx (+ (:x props) (/ (:width props) 2.0))
+        cy (+ (:y props) (/ (:height props) 2.0))]
+    (rotate-element-by-transform deg [cx cy] [k props])))
+
+;; old approach
 (defn rotate
   [r [x y] & elems]
   (into [:g {:transform (rotate-str r [x y])}] elems))
