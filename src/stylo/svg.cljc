@@ -121,8 +121,9 @@
 
 (defn path
   [d]
-  [:path {:d d}])
-  
+  [:path {:d d
+          :fill-rule "evenodd"}])
+
 (defn closed-path
   [& paths]
   (let [paths (map closed-path-str paths)
@@ -143,11 +144,14 @@
 
 (defn text
   [text]
-  (let [font-w 9.625
-        font-h 10
-        n-chars (count text)]
-    [:text {:x (/ (* n-chars font-w) -2.0)
-            :y (/ font-h 2.0)
+  (let [char-w 9.625
+        char-h 10
+        n-chars (count text)
+        x (/ (* n-chars char-w) -2.0)
+        y (/ char-h 2.0)]
+    [:text {:x (/ (* n-chars char-w) -2.0)
+            :y (/ char-h 2.0)
+            :transform (xf-map->str {:rotate [0 (- x) (- y)]})
             :style {:font-family "monospace"
                     :font-size 16}} text]))
 
@@ -161,14 +165,28 @@
 
 (defmethod translate-element :circle
   [[x y] [k props]]
-  (let [new-props (-> props
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        cx (:cx props)
+        cy (:cy props)
+        new-xf (-> xf
+                   (assoc-in [:rotate 1] (+ x cx))
+                   (assoc-in [:rotate 2] (+ y cy)))
+        new-props (-> props
+                      (assoc :transform (xf-map->str new-xf))
                       (update :cx + x)
                       (update :cy + y))]
     [k new-props]))
 
 (defmethod translate-element :ellipse
   [[x y] [k props]]
-  (let [new-props (-> props
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        cx (:cx props)
+        cy (:cy props)
+        new-xf (-> xf
+                   (assoc-in [:rotate 1] (+ x cx))
+                   (assoc-in [:rotate 2] (+ y cy)))
+        new-props (-> props
+                      (assoc :transform (xf-map->str new-xf))
                       (update :cx + x)
                       (update :cy + y))]
     [k new-props]))
@@ -206,14 +224,26 @@
 
 (defmethod translate-element :rect
   [[x y] [k props]]
-  (let [new-props (-> props
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        cx (+ (:x props) (/ (:width props) 2.0))
+        cy (+ (:y props) (/ (:height props) 2.0))
+        new-xf (-> xf
+                   (assoc-in [:rotate 1] (+ x cx))
+                   (assoc-in [:rotate 2] (+ y cy)))
+        new-props (-> props
+                      (assoc :transform (xf-map->str new-xf))
                       (update :x + x)
                       (update :y + y))]
     [k new-props]))
 
 (defmethod translate-element :text
   [[x y] [k props text]]
-  (let [new-props (-> props
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        new-xf (-> xf
+                   (update-in [:rotate 1] + x)
+                   (update-in [:rotate 2] + y))
+        new-props (-> props
+                      (assoc :transform (xf-map->str new-xf))
                       (update :x + x)
                       (update :y + y))]
     [k new-props text]))
@@ -250,6 +280,124 @@
 (defn translate-g
   [[x y] & elems]
   (into [:g {:transform (translate-str x y)}] elems))
+
+(defn rotate-element-by-transform
+  [deg [k props content]]
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        new-xf (-> xf
+                   (update-in [:rotate 0] + deg))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    [k new-props content]))
+
+(defn rotate-pt
+  [deg [x y]]
+  (let [c (Math/cos (g/to-rad deg))
+        s (Math/sin (g/to-rad deg))]
+    [(- (* x c) (* y s))
+     (+ (* x s) (* y c))]))
+
+(defmulti rotate-element
+  (fn [_ element]
+    (first element)))
+
+(defmethod rotate-element :circle
+  [deg [k props]]
+  (rotate-element-by-transform deg [k props]))
+
+(defmethod rotate-element :ellipse
+  [deg [k props]]
+  (rotate-element-by-transform deg [k props]))
+
+(defn move-pt
+  [mv pt]
+  (mapv + pt mv))
+
+(defn rotate-pt-around-center
+  [deg center pt]
+  (->> pt
+       (move-pt (map - center))
+       (rotate-pt deg)
+       (move-pt center)))
+
+(defmethod rotate-element :line
+  [deg [k props]] 
+  (let [pts [[(:x1 props) (:y1 props)] [(:x2 props) (:y2 props)]]
+        center (g/bb-center pts)
+        [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg center) pts)
+        new-props (-> props
+                      (assoc :x1 x1)
+                      (assoc :y1 y1)
+                      (assoc :x2 x2)
+                      (assoc :y2 y2))]
+    [k new-props]))
+
+(defmethod rotate-element :path
+  [deg [k props]]
+  (let [paths (map path->pts (s/split-lines (:d props)))
+        center (g/bb-center (apply concat paths))
+        new-paths (for [path paths] 
+                    (closed-path-str 
+                     (map 
+                      (partial rotate-pt-around-center deg center) 
+                      path)))
+        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
+    [k new-props]))
+
+(defmethod rotate-element :polygon
+  [deg [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial rotate-pt-around-center deg center)
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod rotate-element :polyline
+  [deg [k props]]
+  (let [points (str->points (:points props))
+        center (g/bb-center points)
+        new-points (points->str
+                    (map 
+                     (partial rotate-pt-around-center deg center)
+                     points))
+        new-props (assoc props :points new-points)]
+    [k new-props]))
+
+(defmethod rotate-element :rect
+  [deg [k props]]
+  (rotate-element-by-transform deg [k props]))
+
+(defmethod rotate-element :text
+  [deg [k props text]]
+  (rotate-element-by-transform deg [k props text]))
+
+(defmethod rotate-element :g
+  [deg [k props & content]]
+  (rotate-element-by-transform deg [k props content]))
+
+(defn rotate
+  [deg & elems]
+  (let [elem (first elems)
+        elems (rest elems)]
+    (when elem
+      (cond
+        (and (element? elem) (= 0 (count elems)))
+        (rotate-element deg elem)
+        
+        (and (element? elem) (< 0 (count elems)))
+        (concat
+         [(rotate-element deg elem)]
+         [(rotate deg elems)])
+        
+        :else
+        (recur deg (concat elem elems))))))
+
+;; old approach
+(defn rotate-g
+  [r [x y] & elems]
+  (into [:g {:transform (rotate-str r [x y])}] elems))
 
 (defn scale-element-by-transform
   [[sx sy] [k props & content]]
@@ -357,15 +505,19 @@
 
 (defmethod scale-element :text
   [[sx sy] [k props text]]
-  (let [font-w 9.625
-        font-h 10
-        n-chars (count text)
-        cx (+ (:x props) (/ (* font-w n-chars) 2.0))
-        cy (+ (:y props) (/ font-h -2.0))
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        cx (get-in xf [:rotate 1])
+        cy (get-in xf [:rotate 2])
+        x (+ (* (- (:x props) cx) sx) cx)
+        y (+ (* (- (:y props) cy) sy) cy)
+        new-xf (-> xf
+                   (assoc-in [:rotate 1] (- x))
+                   (assoc-in [:rotate 2] (- y)))
         new-props (-> props
-                      (update-in [:style :font-size] #(* % sx))
-                      (update :x #(+ (* (- % cx) sx) cx))
-                      (update :y #(+ (* (- % cy) sy) cy)))]
+                      (assoc :transform (xf-map->str new-xf))
+                      (assoc :x x)
+                      (assoc :y y)
+                      (update-in [:style :font-size] #(* % sx)))]
     [k new-props text]))
 
 (defmethod scale-element :g
@@ -399,114 +551,9 @@
   [sc & elems]
   (into [:g {:transform (scale-str sc)}] elems))
 
-(defn rotate-element-by-transform
-  ([deg [k props content]]
-   (rotate-element-by-transform deg [0 0] [k props content]))
-  
-  ([deg center [k props content]]
-   (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
-         new-xf (-> xf
-                    (update-in [:rotate 0] + deg)
-                    (assoc-in [:rotate 1] (first center))
-                    (assoc-in [:rotate 2] (second center)))
-         new-props (assoc props :transform (xf-map->str new-xf))]
-     [k new-props content])))
-
-(defn rotate-pt
-  [deg [x y]]
-  (let [c (Math/cos (g/to-rad deg))
-        s (Math/sin (g/to-rad deg))]
-    [(- (* x c) (* y s))
-     (+ (* x s) (* y c))]))
-
-(defmulti rotate-element
-  (fn [_ element]
-    (first element)))
-
-(defmethod rotate-element :circle
-  [deg [k props]]
-  (rotate-element-by-transform deg [k props]))
-
-(defmethod rotate-element :ellipse
-  [deg [k props]]
-  (rotate-element-by-transform deg [k props]))
-
-(defn move-pt
-  [mv pt]
-  (mapv + pt mv))
-
-(defn rotate-pt-around-center
-  [deg center pt]
-  (->> pt
-       (move-pt (map - center))
-       (rotate-pt deg)
-       (move-pt center)))
-
-(defmethod rotate-element :line
-  [deg [k props]] 
-  (let [pts [[(:x1 props) (:y1 props)] [(:x2 props) (:y2 props)]]
-        center (g/bb-center pts)
-        [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg center) pts)
-        new-props (-> props
-                      (assoc :x1 x1)
-                      (assoc :y1 y1)
-                      (assoc :x2 x2)
-                      (assoc :y2 y2))]
-    [k new-props]))
-
-(defmethod rotate-element :path
-  [deg [k props]]
-  (let [paths (map path->pts (s/split-lines (:d props)))
-        center (g/bb-center (apply concat paths))
-        new-paths (for [path paths] 
-                    (closed-path-str 
-                     (map 
-                      (partial rotate-pt-around-center deg center) 
-                      path)))
-        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
-    [k new-props]))
-
-(defmethod rotate-element :polygon
-  [deg [k props]]
-  (let [points (str->points (:points props))
-        center (g/bb-center points)
-        new-points (points->str
-                    (map 
-                     (partial rotate-pt-around-center deg center)
-                     points))
-        new-props (assoc props :points new-points)]
-    [k new-props]))
-
-(defmethod rotate-element :polyline
-  [deg [k props]]
-  (let [points (str->points (:points props))
-        center (g/bb-center points)
-        new-points (points->str
-                    (map 
-                     (partial rotate-pt-around-center deg center)
-                     points))
-        new-props (assoc props :points new-points)]
-    [k new-props]))
-
-(defmethod rotate-element :rect
-  [deg [k props]]
-  (let [cx (+ (:x props) (/ (:width props) 2.0))
-        cy (+ (:y props) (/ (:height props) 2.0))]
-    (rotate-element-by-transform deg [cx cy] [k props])))
-
-;; old approach
-(defn rotate
-  [r [x y] & elems]
-  (into [:g {:transform (rotate-str r [x y])}] elems))
-
-(defn label
-  [text]
-  [:text {:fill "black"
-          :x -4
-          :y 4
-          :font-family "Verdana"
-          :font-size 12
-          :transform "translate(0,0) scale(0.05)"} text])
+(defn color-element
+  [s-map [k props content]]
+  [k (merge props s-map) content])
 
 (defn arrow
   [a b]
