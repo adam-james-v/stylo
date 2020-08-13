@@ -159,6 +159,37 @@
   [& content]
   (into [:g {}] content))
 
+(defn arc-str
+  [rx ry x-deg lg sw x y]
+  (apply str (interpose " " ["a" rx ry x-deg lg sw x y])))
+
+;; arc drawing can be done in a few ways.
+;; could implement different drawing methods w/ defmethod,
+;; dispatch on :key OR on 'shape' of the args?
+
+(defn circle-by-pts
+  [p1 p2 p3]
+  (let [[p1 p2 p3] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1 p2 p3)
+        c (drop-last (g/center-from-pts p1 p2 p3))]
+    (color-element
+     {:fill "none"
+      :stroke "gray"
+      :stroke-width 1}
+     (g
+      (translate c (circle r))
+      (translate (drop-last p1) (circle 2))
+      (translate (drop-last p2) (circle 2))
+      (translate (drop-last p3) (circle 2))))))
+
+(defn arc
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1b p2b p3b)
+        m-str (apply str (interpose " " (cons "M" p1)))
+        a-str (apply str (interpose " " (concat ["A" r r 0 0 0] p3)))]
+    (path (apply str (interpose "\n" [m-str a-str])))))
+
 (defmulti translate-element 
   (fn [_ element]
     (first element)))
@@ -552,7 +583,7 @@
   (into [:g {:transform (scale-str sc)}] elems))
 
 (defn color-element
-  [s-map [k props content]]
+  [s-map [k props & content]]
   [k (merge props s-map) content])
 
 (defn arrow

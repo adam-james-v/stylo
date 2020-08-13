@@ -13,6 +13,18 @@
   [deg]
   (* deg (/ Math/PI 180)))
 
+(defn sq
+  [x]
+  (* x x))
+
+(defn clamp
+  "clamps a value between lower bound and upper bound"
+  [x lb ub]
+  (cond
+    (< x lb) lb
+    (> x ub) ub
+    :else x))
+
 (defn bb-center
   [pts]
   (let [xs (map first pts)
@@ -23,17 +35,6 @@
         ymin (apply min ys)]
     [(+ (/ (- xmax xmin) 2.0) xmin)
      (+ (/ (- ymax ymin) 2.0) ymin)]))
-
-(defn distance
-  "Computes the distance between two points."
-  [a b]
-  (let [v (map - b a)
-        v2 (apply + (map * v v))]
-    (Math/sqrt v2)))
-
-(defn perpendicular
-  [[x y]]
-  [(- y) x])
 
 (defn normalize
   "find the unit vector of a given vector"
@@ -46,6 +47,11 @@
   (- (* (first a) (second b)) 
      (* (second a) (first b))))
 
+(defn *d
+  "calculates the dot product of two vectors"
+  [a b]
+  (reduce + (map * a b)))
+
 (defn *c3d
   "calculates cross product of two 3d-vectors"
   [a b]
@@ -55,3 +61,59 @@
         j (- (* a3 b1) (* a1 b3))
         k (- (* a1 b2) (* a2 b1))]
     [i j k]))
+
+(defn distance
+  "Computes the distance between two points."
+  [a b]
+  (let [v (map - b a)
+        v2 (apply + (map * v v))]
+    (Math/sqrt v2)))
+
+(defn perpendicular
+  [[x y]]
+  [(- y) x])
+
+;; this is broken. the comparison of = with the cross product
+;; will basically never be true... need to use a nearly? kind of fn
+
+(defn pt-on-line?
+  "determine if a point is on an infinitely extending line"
+  [pt line]
+  (let [[a b] line
+        ap (mapv - a pt)
+        bp (mapv - b pt)]
+    (= (*c3d ap bp) [0 0 0])))
+
+(defn radius-from-pts
+  "compute the radius of an arc defined by 3 points"
+  [p1 p2 p3]
+  (when-not (pt-on-line? p1 [p2 p3])
+    (let [a (distance p3 p2)
+          b (distance p3 p1)
+          c (distance p2 p1)
+          s (/ (+ a b c) 2)
+          sa ( - s a)
+          sb ( - s b)
+          sc ( - s c)
+          rt (Math/sqrt (* s sa sb sc))
+          R (/ (/ (* a b c) 4) rt)]
+      R)))
+
+;; https://math.stackexchange.com/a/1743505
+(defn center-from-pts
+  "compute the center point of an arc through 3 points"
+  [p1 p2 p3]
+  (when-not (pt-on-line? p1 [p2 p3])
+    (let [u1 (mapv - p2 p1)
+          u2 (mapv - p3 p1)
+          w1 (*c3d (mapv - p3 p1) u1)
+          u (normalize u1)
+          w (normalize w1)
+          v (*c3d w u)
+          [bx by] [(*d u1 u) 0]
+          [cx cy] [(*d u2 u) (*d u2 v)]
+          h (/ (+ (sq (- cx (/ bx 2))) (sq cy) (- 0 (sq (/ bx 2)))) 
+               (* 2 cy))]
+      (mapv + p1 
+            (mapv * (repeat (/ bx 2)) u) 
+            (mapv * (repeat h) v)))))

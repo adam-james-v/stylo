@@ -21,11 +21,14 @@
                                polygon
                                polyline
                                rect
+                               text
                                scale
                                translate
                                rotate
-                               label
                                arrow]]))
+
+(defn label [t]
+  (text t))
 
 (defn figure
   ([descr content]

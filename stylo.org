@@ -69,6 +69,9 @@ It is very important to update that script or remove it when I have a production
 
  #+end_src
 * design
+** goals
+I want to blend CAD and documentation into one simple, powerful, useful, and open library. Stylo approaches this problem by assuming the document IS the design, including prose, interactice elements, and 2D/3D figures. Export into popular formats is a must.
+
 ** concept
 This program takes a document and renders it.
 
@@ -545,6 +548,22 @@ It might be good to use a math library that already exists.
   [deg]
   (* deg (/ Math/PI 180)))
 
+(defn sq
+  [x]
+  (* x x))
+
+(defn clamp
+  "clamps a value between lower bound and upper bound"
+  [x lb ub]
+  (cond
+    (< x lb) lb
+    (> x ub) ub
+    :else x))
+
+#+END_SRC
+
+** bounding-box
+#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
 (defn bb-center
   [pts]
   (let [xs (map first pts)
@@ -556,17 +575,10 @@ It might be good to use a math library that already exists.
     [(+ (/ (- xmax xmin) 2.0) xmin)
      (+ (/ (- ymax ymin) 2.0) ymin)]))
 
-(defn distance
-  "Computes the distance between two points."
-  [a b]
-  (let [v (map - b a)
-        v2 (apply + (map * v v))]
-    (Math/sqrt v2)))
+#+END_SRC
 
-(defn perpendicular
-  [[x y]]
-  [(- y) x])
-
+** linear-algebra
+#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
 (defn normalize
   "find the unit vector of a given vector"
   [v]
@@ -578,6 +590,11 @@ It might be good to use a math library that already exists.
   (- (* (first a) (second b)) 
      (* (second a) (first b))))
 
+(defn *d
+  "calculates the dot product of two vectors"
+  [a b]
+  (reduce + (map * a b)))
+
 (defn *c3d
   "calculates cross product of two 3d-vectors"
   [a b]
@@ -587,6 +604,66 @@ It might be good to use a math library that already exists.
         j (- (* a3 b1) (* a1 b3))
         k (- (* a1 b2) (* a2 b1))]
     [i j k]))
+
+#+END_SRC
+
+** geometry
+#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
+(defn distance
+  "Computes the distance between two points."
+  [a b]
+  (let [v (map - b a)
+        v2 (apply + (map * v v))]
+    (Math/sqrt v2)))
+
+(defn perpendicular
+  [[x y]]
+  [(- y) x])
+
+;; this is broken. the comparison of = with the cross product
+;; will basically never be true... need to use a nearly? kind of fn
+
+(defn pt-on-line?
+  "determine if a point is on an infinitely extending line"
+  [pt line]
+  (let [[a b] line
+        ap (mapv - a pt)
+        bp (mapv - b pt)]
+    (= (*c3d ap bp) [0 0 0])))
+
+(defn radius-from-pts
+  "compute the radius of an arc defined by 3 points"
+  [p1 p2 p3]
+  (when-not (pt-on-line? p1 [p2 p3])
+    (let [a (distance p3 p2)
+          b (distance p3 p1)
+          c (distance p2 p1)
+          s (/ (+ a b c) 2)
+          sa ( - s a)
+          sb ( - s b)
+          sc ( - s c)
+          rt (Math/sqrt (* s sa sb sc))
+          R (/ (/ (* a b c) 4) rt)]
+      R)))
+
+;; https://math.stackexchange.com/a/1743505
+(defn center-from-pts
+  "compute the center point of an arc through 3 points"
+  [p1 p2 p3]
+  (when-not (pt-on-line? p1 [p2 p3])
+    (let [u1 (mapv - p2 p1)
+          u2 (mapv - p3 p1)
+          w1 (*c3d (mapv - p3 p1) u1)
+          u (normalize u1)
+          w (normalize w1)
+          v (*c3d w u)
+          [bx by] [(*d u1 u) 0]
+          [cx cy] [(*d u2 u) (*d u2 v)]
+          h (/ (+ (sq (- cx (/ bx 2))) (sq cy) (- 0 (sq (/ bx 2)))) 
+               (* 2 cy))]
+      (mapv + p1 
+            (mapv * (repeat (/ bx 2)) u) 
+            (mapv * (repeat h) v)))))
 
 #+END_SRC
 * svg
@@ -775,6 +852,62 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 (defn g
   [& content]
   (into [:g {}] content))
+
+#+END_SRC
+
+** path
+The path element has a small DSL to create compound curves. This includes the following (taken from [[https://www.w3schools.com/graphics/svg_path.asp]]):
+
+
+    M = moveto
+    L = lineto
+    H = horizontal lineto
+    V = vertical lineto
+    C = curveto
+    S = smooth curveto
+    Q = quadratic Bézier curve
+    T = smooth quadratic Bézier curveto
+    A = elliptical Arc
+    Z = closepath
+
+*** arc
+The arc command 
+
+A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+ 
+a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defn arc-str
+  [rx ry x-deg lg sw x y]
+  (apply str (interpose " " ["a" rx ry x-deg lg sw x y])))
+
+;; arc drawing can be done in a few ways.
+;; could implement different drawing methods w/ defmethod,
+;; dispatch on :key OR on 'shape' of the args?
+
+(defn circle-by-pts
+  [p1 p2 p3]
+  (let [[p1 p2 p3] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1 p2 p3)
+        c (drop-last (g/center-from-pts p1 p2 p3))]
+    (color-element
+     {:fill "none"
+      :stroke "gray"
+      :stroke-width 1}
+     (g
+      (translate c (circle r))
+      (translate (drop-last p1) (circle 2))
+      (translate (drop-last p2) (circle 2))
+      (translate (drop-last p3) (circle 2))))))
+
+(defn arc
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1b p2b p3b)
+        m-str (apply str (interpose " " (cons "M" p1)))
+        a-str (apply str (interpose " " (concat ["A" r r 0 0 0] p3)))]
+    (path (apply str (interpose "\n" [m-str a-str])))))
 
 #+END_SRC
 
@@ -1208,7 +1341,7 @@ To consider:
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defn color-element
-  [s-map [k props content]]
+  [s-map [k props & content]]
   [k (merge props s-map) content])
 
 #+END_SRC
@@ -1256,7 +1389,7 @@ One thing that this ns currently handles poorly is that parametric functions, sv
                                 perpendicular
                                 normalize
                                 det
-                                *c3d]]
+                                ,*c3d]]
             [stylo.svg :refer [svg
                                circle
                                ellipse
@@ -1266,11 +1399,14 @@ One thing that this ns currently handles poorly is that parametric functions, sv
                                polygon
                                polyline
                                rect
+                               text
                                scale
                                translate
                                rotate
-                               label
                                arrow]]))
+
+(defn label [t]
+  (text t))
 
 #+END_SRC
 
