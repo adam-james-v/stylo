@@ -17,6 +17,12 @@
   [x]
   (* x x))
 
+(defn slope
+  [a b]
+  (let [[x1 y1] a
+        [x2 y2] b]
+    (/ (- y2 y1) (- x2 x1))))
+
 (defn clamp
   "clamps a value between lower bound and upper bound"
   [x lb ub]
@@ -117,3 +123,13 @@
       (mapv + p1 
             (mapv * (repeat (/ bx 2)) u) 
             (mapv * (repeat h) v)))))
+
+(defn angle-from-pts-2d
+  [p1 p2 p3]
+  (let [v1 (map - p1 p2)
+        v2 (map - p3 p2)
+        l1 (distance p1 p2)
+        l2 (distance p3 p2)
+        n (*d v1 v2)
+        d (Math/abs (* l1 l2))]
+    (to-deg (Math/acos (/ n d)))))

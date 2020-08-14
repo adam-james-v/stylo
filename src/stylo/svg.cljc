@@ -182,12 +182,30 @@
       (translate (drop-last p2) (circle 2))
       (translate (drop-last p3) (circle 2))))))
 
+(defn large-arc-flag
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
+        c (drop-last (g/center-from-pts p1b p2b p3b))
+        a1 (g/angle-from-pts-2d p1 c p2)
+        a2 (g/angle-from-pts-2d p2 c p3)
+        a (+ a1 a2)]
+    (if (< 180 a) 1 0)))
+
+(defn sweep-flag
+  [p1 p2 p3]
+  (let [[x1 y1] p1
+        [x2 y2] p2]
+    (if (> y1 y2) 1 0)))
+
 (defn arc
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
         r (g/radius-from-pts p1b p2b p3b)
         m-str (apply str (interpose " " (cons "M" p1)))
-        a-str (apply str (interpose " " (concat ["A" r r 0 0 0] p3)))]
+        a-str (apply str 
+                     (interpose " " (concat ["A" r r 0 
+                                             (large-arc-flag p1 p2 p3)
+                                             (sweep-flag p1 p2 p3)] p3)))]
     (path (apply str (interpose "\n" [m-str a-str])))))
 
 (defmulti translate-element 
