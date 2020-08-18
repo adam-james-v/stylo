@@ -124,6 +124,8 @@
             (mapv * (repeat (/ bx 2)) u) 
             (mapv * (repeat h) v)))))
 
+;; https://math.stackexchange.com/questions/361412/finding-the-angle-between-three-points
+
 (defn angle-from-pts-2d
   [p1 p2 p3]
   (let [v1 (map - p1 p2)

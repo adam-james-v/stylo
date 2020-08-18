@@ -46,15 +46,7 @@
   [h s l]
   (str "hsl(" h ", " s "%, " l "%)"))
 
-(defn closed-path-str
-  [pts]
-  (let [line-to #(str "L" (first %) " " (second %))
-        move-to #(str "M" (first %) " " (second %))]
-    (str 
-     (move-to (first pts)) " "
-     (apply str (interpose " " (map line-to (rest pts))))
-     " Z")))
-
+;; types of paths line, arc, quadratic, cubic
 (defn path->pts
   [s]
   (as-> s s
@@ -64,6 +56,104 @@
     (filter #(not (= % "")) s)
     (map read-string s)
     (vec (map vec (partition 2 s)))))
+
+(defn path-type
+  [s]
+  (cond 
+    (s/includes? s "L") :line
+    (s/includes? s "C") :cubic
+    (s/includes? s "Q") :quadratic
+    (s/includes? s "A") :arc))
+
+(defn closed?
+  [s]
+  (= \Z (last s)))
+
+(defmulti path-string->path
+  (fn [s]
+    (path-type s)))
+
+(defmethod path-string->path :default
+  [s]
+  {:type (path-type s)
+   :closed (closed? s)
+   :pts (path->pts s)})
+
+(defmethod path-string->path :arc
+  [s]
+  (let [xs (-> s
+               (s/replace #"[A-Z]" "")
+               (s/split #"\s")
+               (#(filter (complement s/blank?) %)))
+        [p1x p1y rx ry x-deg lg sw p3x p3y] xs]
+    {:type :arc
+     :closed (closed? s)
+     :p1 [p1x p1y]
+     :p3 [p3x p3y]
+     :rx rx
+     :ry ry
+     :x-deg x-deg
+     :lg lg
+     :sw sw}))
+
+(defn -str
+  [leader & pts]
+  (apply str (interpose " " (concat [leader] (flatten pts)))))
+
+
+
+;; DELETE THIS ONE WHEN READY TO SWITCH OVER TO path->path-string / path-string->path fns
+
+(defn closed-path-str
+  [[m & pts]]
+  (str 
+   (-str "M" m) " "
+   (apply str (interpose " " (map (partial -str "L") pts)))
+   " Z"))
+
+
+;; ------------------
+
+(defmulti path->path-string
+  (fn [p]
+    (:type p)))
+
+(defmethod path->path-string :line
+  [{:keys [closed pts]}]
+  (let [[m & pts] pts]
+    (str 
+     (-str "M" m) " "
+     (apply str (interpose " " (map (partial -str "L") pts)))
+     (when closed " Z"))))
+
+
+(defmethod path->path-string :quadratic
+  [{:keys [closed pts]}]
+  (let [[p1 c p2 & pts] pts]
+    (str
+     (-str "M" p1) " "
+     (-str "Q" c p2) " "
+     (apply str (interpose " "
+                 (map #(apply (partial -str "T") %) (partition 2 pts))))
+     (when closed " Z"))))
+
+(defmethod path->path-string :cubic
+  [{:keys [closed pts]}]
+  (let [[p1 c1 c2 p2  & pts] pts]
+    (str
+     (-str "M" p1) " "
+     (-str "C" c1 c2 p2) " "
+     (apply str (interpose 
+                 " " 
+                 (map #(apply (partial -str "S") %) (partition 2 pts))))
+     (when closed " Z"))))
+
+(defmethod path->path-string :arc
+  [{:keys [p1 p3 rx ry x-deg lg sw closed]}]
+  (str
+   (-str "M" p1) " "
+   (-str "A" [rx ry] [x-deg lg sw] p3)
+   (when closed " Z")))
 
 (defn xf-kv->str
   [[k v]]
@@ -159,54 +249,7 @@
   [& content]
   (into [:g {}] content))
 
-(defn arc-str
-  [rx ry x-deg lg sw x y]
-  (apply str (interpose " " ["a" rx ry x-deg lg sw x y])))
-
-;; arc drawing can be done in a few ways.
-;; could implement different drawing methods w/ defmethod,
-;; dispatch on :key OR on 'shape' of the args?
-
-(defn circle-by-pts
-  [p1 p2 p3]
-  (let [[p1 p2 p3] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1 p2 p3)
-        c (drop-last (g/center-from-pts p1 p2 p3))]
-    (color-element
-     {:fill "none"
-      :stroke "gray"
-      :stroke-width 1}
-     (g
-      (translate c (circle r))
-      (translate (drop-last p1) (circle 2))
-      (translate (drop-last p2) (circle 2))
-      (translate (drop-last p3) (circle 2))))))
-
-(defn large-arc-flag
-  [p1 p2 p3]
-  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))
-        a1 (g/angle-from-pts-2d p1 c p2)
-        a2 (g/angle-from-pts-2d p2 c p3)
-        a (+ a1 a2)]
-    (if (< 180 a) 1 0)))
-
-(defn sweep-flag
-  [p1 p2 p3]
-  (let [[x1 y1] p1
-        [x2 y2] p2]
-    (if (> y1 y2) 1 0)))
-
-(defn arc
-  [p1 p2 p3]
-  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1b p2b p3b)
-        m-str (apply str (interpose " " (cons "M" p1)))
-        a-str (apply str 
-                     (interpose " " (concat ["A" r r 0 
-                                             (large-arc-flag p1 p2 p3)
-                                             (sweep-flag p1 p2 p3)] p3)))]
-    (path (apply str (interpose "\n" [m-str a-str])))))
+(declare color-element)
 
 (defmulti translate-element 
   (fn [_ element]
@@ -251,9 +294,11 @@
 
 (defmethod translate-element :path
   [[x y] [k props]]
-  (let [paths (map path->pts (s/split-lines (:d props)))
-        new-paths (for [path paths] 
-                    (closed-path-str (map #(map + [x y] %) path)))
+  (let [path-strings (s/split-lines (:d props))
+        paths (map path-string->path path-strings)
+        new-paths (for [path paths]
+                    (let [xpts (map #(map + [x y] %) (:pts path))]
+                      (path->path-string (assoc path :pts xpts))))
         new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
     [k new-props]))
 
@@ -382,13 +427,13 @@
 
 (defmethod rotate-element :path
   [deg [k props]]
-  (let [paths (map path->pts (s/split-lines (:d props)))
-        center (g/bb-center (apply concat paths))
-        new-paths (for [path paths] 
-                    (closed-path-str 
-                     (map 
-                      (partial rotate-pt-around-center deg center) 
-                      path)))
+  (let [path-strings (s/split-lines (:d props))
+        paths (map path-string->path path-strings)
+        center (g/bb-center (apply concat (map :pts paths)))
+        new-paths (for [path paths]
+                    (let [xf (partial rotate-pt-around-center deg center)
+                          xpts (map xf (:pts path))]
+                      (path->path-string (assoc path :pts xpts))))
         new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
     [k new-props]))
 
@@ -507,13 +552,13 @@
 
 (defmethod scale-element :path
   [[sx sy] [k props]]
-  (let [paths (map path->pts (s/split-lines (:d props)))
-        center (g/bb-center (apply concat paths))
-        new-paths (for [path paths] 
-                    (closed-path-str 
-                     (map 
-                      (partial scale-pt-from-center center [sx sy])
-                      path)))
+  (let [path-strings (s/split-lines (:d props))
+        paths (map path-string->path path-strings)
+        center (g/bb-center (apply concat (map :pts paths)))
+        new-paths (for [path paths]
+                    (let [xf (partial scale-pt-from-center center [sx sy])
+                          xpts (map xf (:pts path))]
+                      (path->path-string (assoc path :pts xpts))))
         new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
     [k new-props]))
 
@@ -600,9 +645,111 @@
   [sc & elems]
   (into [:g {:transform (scale-str sc)}] elems))
 
+(defn style-element
+  [style [k props & content]]
+  [k (merge props style) content])
+
 (defn color-element
-  [s-map [k props & content]]
-  [k (merge props s-map) content])
+  [color [k props & content]]
+  (let [color {:fill "none"
+               :stroke color}]
+    [k (merge props color) content]))
+
+(defn color
+  [style & elems]
+  (let [elem (first elems)
+        elems (rest elems)]
+    (when elem
+      (cond
+        (and (element? elem) (= 0 (count elems)))
+        (color-element style elem)
+        
+        (and (element? elem) (< 0 (count elems)))
+        (concat
+         [(color-element style elem)]
+         [(color style elems)])
+        
+        :else
+        (recur style (concat elem elems))))))
+
+(defn arc-str
+  [rx ry x-deg lg sw x y]
+  (apply str (interpose " " ["a" rx ry x-deg lg sw x y])))
+
+;; arc drawing can be done in a few ways.
+;; could implement different drawing methods w/ defmethod,
+;; dispatch on :key OR on 'shape' of the args?
+
+(defn large-arc-flag
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
+        c (drop-last (g/center-from-pts p1b p2b p3b))
+        a1 (g/angle-from-pts-2d p1 c p2)
+        a2 (g/angle-from-pts-2d p2 c p3)
+        a (+ a1 a2)]
+    (if (< 180 a) 1 0)))
+
+;; figure out how to properly set sweep flag.
+;; this breaks when p1 and p3 are swapped (even though 
+;; the arc should be drawn the same.. it also breaks
+;; when p2 is in Q4
+
+(defn sweep-flag
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
+        c (drop-last (g/center-from-pts p1b p2b p3b))]
+    (if (or (> (second p2) (second c))
+            (> (first p2) (first c))) 0 1)))
+
+(declare circle-by-pts)
+(defn arc
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1b p2b p3b)
+        m-str (apply str (interpose " " (cons "M" p1)))
+        a-str (apply str 
+                     (interpose " " (concat ["A" r r 0 
+                                             (large-arc-flag p1 p2 p3)
+                                             (sweep-flag p1 p2 p3)] p3)))]
+    (g
+     (circle-by-pts p1 p2 p3)
+     (path (apply str (interpose " " [m-str a-str]))))))
+
+(defn cubic-bezier-str
+  [[x1 y1] [cx1 cy1] [cx2 cy2] [x y]]
+  (let [m-str (str "M " x1 " " y1 " ")
+        c-str (apply str (interpose " " ["C" cx1 cy1 cx2 cy2 x y]))]
+    (str m-str c-str)))
+
+(defn s-bezier-str
+  [[cx1 cy1] [x y]]
+  (apply str (interpose " " ["S" cx1 cy1 x y])))
+
+(defn cubic-bezier
+  [p1 c1 c2 p2]
+  (g
+   (style-element
+    {:stroke "black"
+     :stroke-width 1}
+    (g
+     (map #(translate % (circle 2)) [p1 c1 c2 p2])
+     (polyline [p1 c1 c2 p2])))
+   (path (cubic-bezier-str p1 c1 c2 p2))))
+
+(defn wip-cubic
+  [pts]
+  (let [curve1 (apply cubic-bezier-str (take 4 pts))
+        s-curves (map #(apply s-bezier-str %)
+                      (partition 2 (drop 4 pts)))]
+    (g
+     (style-element
+      {:stroke "black"
+       :stroke-width 1}
+      (g
+       (map #(translate % (circle 2)) pts)
+       (polyline pts)))
+     (path 
+      (apply str (interpose " " (cons curve1 s-curves)))))))
 
 (defn arrow
   [a b]
@@ -620,3 +767,19 @@
                :stroke-width "2"
                :fill "rgba(0,0,0,0)"
                :points (points->str [a b])}]])
+
+(defn circle-by-pts
+  [p1 p2 p3]
+  (let [[p1 p2 p3] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1 p2 p3)
+        c (drop-last (g/center-from-pts p1 p2 p3))]
+    (style-element
+     {:fill "none"
+      :stroke "gray"
+      :stroke-width 1}
+     (g
+      (translate c (circle r))
+      (translate c (circle 2))
+      (translate (drop-last p1) (circle 2))
+      (translate (drop-last p2) (circle 2))
+      (translate (drop-last p3) (circle 2))))))
