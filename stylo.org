@@ -68,6 +68,17 @@ It is very important to update that script or remove it when I have a production
  #_(sh "nexe -i out/main.js -o stylo.exe")
 
  #+end_src
+* notes/issues
+- fix order issues. For example, style-element is in 'transforms', but is used prior by cubic-bezier function. Techincally, it's not needed, but is used for 'debug visuals'.
+  - try to elminate excessive (declar fn) usage.
+
+- come up with a smarter debug visuals method. perhaps a macro that injects style elements or something?
+
+- study transducers, see if they can be used with paths?
+
+- write a style-guide that I Must reference for naming things. I always mix short/long form and change how I refer to pts, paths, elements, etc. THis is confusing. I should standardize by writing a doc. (and of course following it!)
+  - this might be best done with a clojure spec namespace.
+
 * design
 ** goals
 I want to blend CAD and documentation into one simple, powerful, useful, and open library. Stylo approaches this problem by assuming the document IS the design, including prose, interactice elements, and 2D/3D figures. Export into popular formats is a must.
@@ -750,6 +761,103 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 
 #+END_SRC
 
+*** transform-helpers
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defn xf-kv->str
+  [[k v]]
+  (let [k (symbol k)
+        v (apply list v)]
+    (str k v)))
+
+(defn str->xf-kv
+  [s]
+  (let [split (s/split s #"\(")
+        key (keyword (first split))
+        val (vec (read-string (str "(" (second split))))]
+    [key val]))
+
+(defn xf-map->str
+  [m]
+  (apply str (interpose "\n" (map xf-kv->str m))))
+
+(defn str->xf-map
+  [s]
+  (if-let [s s]
+    (into {} (map str->xf-kv (s/split-lines s)))
+    {}))
+
+#+END_SRC
+** shapes
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(def svg-elements 
+  #{:circle
+    :ellipse
+    :line
+    :path
+    :polygon
+    :polyline
+    :rect
+    :text
+    :g})
+
+#?(:clj
+   (defn check-svg-impl
+     [multimethod]
+     (println "Missing Implementation for:"
+              (clojure.set/difference 
+               svg-elements
+               (into #{} (keys (methods multimethod)))))))
+
+(defn circle
+  [r]
+  [:circle {:cx 0 :cy 0 :r r}])
+
+(defn ellipse
+  [rx ry]
+  [:ellipse {:cx 0 :cy 0 :rx rx :ry ry}])
+
+(defn line
+  [[ax ay] [bx by]]
+  [:line {:x1 ax :y1 ay :x2 bx :y2 by}])
+
+(defn path
+  [d]
+  [:path {:d d
+          :fill-rule "evenodd"}])
+
+(defn polygon
+  [pts]
+  [:polygon {:points (points->str pts)}])
+
+(defn polyline
+  [pts]
+  [:polyline {:points (points->str pts)}])
+
+(defn rect
+  [w h]
+  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
+
+(defn text
+  [text]
+  (let [char-w 9.625
+        char-h 10
+        n-chars (count text)
+        x (/ (* n-chars char-w) -2.0)
+        y (/ char-h 2.0)]
+    [:text {:x (/ (* n-chars char-w) -2.0)
+            :y (/ char-h 2.0)
+            :transform (xf-map->str {:rotate [0 (- x) (- y)]})
+            :style {:font-family "monospace"
+                    :font-size 16}} text]))
+
+(defn g
+  [& content]
+  (into [:g {}] content))
+
+(declare color-element)
+
+#+END_SRC
+** path
 *** path-helpers
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 ;; types of paths line, arc, quadratic, cubic
@@ -806,20 +914,6 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
   [leader & pts]
   (apply str (interpose " " (concat [leader] (flatten pts)))))
 
-
-
-;; DELETE THIS ONE WHEN READY TO SWITCH OVER TO path->path-string / path-string->path fns
-
-(defn closed-path-str
-  [[m & pts]]
-  (str 
-   (-str "M" m) " "
-   (apply str (interpose " " (map (partial -str "L") pts)))
-   " Z"))
-
-
-;; ------------------
-
 (defmulti path->path-string
   (fn [p]
     (:type p)))
@@ -832,7 +926,6 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
      (apply str (interpose " " (map (partial -str "L") pts)))
      (when closed " Z"))))
 
-
 (defmethod path->path-string :quadratic
   [{:keys [closed pts]}]
   (let [[p1 c p2 & pts] pts]
@@ -840,7 +933,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
      (-str "M" p1) " "
      (-str "Q" c p2) " "
      (apply str (interpose " "
-                 (map #(apply (partial -str "T") %) (partition 2 pts))))
+                       (map #(apply (partial -str "T") %) (partition 2 pts))))
      (when closed " Z"))))
 
 (defmethod path->path-string :cubic
@@ -863,107 +956,166 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 
 #+END_SRC
 
-*** transform-helpers
+The path element has a small DSL to create compound curves. This includes the following (taken from [[https://www.w3schools.com/graphics/svg_path.asp]]):
+
+
+    M = moveto
+    L = lineto
+    H = horizontal lineto
+    V = vertical lineto
+    C = curveto
+    S = smooth curveto
+    Q = quadratic Bézier curve
+    T = smooth quadratic Bézier curveto
+    A = elliptical Arc
+    Z = closepath
+
+*** polygon-path
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(defn xf-kv->str
-  [[k v]]
-  (let [k (symbol k)
-        v (apply list v)]
-    (str k v)))
+(defn path-polygon-str
+  [[m & pts]]
+  (str 
+   (-str "M" m) " "
+   (apply str 
+          (interpose " " (map (partial -str "L") pts)))
+   " Z"))
 
-(defn str->xf-kv
-  [s]
-  (let [split (s/split s #"\(")
-        key (keyword (first split))
-        val (vec (read-string (str "(" (second split))))]
-    [key val]))
+(defn path-polyline-str
+  [[m & pts]]
+  (str 
+   (-str "M" m) " "
+   (apply str 
+          (interpose " " (map (partial -str "L") pts)))))
 
-(defn xf-map->str
-  [m]
-  (apply str (interpose "\n" (map xf-kv->str m))))
+(defn path-polygon
+  [& paths]
+  (let [paths (map path-polygon-str paths)]
+    (path (apply str (interpose "\n" paths)))))
 
-(defn str->xf-map
-  [s]
-  (if-let [s s]
-    (into {} (map str->xf-kv (s/split-lines s)))
-    {}))
+(defn path-polyline
+  [& paths]
+  (let [paths (map path-polyline-str paths)]
+    (path (apply str (interpose "\n" paths)))))
 
 #+END_SRC
 
-** shapes
+*** bezier
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(def svg-elements 
-  #{:circle
-    :ellipse
-    :line
-    :path
-    :polygon
-    :polyline
-    :rect
-    :text
-    :g})
+(declare style-element)
+(defn cubic-bezier-str
+  [[x1 y1] [cx1 cy1] [cx2 cy2] [x y]]
+  (let [m-str (str "M " x1 " " y1 " ")
+        c-str (apply str (interpose " " ["C" cx1 cy1 cx2 cy2 x y]))]
+    (str m-str c-str)))
 
-#?(:clj
-   (defn check-svg-impl
-     [multimethod]
-     (println "Missing Implementation for:"
-              (clojure.set/difference 
-               svg-elements
-               (into #{} (keys (methods multimethod)))))))
+(defn s-bezier-str
+  [[cx1 cy1] [x y]]
+  (apply str (interpose " " ["S" cx1 cy1 x y])))
 
-(defn circle
-  [r]
-  [:circle {:cx 0 :cy 0 :r r}])
+(defn cubic-bezier
+  [pts]
+  (let [curve1 (apply cubic-bezier-str (take 4 pts))
+        s-curves (map #(apply s-bezier-str %)
+                      (partition 2 (drop 4 pts)))]
+    (path 
+     (apply str (interpose " " (cons curve1 s-curves))))))
 
-(defn ellipse
-  [rx ry]
-  [:ellipse {:cx 0 :cy 0 :rx rx :ry ry}])
+(defn cubic-bezier-debug
+  [pts]
+  (let [curve1 (apply cubic-bezier-str (take 4 pts))
+        s-curves (map #(apply s-bezier-str %)
+                      (partition 2 (drop 4 pts)))]
+    (g
+     (style-element
+      {:stroke "black"
+       :stroke-width 1}
+      (g
+       (map #(translate % (circle 2)) pts)
+       (polyline pts)))
+     (path 
+      (apply str (interpose " " (cons curve1 s-curves)))))))
 
-(defn line
-  [[ax ay] [bx by]]
-  [:line {:x1 ax :y1 ay :x2 bx :y2 by}])
+#+END_SRC
 
-(defn path
-  [d]
-  [:path {:d d
-          :fill-rule "evenodd"}])
+*** arc
+The arc command 
 
-(defn closed-path
+A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+ 
+a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defn arc-str
+  [rx ry x-deg lg sw x y]
+  (apply str (interpose " " ["a" rx ry x-deg lg sw x y])))
+
+;; arc drawing can be done in a few ways.
+;; could implement different drawing methods w/ defmethod,
+;; dispatch on :key OR on 'shape' of the args?
+
+(defn large-arc-flag
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
+        c (drop-last (g/center-from-pts p1b p2b p3b))
+        a1 (g/angle-from-pts-2d p1 c p2)
+        a2 (g/angle-from-pts-2d p2 c p3)
+        a (+ a1 a2)]
+    (if (< 180 a) 1 0)))
+
+;; figure out how to properly set sweep flag.
+;; this breaks when p1 and p3 are swapped (even though 
+;; the arc should be drawn the same.. it also breaks
+;; when p2 is in Q4
+
+(defn sweep-flag
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
+        c (drop-last (g/center-from-pts p1b p2b p3b))]
+    (if (or (> (second p2) (second c))
+            (> (first p2) (first c))) 0 1)))
+
+(declare circle-by-pts)
+(declare translate)
+(declare rotate)
+(declare scale)
+(defn arc
+  [p1 p2 p3]
+  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
+        r (g/radius-from-pts p1b p2b p3b)
+        m-str (apply str (interpose " " (cons "M" p1)))
+        a-str (apply str 
+                     (interpose " " (concat ["A" r r 0 
+                                             (large-arc-flag p1 p2 p3)
+                                             (sweep-flag p1 p2 p3)] p3)))]
+    (g
+     (circle-by-pts p1 p2 p3)
+     (path (apply str (interpose " " [m-str a-str]))))))
+
+#+END_SRC
+
+*** combine-paths
+These are prototype functions for now. They are used to build compound paths. That is, straight segments combined in various ways with curves. As well, it is necessary for faces with holes. Eg. a square with a smaller shape contained within.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defn merge-paths
+  "Merges svg <path> elements together, keeping props from last path in the list."
   [& paths]
-  (let [paths (map closed-path-str paths)
-        d (apply str (interpose "\n" paths))]
-    (path d)))
+  (let [props (second (last paths))
+        d (apply str (interpose "\n" (map #(get-in % [1 :d]) paths)))]
+    [:path (assoc props :d d)]))
 
-(defn polygon
-  [pts]
-  [:polygon {:points (points->str pts)}])
+(defn join-paths
+  [& paths]
+  (let [props (second (last paths))
+        strings (concat [(get-in (first paths) [1 :d])] 
+                        (mapv #(s/replace (get-in % [1 :d]) #"M" "L") (rest paths)))
+        d (apply str (interpose "\n" strings))]
+    [:path (assoc props :d d)]))
 
-(defn polyline
-  [pts]
-  [:polyline {:points (points->str pts)}])
-
-(defn rect
-  [w h]
-  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
-
-(defn text
-  [text]
-  (let [char-w 9.625
-        char-h 10
-        n-chars (count text)
-        x (/ (* n-chars char-w) -2.0)
-        y (/ char-h 2.0)]
-    [:text {:x (/ (* n-chars char-w) -2.0)
-            :y (/ char-h 2.0)
-            :transform (xf-map->str {:rotate [0 (- x) (- y)]})
-            :style {:font-family "monospace"
-                    :font-size 16}} text]))
-
-(defn g
-  [& content]
-  (into [:g {}] content))
-
-(declare color-element)
+(defn close-path
+  [[k props]]
+  (let [path-string (:d props)]
+    [k (assoc props :d (str path-string " Z"))]))
 
 #+END_SRC
 
@@ -1430,114 +1582,6 @@ To consider:
         (recur style (concat elem elems))))))
 
 #+END_SRC
-** path
-The path element has a small DSL to create compound curves. This includes the following (taken from [[https://www.w3schools.com/graphics/svg_path.asp]]):
-
-
-    M = moveto
-    L = lineto
-    H = horizontal lineto
-    V = vertical lineto
-    C = curveto
-    S = smooth curveto
-    Q = quadratic Bézier curve
-    T = smooth quadratic Bézier curveto
-    A = elliptical Arc
-    Z = closepath
-
-*** arc
-The arc command 
-
-A rx ry x-axis-rotation large-arc-flag sweep-flag x y
- 
-a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(defn arc-str
-  [rx ry x-deg lg sw x y]
-  (apply str (interpose " " ["a" rx ry x-deg lg sw x y])))
-
-;; arc drawing can be done in a few ways.
-;; could implement different drawing methods w/ defmethod,
-;; dispatch on :key OR on 'shape' of the args?
-
-(defn large-arc-flag
-  [p1 p2 p3]
-  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))
-        a1 (g/angle-from-pts-2d p1 c p2)
-        a2 (g/angle-from-pts-2d p2 c p3)
-        a (+ a1 a2)]
-    (if (< 180 a) 1 0)))
-
-;; figure out how to properly set sweep flag.
-;; this breaks when p1 and p3 are swapped (even though 
-;; the arc should be drawn the same.. it also breaks
-;; when p2 is in Q4
-
-(defn sweep-flag
-  [p1 p2 p3]
-  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))]
-    (if (or (> (second p2) (second c))
-            (> (first p2) (first c))) 0 1)))
-
-(declare circle-by-pts)
-(defn arc
-  [p1 p2 p3]
-  (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1b p2b p3b)
-        m-str (apply str (interpose " " (cons "M" p1)))
-        a-str (apply str 
-                     (interpose " " (concat ["A" r r 0 
-                                             (large-arc-flag p1 p2 p3)
-                                             (sweep-flag p1 p2 p3)] p3)))]
-    (g
-     (circle-by-pts p1 p2 p3)
-     (path (apply str (interpose " " [m-str a-str]))))))
-
-#+END_SRC
-
-*** bezier
-#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(defn cubic-bezier-str
-  [[x1 y1] [cx1 cy1] [cx2 cy2] [x y]]
-  (let [m-str (str "M " x1 " " y1 " ")
-        c-str (apply str (interpose " " ["C" cx1 cy1 cx2 cy2 x y]))]
-    (str m-str c-str)))
-
-(defn s-bezier-str
-  [[cx1 cy1] [x y]]
-  (apply str (interpose " " ["S" cx1 cy1 x y])))
-
-(defn cubic-bezier
-  [p1 c1 c2 p2]
-  (g
-   (style-element
-    {:stroke "black"
-     :stroke-width 1}
-    (g
-     (map #(translate % (circle 2)) [p1 c1 c2 p2])
-     (polyline [p1 c1 c2 p2])))
-   (path (cubic-bezier-str p1 c1 c2 p2))))
-
-(defn wip-cubic
-  [pts]
-  (let [curve1 (apply cubic-bezier-str (take 4 pts))
-        s-curves (map #(apply s-bezier-str %)
-                      (partition 2 (drop 4 pts)))]
-    (g
-     (style-element
-      {:stroke "black"
-       :stroke-width 1}
-      (g
-       (map #(translate % (circle 2)) pts)
-       (polyline pts)))
-     (path 
-      (apply str (interpose " " (cons curve1 s-curves)))))))
-
-#+END_SRC
-
 ** composites
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defn arrow
@@ -1603,7 +1647,8 @@ One thing that this ns currently handles poorly is that parametric functions, sv
                                ellipse
                                line
                                path
-                               closed-path
+                               path-polygon
+                               path-polyline
                                polygon
                                polyline
                                rect

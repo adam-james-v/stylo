@@ -17,7 +17,8 @@
                                ellipse
                                line
                                path
-                               closed-path
+                               path-polygon
+                               path-polyline
                                polygon
                                polyline
                                rect
