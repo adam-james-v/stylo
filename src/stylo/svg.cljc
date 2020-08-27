@@ -8,7 +8,7 @@
   [[w h sc] & content]
   [:svg {:width w
          :height h
-         :ViewBox (str "-1 -1 " w " " h)
+         :viewBox (str "-1 -1 " w " " h)
          :xmlns "http://www.w3.org/2000/svg"}
    [:g {:transform (str "scale(" sc ")")} content]])
 
@@ -115,7 +115,7 @@
 
 (defn rect
   [w h]
-  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
+  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0) :z 0}])
 
 (defn text
   [text]
@@ -274,7 +274,7 @@
     (path 
      (apply str (interpose " " (cons curve1 s-curves))))))
 
-(defn cubic-bezier-debug
+#_(defn cubic-bezier-debug
   [pts]
   (let [curve1 (apply cubic-bezier-str (take 4 pts))
         s-curves (map #(apply s-bezier-str %)
