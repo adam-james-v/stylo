@@ -1,6 +1,6 @@
 (ns stylo.svg
   (:require [clojure.string :as s]
-            [stylo.geom :as g]
+            [forge.proto :as f]
             #?(:cljs 
                [cljs.reader :refer [read-string]])))
 
@@ -300,9 +300,9 @@
 (defn large-arc-flag
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))
-        a1 (g/angle-from-pts-2d p1 c p2)
-        a2 (g/angle-from-pts-2d p2 c p3)
+        c (drop-last (f/center-from-pts p1b p2b p3b))
+        a1 (f/angle-from-pts p1 c p2)
+        a2 (f/angle-from-pts p2 c p3)
         a (+ a1 a2)]
     (if (< 180 a) 1 0)))
 
@@ -314,7 +314,7 @@
 (defn sweep-flag
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))]
+        c (drop-last (f/center-from-pts p1b p2b p3b))]
     (if (or (> (second p2) (second c))
             (> (first p2) (first c))) 0 1)))
 
@@ -325,7 +325,7 @@
 (defn arc
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1b p2b p3b)
+        r (f/radius-from-pts p1b p2b p3b)
         m-str (apply str (interpose " " (cons "M" p1)))
         a-str (apply str 
                      (interpose " " (concat ["A" r r 0 
@@ -489,8 +489,8 @@
 
 (defn rotate-pt
   [deg [x y]]
-  (let [c (Math/cos (g/to-rad deg))
-        s (Math/sin (g/to-rad deg))]
+  (let [c (Math/cos (f/to-rad deg))
+        s (Math/sin (f/to-rad deg))]
     [(- (* x c) (* y s))
      (+ (* x s) (* y c))]))
 
@@ -520,7 +520,7 @@
 (defmethod rotate-element :line
   [deg [k props]] 
   (let [pts [[(:x1 props) (:y1 props)] [(:x2 props) (:y2 props)]]
-        center (g/bb-center pts)
+        center (f/bb-center-2d pts)
         [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg center) pts)
         new-props (-> props
                       (assoc :x1 x1)
@@ -533,7 +533,7 @@
   [deg [k props]]
   (let [path-strings (s/split-lines (:d props))
         paths (map path-string->path path-strings)
-        center (g/bb-center (apply concat (map :pts paths)))
+        center (f/bb-center-2d (apply concat (map :pts paths)))
         new-paths (for [path paths]
                     (let [xf (partial rotate-pt-around-center deg center)
                           xpts (map xf (:pts path))]
@@ -544,7 +544,7 @@
 (defmethod rotate-element :polygon
   [deg [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial rotate-pt-around-center deg center)
@@ -555,7 +555,7 @@
 (defmethod rotate-element :polyline
   [deg [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial rotate-pt-around-center deg center)
@@ -640,7 +640,7 @@
 
 (defmethod scale-element :line
   [[sx sy] [k props]]
-  (let [[cx cy] (g/bb-center [[(:x1 props) (:y1 props)]
+  (let [[cx cy] (f/bb-center-2d [[(:x1 props) (:y1 props)]
                               [(:x2 props) (:y2 props)]])
         new-props (-> props
                       (update :x1 #(+ (* (- % cx) sx) cx))
@@ -658,7 +658,7 @@
   [[sx sy] [k props]]
   (let [path-strings (s/split-lines (:d props))
         paths (map path-string->path path-strings)
-        center (g/bb-center (apply concat (map :pts paths)))
+        center (f/bb-center-2d (apply concat (map :pts paths)))
         new-paths (for [path paths]
                     (let [xf (partial scale-pt-from-center center [sx sy])
                           xpts (map xf (:pts path))]
@@ -669,7 +669,7 @@
 (defmethod scale-element :polygon
   [[sx sy] [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial scale-pt-from-center center [sx sy])
@@ -680,7 +680,7 @@
 (defmethod scale-element :polyline
   [[sx sy] [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial scale-pt-from-center center [sx sy])
@@ -796,8 +796,8 @@
 (defn circle-by-pts
   [p1 p2 p3]
   (let [[p1 p2 p3] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1 p2 p3)
-        c (drop-last (g/center-from-pts p1 p2 p3))]
+        r (f/radius-from-pts p1 p2 p3)
+        c (drop-last (f/center-from-pts p1 p2 p3))]
     (style-element
      {:fill "none"
       :stroke "gray"
@@ -808,3 +808,68 @@
       (translate (drop-last p1) (circle 2))
       (translate (drop-last p2) (circle 2))
       (translate (drop-last p3) (circle 2))))))
+
+(defn figure
+  [[w h sc fig-num] descr & content]
+  [:div.figure
+   (svg [w h sc] content)
+   [:p 
+    (when fig-num [:strong (str "Fig. " fig-num " ")]) 
+    descr]])
+
+(defn fig
+  [fig-num descr & content]
+  [:div.figure
+   content
+   [:p [:strong (str "Fig. " fig-num " ")] descr]])
+
+(defn dwg-2d
+  [[w h sc] & content]
+  (let [view-str (apply str (interpose " " 
+                                       [(/ w -2.0) (/ h -2.0) w h]))]
+    (assoc-in (svg [w h sc] content) [1 :viewBox] view-str)))
+
+(defn axes-2d
+  []
+  [:g#axes
+   (map
+    (partial style-element {:stroke-width 1})
+    [(color "#a3be8c" (line [0 -1000] [0 1000]))
+     (color "#bf616a" (line [-1000 0] [1000 0]))])])
+
+;; this fn will tell you the parameter that correspondss to the distance along the line
+
+(comment
+  (defn d->t
+    [f d]
+    (let [l (f/distance (f 0) (f 1))]
+      (/ d l)))
+
+  ;; fn will tell you the distance along the line that parameter's point is.
+  (defn t->d
+    [f t]
+    (f/distance (f 0) (f t)))
+
+  (defn dimension
+    [a b]
+    (let [text (str (round (f/distance a b) 3))
+          label-offset (* 0.225 (count text))
+          label-angle (f/to-deg (f/angle-between-lines-2d (f/brep-line a b) (f/brep-line [0 0] [1 0])))
+          [ao bo] (f/offset-edge [a b] 2)
+          mid (f/bb-center-2d [ao bo])
+          arw-a (f/brep-line mid ao)
+          arw-b (f/brep-line mid bo)
+          arw-t (- 1 (d->t arw-a 0.5))
+          mid-t (d->t arw-a (* 1.75 label-offset))
+          la (f/brep-line a ao)
+          lb (f/brep-line b bo)
+          [lat1 lat2] (map (partial d->t la) [0.5 2.5])
+          [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
+      (list
+       (arrow (arw-a mid-t) (arw-a arw-t))
+       (arrow (arw-b mid-t) (arw-b arw-t))
+       (line (la lat1) (la lat2))
+       (line (lb lbt1) (lb lbt2))
+       (translate (map - mid [label-offset 0]) (rotate label-angle [label-offset 0] (scale 1.5 (label text)))))))
+
+  )

@@ -28,13 +28,14 @@ Some additional notes about deps:
 #+NAME: deps.edn
 #+begin_src clojure :tangle ./deps.edn
 {:paths
- ["src" "tests" "./"]
+ ["src" "tests"]
  
  :deps 
  {org.clojure/clojure            {:mvn/version "1.10.1"}
   org.clojure/clojurescript      {:mvn/version "1.10.597"}
   org.clojure/test.check         {:mvn/version "0.9.0"}
   org.clojure/spec.alpha         {:mvn/version "0.2.187"}
+  forge/forge                    {:local/root "../forge"}
   hiccup                         {:mvn/version "2.0.0-alpha2"}
   macchiato/hiccups              {:mvn/version "0.4.1"}
   garden                         {:mvn/version "1.3.9"}
@@ -68,40 +69,6 @@ It is very important to update that script or remove it when I have a production
  #_(sh "nexe -i out/main.js -o stylo.exe")
 
  #+end_src
-* notes/issues
-- fix order issues. For example, style-element is in 'transforms', but is used prior by cubic-bezier function. Techincally, it's not needed, but is used for 'debug visuals'.
-  - try to elminate excessive (declar fn) usage.
-
-- come up with a smarter debug visuals method. perhaps a macro that injects style elements or something?
-
-- study transducers, see if they can be used with paths?
-
-- write a style-guide that I Must reference for naming things. I always mix short/long form and change how I refer to pts, paths, elements, etc. THis is confusing. I should standardize by writing a doc. (and of course following it!)
-  - this might be best done with a clojure spec namespace.
-
-- the draw namespace is a complete mess. total re-write is probably necessary.
-
-- figure fn. explicitly requires fig-num. Build into the document compiler the ability to count figures? This would make it much better for rearranging figures during edits. YOu don't have to pay attention to figure numbers
-
-- make a helper function 'string-with-spaces' or something like it and replace all of the (apply str (interpose " " []))... to clean up the code a bit.
-
-- 3d-transform-proto has NO logic about transforming 2d things. It just takes a list of 3d points and rotates them about 0 0 0. Clean this up
-
-- rename the -rot rot- rot-pt functions / see if you can optimize them a bit to make it more understandable.
-
-- see if you can implement rotations via quaternions, or perhaps some other sensible approach. Euler is fine, but can confuse people. Maybe there's a better approach?
-
-- it might be important to come up with a 'scene' and a 'camera' abstraction for 3d.
-
-- parametric-grid will give different results at the 'end conditions' based on the nx ny args. This is related to the even divisibility of the steps? This is a problem that can results in gaps when mapping a grid over a parametric surface. Use the cylinder as a visual test. Eg. nx = 40 leaves a gap, nx = 30 does not, 25 does... etc.
-
-
-- dwg-2d is a misnomer? OR I need to create it properly to display in 2D... dwg-3d doesn't exist yet, but probably should
-
-- I don't know if it's a good idea to implement 3D shapes as 1-1 map of the SVG elements. This may be needlessly limiting.
-
-- camera transform functions currently fail with 2d point sets. 
-
 * design
 ** goals
 I want to blend CAD and documentation into one simple, powerful, useful, and open library. Stylo approaches this problem by assuming the document IS the design, including prose, interactice elements, and 2D/3D figures. Export into popular formats is a must.
@@ -272,6 +239,76 @@ This eliminates the need for the user to specify ns at the top of the markdown f
 
  Fig. 1 is just (take 1 quilt)
  Fig. 4 is (take N quilt)...
+* notes/issues
+- fix order issues. For example, style-element is in 'transforms', but is used prior by cubic-bezier function. Techincally, it's not needed, but is used for 'debug visuals'.
+  - try to elminate excessive (declar fn) usage.
+
+- come up with a smarter debug visuals method. perhaps a macro that injects style elements or something?
+
+- study transducers, see if they can be used with paths?
+
+- write a style-guide that I Must reference for naming things. I always mix short/long form and change how I refer to pts, paths, elements, etc. THis is confusing. I should standardize by writing a doc. (and of course following it!)
+  - this might be best done with a clojure spec namespace.
+
+- the draw namespace is a complete mess. total re-write is probably necessary.
+
+- figure fn. explicitly requires fig-num. Build into the document compiler the ability to count figures? This would make it much better for rearranging figures during edits. YOu don't have to pay attention to figure numbers
+
+- make a helper function 'string-with-spaces' or something like it and replace all of the (apply str (interpose " " []))... to clean up the code a bit.
+
+- 3d-transform-proto has NO logic about transforming 2d things. It just takes a list of 3d points and rotates them about 0 0 0. Clean this up
+
+- rename the -rot rot- rot-pt functions / see if you can optimize them a bit to make it more understandable.
+
+- see if you can implement rotations via quaternions, or perhaps some other sensible approach. Euler is fine, but can confuse people. Maybe there's a better approach?
+
+- it might be important to come up with a 'scene' and a 'camera' abstraction for 3d.
+
+- parametric-grid will give different results at the 'end conditions' based on the nx ny args. This is related to the even divisibility of the steps? This is a problem that can results in gaps when mapping a grid over a parametric surface. Use the cylinder as a visual test. Eg. nx = 40 leaves a gap, nx = 30 does not, 25 does... etc.
+
+
+- dwg-2d is a misnomer? OR I need to create it properly to display in 2D... dwg-3d doesn't exist yet, but probably should
+
+- I don't know if it's a good idea to implement 3D shapes as 1-1 map of the SVG elements. This may be needlessly limiting.
+
+- camera transform functions currently fail with 2d point sets. 
+** critical-todo
+- [] dimensions has divide by zero problem. fix this
+
+- [] implement fix for dims displaying wrong with small dims (eg. 2in doesn't display cleanly)
+
+- [] show the axes so I know what directions things are pointing
+
+- [] redo svg element wrappers. make the fn names obviously ONLY for creating hiccup data to be compiled into an svg element.
+  - [] very deliberately create a clean separation between SVG drawing and creating/transforming sketch and solid elements. In general, imagine a situation where you cannot render to SVG, but still want the ability to create and transform solids and sketches. Eg. if you want to render to webgl 3D context, or create an exporter.
+
+- [] create a macro or smoother system for showing/creating parameter maps
+
+- [] get rid of old 'renderable object' map idea (eg. what (regular-polygon emits is not well designed)
+  - [] update extrude- fn to accept whatever new approach is used
+
+- [] auto-dimension function
+
+- [] fix: dimension fn is built in a 2D sense. Make dimensions 3d elements that can be displayed in all orientations
+
+- [] figure should have auto-centering so that I don't have to mess around with (mv [0 1]) manually
+
+- [] parameter-table fn should also show the s-expr to show how values are derived
+
+- [] create proper structures/absractions for sketches (2D stuff)
+
+- [] create proper structures/abstractions for solids (3D stuff)
+
+- [] create tube fns taking in a xsection
+
+- [] make chamfer/radius fn in both 2d and 3d
+
+- [] make a weldment fn
+  - [] weldments as lists of 3d lines and their x-sections
+  - [] intersection calculations for cut shapes (eg. chamfering tubes butted together)
+
+
+- [] make actual join/cut operations 
 * style
 Stylo uses garden.core/css to compile clojure data into css. The theme is ported from *mu* with a few base classes added for features of Stylo specifically.
 
@@ -554,172 +591,6 @@ src/stylo/style/latex.cljc
 src/stylo/style/awsm.cljc
 
 You can use them the same way mu is used in the stylo.builder library. They are cleared from the org file because I have not used them in practice.
-* geom
-** ns
-#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
-(ns stylo.geom)
-
-#+END_SRC
-
-With math-heavy work, it will become very important to handle floating point errors effectively.
-
-It might be a good approach to compute symbolically. Look into computer algebra systems. Automatic differentiation (forward automatic).
-
-It might be good to use a math library that already exists.
-
-** maths
-#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
-(defn round
-  [num places]
-  (let [d (Math/pow 10 places)]
-    (/ (Math/round (* num d)) d)))
-
-(defn to-deg
-  [rad]
-  (* rad (/ 180 Math/PI)))
-
-(defn to-rad
-  [deg]
-  (* deg (/ Math/PI 180)))
-
-(defn sq
-  [x]
-  (* x x))
-
-(defn slope
-  [a b]
-  (let [[x1 y1] a
-        [x2 y2] b]
-    (/ (- y2 y1) (- x2 x1))))
-
-(defn clamp
-  "clamps a value between lower bound and upper bound"
-  [x lb ub]
-  (cond
-    (< x lb) lb
-    (> x ub) ub
-    :else x))
-
-#+END_SRC
-
-** bounding-box
-#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
-(defn bb-center
-  [pts]
-  (let [xs (map first pts)
-        ys (map last pts)
-        xmax (apply max xs)
-        ymax (apply max ys)
-        xmin (apply min xs)
-        ymin (apply min ys)]
-    [(+ (/ (- xmax xmin) 2.0) xmin)
-     (+ (/ (- ymax ymin) 2.0) ymin)]))
-
-#+END_SRC
-
-** linear-algebra
-#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
-(defn normalize
-  "find the unit vector of a given vector"
-  [v]
-  (let [m (Math/sqrt (reduce + (map * v v)))]
-    (mapv / v (repeat m))))
-
-(defn det
-  [a b]
-  (- (* (first a) (second b)) 
-     (* (second a) (first b))))
-
-(defn *d
-  "calculates the dot product of two vectors"
-  [a b]
-  (reduce + (map * a b)))
-
-(defn *c3d
-  "calculates cross product of two 3d-vectors"
-  [a b]
-  (let [[a1 a2 a3] a
-        [b1 b2 b3] b
-        i (- (* a2 b3) (* a3 b2))
-        j (- (* a3 b1) (* a1 b3))
-        k (- (* a1 b2) (* a2 b1))]
-    [i j k]))
-
-#+END_SRC
-
-** geometry
-#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
-(defn distance
-  "Computes the distance between two points."
-  [a b]
-  (let [v (map - b a)
-        v2 (apply + (map * v v))]
-    (Math/sqrt v2)))
-
-(defn perpendicular
-  [[x y]]
-  [(- y) x])
-
-;; this is broken. the comparison of = with the cross product
-;; will basically never be true... need to use a nearly? kind of fn
-
-(defn pt-on-line?
-  "determine if a point is on an infinitely extending line"
-  [pt line]
-  (let [[a b] line
-        ap (mapv - a pt)
-        bp (mapv - b pt)]
-    (= (*c3d ap bp) [0 0 0])))
-
-(defn radius-from-pts
-  "compute the radius of an arc defined by 3 points"
-  [p1 p2 p3]
-  (when-not (pt-on-line? p1 [p2 p3])
-    (let [a (distance p3 p2)
-          b (distance p3 p1)
-          c (distance p2 p1)
-          s (/ (+ a b c) 2)
-          sa ( - s a)
-          sb ( - s b)
-          sc ( - s c)
-          rt (Math/sqrt (* s sa sb sc))
-          R (/ (/ (* a b c) 4) rt)]
-      R)))
-
-;; https://math.stackexchange.com/a/1743505
-(defn center-from-pts
-  "compute the center point of an arc through 3 points"
-  [p1 p2 p3]
-  (when-not (pt-on-line? p1 [p2 p3])
-    (let [u1 (mapv - p2 p1)
-          u2 (mapv - p3 p1)
-          w1 (*c3d (mapv - p3 p1) u1)
-          u (normalize u1)
-          w (normalize w1)
-          v (*c3d w u)
-          [bx by] [(*d u1 u) 0]
-          [cx cy] [(*d u2 u) (*d u2 v)]
-          h (/ (+ (sq (- cx (/ bx 2))) (sq cy) (- 0 (sq (/ bx 2)))) 
-               (* 2 cy))]
-      (mapv + p1 
-            (mapv * (repeat (/ bx 2)) u) 
-            (mapv * (repeat h) v)))))
-#+END_SRC
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/geom.cljc
-;; https://math.stackexchange.com/questions/361412/finding-the-angle-between-three-points
-
-(defn angle-from-pts-2d
-  [p1 p2 p3]
-  (let [v1 (map - p1 p2)
-        v2 (map - p3 p2)
-        l1 (distance p1 p2)
-        l2 (distance p3 p2)
-        n (*d v1 v2)
-        d (Math/abs (* l1 l2))]
-    (to-deg (Math/acos (/ n d)))))
-
-#+END_SRC
 * svg
 This namespace has the SVG wrappers and nothing else. This means that the most useful elements listed here: [[https://developer.mozilla.org/en-US/docs/Web/SVG/Element]] are covered. More advanced SVG elements are currently not enabled, because the Stylo library focuses on creating simple diagrams and figures using the basics.
 
@@ -727,7 +598,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (ns stylo.svg
   (:require [clojure.string :as s]
-            [stylo.geom :as g]
+            [forge.proto :as f]
             #?(:cljs 
                [cljs.reader :refer [read-string]])))
 
@@ -1082,9 +953,9 @@ a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
 (defn large-arc-flag
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))
-        a1 (g/angle-from-pts-2d p1 c p2)
-        a2 (g/angle-from-pts-2d p2 c p3)
+        c (drop-last (f/center-from-pts p1b p2b p3b))
+        a1 (f/angle-from-pts p1 c p2)
+        a2 (f/angle-from-pts p2 c p3)
         a (+ a1 a2)]
     (if (< 180 a) 1 0)))
 
@@ -1096,7 +967,7 @@ a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
 (defn sweep-flag
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3])
-        c (drop-last (g/center-from-pts p1b p2b p3b))]
+        c (drop-last (f/center-from-pts p1b p2b p3b))]
     (if (or (> (second p2) (second c))
             (> (first p2) (first c))) 0 1)))
 
@@ -1107,7 +978,7 @@ a rx ry x-axis-rotation large-arc-flag sweep-flag dx dy
 (defn arc
   [p1 p2 p3]
   (let [[p1b p2b p3b] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1b p2b p3b)
+        r (f/radius-from-pts p1b p2b p3b)
         m-str (apply str (interpose " " (cons "M" p1)))
         a-str (apply str 
                      (interpose " " (concat ["A" r r 0 
@@ -1293,8 +1164,8 @@ Translate works reasonably well. Currently there is a problem when translating :
 
 (defn rotate-pt
   [deg [x y]]
-  (let [c (Math/cos (g/to-rad deg))
-        s (Math/sin (g/to-rad deg))]
+  (let [c (Math/cos (f/to-rad deg))
+        s (Math/sin (f/to-rad deg))]
     [(- (* x c) (* y s))
      (+ (* x s) (* y c))]))
 
@@ -1324,7 +1195,7 @@ Translate works reasonably well. Currently there is a problem when translating :
 (defmethod rotate-element :line
   [deg [k props]] 
   (let [pts [[(:x1 props) (:y1 props)] [(:x2 props) (:y2 props)]]
-        center (g/bb-center pts)
+        center (f/bb-center-2d pts)
         [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg center) pts)
         new-props (-> props
                       (assoc :x1 x1)
@@ -1337,7 +1208,7 @@ Translate works reasonably well. Currently there is a problem when translating :
   [deg [k props]]
   (let [path-strings (s/split-lines (:d props))
         paths (map path-string->path path-strings)
-        center (g/bb-center (apply concat (map :pts paths)))
+        center (f/bb-center-2d (apply concat (map :pts paths)))
         new-paths (for [path paths]
                     (let [xf (partial rotate-pt-around-center deg center)
                           xpts (map xf (:pts path))]
@@ -1348,7 +1219,7 @@ Translate works reasonably well. Currently there is a problem when translating :
 (defmethod rotate-element :polygon
   [deg [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial rotate-pt-around-center deg center)
@@ -1359,7 +1230,7 @@ Translate works reasonably well. Currently there is a problem when translating :
 (defmethod rotate-element :polyline
   [deg [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial rotate-pt-around-center deg center)
@@ -1455,7 +1326,7 @@ SVG items are assumed to be positioned and moved around from their bounding box 
 
 (defmethod scale-element :line
   [[sx sy] [k props]]
-  (let [[cx cy] (g/bb-center [[(:x1 props) (:y1 props)]
+  (let [[cx cy] (f/bb-center-2d [[(:x1 props) (:y1 props)]
                               [(:x2 props) (:y2 props)]])
         new-props (-> props
                       (update :x1 #(+ (* (- % cx) sx) cx))
@@ -1473,7 +1344,7 @@ SVG items are assumed to be positioned and moved around from their bounding box 
   [[sx sy] [k props]]
   (let [path-strings (s/split-lines (:d props))
         paths (map path-string->path path-strings)
-        center (g/bb-center (apply concat (map :pts paths)))
+        center (f/bb-center-2d (apply concat (map :pts paths)))
         new-paths (for [path paths]
                     (let [xf (partial scale-pt-from-center center [sx sy])
                           xpts (map xf (:pts path))]
@@ -1484,7 +1355,7 @@ SVG items are assumed to be positioned and moved around from their bounding box 
 (defmethod scale-element :polygon
   [[sx sy] [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial scale-pt-from-center center [sx sy])
@@ -1495,7 +1366,7 @@ SVG items are assumed to be positioned and moved around from their bounding box 
 (defmethod scale-element :polyline
   [[sx sy] [k props]]
   (let [points (str->points (:points props))
-        center (g/bb-center points)
+        center (f/bb-center-2d points)
         new-points (points->str
                     (map 
                      (partial scale-pt-from-center center [sx sy])
@@ -1609,6 +1480,7 @@ To consider:
 
 #+END_SRC
 ** composites
+*** arrow
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defn arrow
   [a b]
@@ -1627,11 +1499,15 @@ To consider:
                :fill "rgba(0,0,0,0)"
                :points (points->str [a b])}]])
 
+#+END_SRC
+
+*** circle-by-points
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defn circle-by-pts
   [p1 p2 p3]
   (let [[p1 p2 p3] (map #(conj % 0) [p1 p2 p3]) 
-        r (g/radius-from-pts p1 p2 p3)
-        c (drop-last (g/center-from-pts p1 p2 p3))]
+        r (f/radius-from-pts p1 p2 p3)
+        c (drop-last (f/center-from-pts p1 p2 p3))]
     (style-element
      {:fill "none"
       :stroke "gray"
@@ -1644,24 +1520,15 @@ To consider:
       (translate (drop-last p3) (circle 2))))))
 
 #+END_SRC
-* svg3d
-** ns
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(ns stylo.draw
-  (:require [stylo.geom :as g]
-            [stylo.svg :as svg]
-            [stylo.delaunay :as delaunay]))
 
-#+END_SRC
+*** containers
+ Containers are functions that wrap visual elements like 2D or 3D drawings.
 
-** containers
-Containers are functions that wrap visual elements like 2D or 3D drawings.
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defn figure
   [[w h sc fig-num] descr & content]
   [:div.figure
-   (svg/svg [w h sc] content)
+   (svg [w h sc] content)
    [:p 
     (when fig-num [:strong (str "Fig. " fig-num " ")]) 
     descr]])
@@ -1676,463 +1543,81 @@ Containers are functions that wrap visual elements like 2D or 3D drawings.
   [[w h sc] & content]
   (let [view-str (apply str (interpose " " 
                                        [(/ w -2.0) (/ h -2.0) w h]))]
-    (assoc-in (svg/svg [w h sc] content) [1 :viewBox] view-str)))
+    (assoc-in (svg [w h sc] content) [1 :viewBox] view-str)))
 
 (defn axes-2d
   []
   [:g#axes
    (map
-    (partial svg/style-element {:stroke-width 1})
-    [(svg/color "#a3be8c" (svg/line [0 -1000] [0 1000]))
-     (svg/color "#bf616a" (svg/line [-1000 0] [1000 0]))])])
+    (partial style-element {:stroke-width 1})
+    [(color "#a3be8c" (line [0 -1000] [0 1000]))
+     (color "#bf616a" (line [-1000 0] [1000 0]))])])
 
 #+END_SRC
 
-** 3d-transform-proto
-*** drop-add-z
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn drop-z
-  [pts]
-  (mapv #(into [] (drop-last %)) pts))
+*** dimensions-2d
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+;; this fn will tell you the parameter that correspondss to the distance along the line
 
-(defn add-z
-  [pts]
-  (mapv #(conj % 0) pts))
+(comment
+  (defn d->t
+    [f d]
+    (let [l (f/distance (f 0) (f 1))]
+      (/ d l)))
 
-#+END_SRC
+  ;; fn will tell you the distance along the line that parameter's point is.
+  (defn t->d
+    [f t]
+    (f/distance (f 0) (f t)))
 
-*** 3d-rotation
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn sin-cos-pair [theta]
-  [(Math/sin (g/to-rad theta)) (Math/cos (g/to-rad theta))])
+  (defn dimension
+    [a b]
+    (let [text (str (round (f/distance a b) 3))
+          label-offset (* 0.225 (count text))
+          label-angle (f/to-deg (f/angle-between-lines-2d (f/brep-line a b) (f/brep-line [0 0] [1 0])))
+          [ao bo] (f/offset-edge [a b] 2)
+          mid (f/bb-center-2d [ao bo])
+          arw-a (f/brep-line mid ao)
+          arw-b (f/brep-line mid bo)
+          arw-t (- 1 (d->t arw-a 0.5))
+          mid-t (d->t arw-a (* 1.75 label-offset))
+          la (f/brep-line a ao)
+          lb (f/brep-line b bo)
+          [lat1 lat2] (map (partial d->t la) [0.5 2.5])
+          [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
+      (list
+       (arrow (arw-a mid-t) (arw-a arw-t))
+       (arrow (arw-b mid-t) (arw-b arw-t))
+       (line (la lat1) (la lat2))
+       (line (lb lbt1) (lb lbt2))
+       (translate (map - mid [label-offset 0]) (rotate label-angle [label-offset 0] (scale 1.5 (label text)))))))
 
-(defn -rot-pt
-  [[x y] theta]
-  (let [[s-t c-t] (sin-cos-pair theta)]
-    [(- (* x c-t) (* y s-t))
-     (+ (* y c-t) (* x s-t))]))
-
-;; this rotates a point around [0,0,0]
-(defn rot-pt
-  [axis theta [x y z]]
-  (cond
-    (= axis :x) (into [x] (-rot-pt [y z] theta))
-    (= axis :y) (apply #(into [] [%2 y %1]) (-rot-pt [z x] theta))
-    (= axis :z) (into (-rot-pt [x y] theta) [z])))
-
-(defn -rot
-  [pts axis theta]
-  (let [xpts (mapv (partial rot-pt axis theta) pts)]
-    xpts))
-
-(defn rot-
-  [pts [th-x th-y th-z]]
-  (-> pts
-      (-rot :z th-z)
-      (-rot :y th-y)
-      (-rot :x th-x)))
-;; euler angles adjusted according to wikipedia 'isometric projection' page
-;; precise value for the first rotation is arcsin(1/sqrt(3))
-
-(def iso-euler-angles [35.264 45 0])
-(def origin-angle-adjust-a [90 0 0])
-(def origin-angle-adjust-b [0 90 0])
-(defn orient-iso
-  [pts]
-  (-> pts
-      (rot- origin-angle-adjust-a)
-      (rot- origin-angle-adjust-b)
-      (rot- iso-euler-angles)))
-
-(defn orient-xy
-  [pts]
-  (-> pts
-      (rot- [0 0 0])))
-
-(defn axes-iso
-  []
-  (let [xpts (drop-z (orient-iso [[-1000 0 0] [1000 0 0]]))
-        ypts (drop-z (orient-iso [[0 -1000 0] [0 1000 0]]))
-        zpts (drop-z (orient-iso [[0 0 -1000] [0 0 1000]]))]
-    [:g#axes
-     (map
-      (partial svg/style-element {:stroke-width 1})
-      [(svg/color "#bf616a" (apply svg/line xpts))
-       (svg/color "#a3be8c" (apply svg/line ypts))
-       (svg/color "#5e81ac" (apply svg/line zpts))])]))
+  )
 
 #+END_SRC
 
-*** matrix-proto
-From the page [[https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform]]
+* shape
+This ns is responsible for transforming shapes from the Forge library into SVG renderable data. 
 
-We see a transformation matrix which gives us an ability to define new x and y values from old x and y values.
-
-I may be able to calculate the matrix from a set of new and old points, which will come from the render-3d triangulation functions that I already have.
-
-x1-new = A*x1-old + C*y1-old + E
-y1-new = B*x1-old + D*y1-old + F
-
-x2-new = A*x2-old + C*y2-old + E
-y2-new = B*x2-old + D*y2-old + F
-
-x3-new = A*x3-old + C*y3-old + E
-y3-new = B*x3-old + D*y3-old + F
-
-A = (x1-new - E - C*y1-old) / x1-old
-
-
-The idea:
-- create a brep-circle fn of the correct radius
-- get 3 points from this eqtn
-- apply translate by adding center coord position to each pt
-- these 3 pts are OLD points
-
-- run these 3 pts through transform-points (which 'projects' the points according to the orientation desired (defaults to isometric rotations, but in future can be anything... when camera concept is implemented)
-
-- these 3 points are NEW points
-- solve for A, B, C, D, E, F
-
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-
-
-#+END_SRC
-
-** svg3d-element
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-#_(defn render-triangulation
-  [triangles]
-  (as-> triangles t
-    (into [] (apply concat t))
-    (orient-iso t)
-    (drop-z t)
-    (into [] (partition 3 t))))
-
-(defn transform-points
-  [pts]
-  (-> pts 
-      (orient-iso)
-      (drop-z)))
-
-(defn render-3d
-  [cxf & content]
-  "WIP")
-
-(defn svg3d
-  [[w h sc cxf] & content]
-  (let [content (render-3d cxf content)]
-    (svg/svg [w h sc] content)))
-
-#+END_SRC
-
-** shapes
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn circle
-  [r]
-  [:circle {:cx 0 :cy 0 :cz 0 :r r}])
-
-(defn ellipse
-  [rx ry]
-  [:ellipse {:cx 0 :cy 0 :cz 0 :rx rx :ry ry}])
-
-(defn line
-  [[ax ay az] [bx by bz]]
-  [:line {:x1 ax :y1 ay :z1 az :x2 bx :y2 by :z2 bz}])
-
-(defn path
-  [d]
-  [:path {:d d
-          :fill-rule "evenodd"}])
-
-(defn polygon
-  [pts]
-  [:polygon {:points (svg/points->str pts)}])
-
-(defn polyline
-  [pts]
-  [:polyline {:points (svg/points->str pts)}])
-
-(defn rect
-  [w h]
-  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
-
-#+END_SRC
-
-** svg3d->svg
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn line3d->line2d
-  [orientation-fn line]
-  (let [pts [(map #(get (last line) %) [:x1 :y1 :z1])
-             (map #(get (last line) %) [:x2 :y2 :z2])]
-        xf-pts (orientation-fn pts)]
-    (apply svg/line xf-pts)))
-
-(defmulti svg3d->svg
-  (fn [_ element]
-    (first element)))
-
-;; cxf is camera-transform-fn (eg. orient-iso)
-
-(defmethod svg3d->svg :line
-  [cxf [k props]]
-  (let [pts [(map #(get props %) [:x1 :y1 :z1])
-             (map #(get props %) [:x2 :y2 :z2])]
-        xf-pts (cxf pts)]
-    (apply svg/line xf-pts)))
+** ns
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(ns stylo.shape
+  (:require [forge.proto :as f]
+            [forge.delaunay :as delaunay]
+            [stylo.svg :as svg]))
 
 #+END_SRC
 
 ** grid
 A grid fn that creates even grids over parametric space.
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
+*** old-sampling-fns
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
 (defn parametric-grid
   [nx ny]
   (for [x (conj (mapv float (range 0 1 (/ 1 nx))) 1)
         y (conj (mapv float (range 0 1 (/ 1 ny))) 1)]
     [x y]))
 
-#+END_SRC
-
-** sphere-proto
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn brep-sphere
-  [r]
-  (fn [u v]
-    (let [[u v] (map #(* 2 Math/PI %) [u v])
-          x (* r (Math/sin u) (Math/cos v))
-          y (* r (Math/sin u) (Math/sin v))
-          z (* r (Math/cos u))]
-      [x y z])))
-
-#+END_SRC
-
-** cylinder-proto
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn brep-circle
-  [r]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* r (Math/cos t))
-          y (* r (Math/sin t))]
-      [x y 0])))
-
-(defn brep-cylinder
-  [r h]
-  (fn [u v]
-    (let [u (* 2 Math/PI u)
-          v (* h v)
-          x (* r (Math/cos u))
-          y (* r (Math/sin u))
-          z v]
-      [x y z])))
-
-#+END_SRC
-
-** torus-proto
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn brep-torus
-  [R r]
-  (fn [u v]
-    (let [[u v] (map #(* 2 Math/PI %) [u v])
-          x (* (+ R (* r (Math/cos u))) (Math/cos v))
-          y (* (+ R (* r (Math/cos u))) (Math/sin v))
-          z (* r (Math/sin u))]
-      [x y z])))
-
-#+END_SRC
-
-** triangulate-surface-proto
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn triangulate-surface
-  [f grid]
-  (as-> grid g
-    (delaunay/triangulate g)
-    (:triangles g)
-    (into [] (apply concat g))
-    (mapv #(apply f %) g)
-    (into [] (partition 3 g))))
-
-;; this is a bad name. 'render' implies creation of graphics... this only makes 2d points.
-
-(defn render-triangulation
-  [triangles]
-  (as-> triangles t
-    (into [] (apply concat t))
-    (orient-iso t)
-    (drop-z t)
-    (into [] (partition 3 t))))
-#+END_SRC
-
-** scad-proto
-Just some quick functions that create a .scad polyhedron. This can be used to visually check triangulated surfaces in a 3D viewer.
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/draw.cljc
-(defn scad-pt-str
-  [pt]
-  (str "["
-       (apply str (interpose ", " pt))
-       "]"))
-
-(defn scad-polyhedron
-  [triangles]
-  (let [points (apply concat triangles)
-        faces (partition 3 (range (count points)))]
-    (str
-     "polyhedron( points = [ "
-     (apply str (interpose ", " (map scad-pt-str points)))
-     "],\n"
-     "faces = [ "
-     (apply str (interpose ", " (map scad-pt-str faces)))
-     "], convexity = 10);")))
-
-#+END_SRC
-
-* old-draw
-  This code has to be moved or deleted. If moved, place it in draw.
-
-Sub-sections here are from most-likely to save to least-likely.
-
-** offset
-An implementation of polygon path offsetting.
-
-#+BEGIN_SRC clojure
-;; this should be improved
-;; currently can cause divide by zero issues
-
-(defn line-intersection
-  [[a b] [c d]]
-  (let [[ax ay] a
-        [bx by] b
-        [cx cy] c
-        [dx dy] d
-        xdiff [(- ax bx) (- cx dx)]
-        ydiff [(- ay by) (- cy dy)]
-        div (det xdiff ydiff)
-        d [(det a b) (det c d)]
-        x (/ (det d xdiff) div)
-        y (/ (det d ydiff) div)]
-    [x y]))
-
-(defn offset-edge
-  [[a b] d]
-  (let [p (perpendicular (mapv - b a))
-        pd (map * (normalize p) (repeat (- d)))
-        xa (mapv + a pd)
-        xb (mapv + b pd)]
-    [xa xb]))
-
-(defn cycle-pairs
-  [pts]
-  (let [n (count pts)]
-    (vec (take n (partition 2 1 (cycle pts))))))
-
-(defn every-other
-  [v]
-  (let [n (count v)]
-    (map #(get v %) (filter even? (range n)))))
-
-(defn wrap-list-once
-  [s]
-  (conj (drop-last s) (last s)))
-
-(defn offset
-  [pts d]
-  (let [edges (cycle-pairs pts)
-        opts (mapcat #(offset-edge % d) edges)
-        oedges (every-other (cycle-pairs opts))
-        edge-pairs (cycle-pairs oedges)]
-    (wrap-list-once (map #(apply line-intersection %) edge-pairs))))
-
-#+END_SRC
-
-** dimensions-2d
-#+BEGIN_SRC clojure
-(defn dimension
-  [a b]
-  (let [text (str (round (distance a b) 3))
-        label-offset (* 0.225 (count text))
-        label-angle (to-deg (angle-between-lines (-line a b) (-line [0 0] [1 0])))
-        [ao bo] (offset-edge [a b] 2)
-        mid (bb-center [ao bo])
-        arw-a (-line mid ao)
-        arw-b (-line mid bo)
-        arw-t (- 1 (d->t arw-a 0.5))
-        mid-t (d->t arw-a (* 1.75 label-offset))
-        la (-line a ao)
-        lb (-line b bo)
-        [lat1 lat2] (map (partial d->t la) [0.5 2.5])
-        [lbt1 lbt2] (map (partial d->t lb) [0.5 2.5])]
-    (list
-     (arrow (arw-a mid-t) (arw-a arw-t))
-     (arrow (arw-b mid-t) (arw-b arw-t))
-     (line (la lat1) (la lat2))
-     (line (lb lbt1) (lb lbt2))
-     (translate (map - mid [label-offset 0]) (rotate label-angle [label-offset 0] (scale 1.5 (label text)))))))
-
-#+END_SRC
-
-** parametric
-Consider different representations of geometric objects:
-
- FREP: Functional Representation
- - uses signed distance functions (SDF)
- - SDFs take a coordinate [x y z] and return a distance
-
- BREP: Boundary Representation
- - uses parametric equations for edges and surfaces
- - PEs take parameters [t], [u v] and return a point
-*** parametric-helpers
-#+BEGIN_SRC clojure
-;; this fn will tell you the parameter that correspondss to the distance along the line
-(defn d->t
-  [f d]
-  (let [l (distance (f 0) (f 1))]
-    (/ d l)))
-
-;; fn will tell you the distance along the line that parameter's point is.
-(defn t->d
-  [f t]
-  (distance (f 0) (f t)))
-
-#+END_SRC
-   
-*** parametric-line
-#+BEGIN_SRC clojure
-(defn -line
-  [a b]
-  (fn [t]
-    (cond
-      (= (float t) 0.0) a
-      (= (float t) 1.0) b
-      :else
-      (mapv + a (map * (map - b a) (repeat t))))))
-
-(defn slope
-  [f]
-  (let [[x1 y1] (f 0)
-        [x2 y2] (f 1)]
-    (/ (- y2 y1) (- x2 x1))))
-
-(defn parallel?
-  [la lb]
-  (= (slope la) (slope lb)))
-
-(defn angle-between-lines
-  [la lb]
-  (if-not (parallel? la lb)  
-    (let [m1 (slope la)
-          m2 (slope lb)]
-      (Math/atan (/ (- m1 m2) 
-                    (+ 1 (* m1 m2)))))
-    0))
-
-#+END_SRC
-
-*** sampling
-Sampling in this context refers to setting up 'steps' through a parameterized fn and getting the result at each step. Eg. a sampled line could go from 0 1 t with steps of 0.1, for a total of 10 samples of positions along that line.
-
-#+BEGIN_SRC clojure
 (defn sample-1
   [f step]
   (let [t (range 0 1 step)]
@@ -2151,12 +1636,29 @@ Sampling in this context refers to setting up 'steps' through a parameterized fn
       (sample-1 f (first steps))
       (sample-2 f (first steps) (second steps)))))
 
-;; slice only makes sense with 2+ dims? 
-(defn slice
+#_(defn quad-path
+  [u v u-step v-step]
+  [[u v]
+   [(+ u u-step) v]
+   [(+ u u-step) (+ v v-step)]
+   [u (+ v v-step)]])
+
+
+;; quad-mesh only makes sense for surfaces (f u v)
+#_(defn quad-mesh
   [f u-step v-step]
-  (for [u (range 0 1 u-step)]
-    (for [v (range 0 1 v-step)]
-      (f u v))))
+  (for [u (range 0 1 u-step)
+        v (range 0 1 v-step)]
+    (map #(apply f %) (quad-path u v u-step v-step))))
+
+#+END_SRC
+
+*** subdivide
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(defn subdivide-curve
+  [c n]
+  (let [step-size (/ 1 n)]
+    (mapv #(c (float %)) (conj (into [] (range 0 1 step-size)) 1))))
 
 (defn quad-path
   [u v u-step v-step]
@@ -2165,461 +1667,138 @@ Sampling in this context refers to setting up 'steps' through a parameterized fn
    [(+ u u-step) (+ v v-step)]
    [u (+ v v-step)]])
 
-;; quad-mesh only makes sense for surfaces (f u v)
-(defn quad-mesh
-  [f u-step v-step]
-  (for [u (range 0 1 u-step)
-        v (range 0 1 v-step)]
-    (map #(apply f %) (quad-path u v u-step v-step))))
+(defn subdivide-surface
+  [s [nu nv]]
+  (let [u-step (/ 1 nu)
+        v-step (/ 1 nv)]
+    (for [u (range 0 1 u-step)
+          v (range 0 1 v-step)]
+      (map #(apply s %) (quad-path u v u-step v-step)))))
 
 #+END_SRC
 
-*** translate
-#+BEGIN_SRC clojure
-(defn translate-p
-  [pts [mx my mz]]
-  (map #(map + % [mx my mz]) pts))
-#+END_SRC
-
-It makes sense to have a higher-order function version of translate. This keeps the representation as FREP/BREP for as long as possible, keeping things small and concise. The idea is you can build up complex higher order functions to fully describe a part or assembly and sample it late (eg. only 'call' the function in a rendering method.)
-
-To wrap both brep surfaces (f u v) and curves (f t), I currently am using & params to allow any number of params in the translate function.
-
-I suspect there is a more effective approach, perhaps using a defmacro? Or some other quote/unqote approach that still uses defn.
-
-#+BEGIN_SRC clojure
-(defn brep-translate
-  [f [mx my mz]]
-  (fn [& params]
-    (mapv + (apply f params) [mx my mz]))) 
-
-#+END_SRC
-
-*** rotate
-#+BEGIN_SRC clojure
-(defn sin-cos [theta]
-  "give the results of sin and cos of theta(degrees) as [s c]"
-  [(Math/sin (Math/toRadians theta)) 
-   (Math/cos (Math/toRadians theta))])
-
-(defn- rotate-pt-helper
-  [[a b] theta]
-  (let [[s-t c-t] (sin-cos theta)]
-    [(- (* a c-t) (* b s-t))
-     (+ (* b c-t) (* a s-t))]))
-
-(defn rotate-pt
-  [pt axis theta]
-  (let [[x y z] pt]
-    (cond
-      (= axis :x) (into [x] (rotate-pt-helper [y z] theta))
-      (= axis :y) (apply #(into [] [%2 y %1]) (rotate-pt-helper [z x] theta))
-      (= axis :z) (into (rotate-pt-helper [x y] theta) [z]))))
-
-(defn rotate-about-axis
-  [pts axis theta]
-  (map #(rotate-pt % axis theta) pts))
-
-(defn rotate-euler
-  [pts [th-x th-y th-z]]
-  (-> pts
-    (rotate-about-axis :z th-z)
-    (rotate-about-axis :y th-y)
-    (rotate-about-axis :x th-x)))
-
-(def isometric-euler-angles [30 45 0])
-
-#+END_SRC
-
-This is a higher-order function approach to rotate.
-#+BEGIN_SRC clojure
-(defn brep-rotate
-  [f [th-x th-y th-z]]
-  (fn [& params]
-    (-> (apply f params)
-        (rotate-pt :z th-z)
-        (rotate-pt :y th-y)
-        (rotate-pt :x th-x))))
-
-#+END_SRC
-
-*** circle
-#+BEGIN_SRC clojure
-(defn -circle
-  [r]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* r (Math/cos t))
-          y (* r (Math/sin t))]
-      [x y 0])))
-
-#+END_SRC
-
-*** ellipse
-#+BEGIN_SRC clojure
-(defn -ellipse
-  [rx ry]
-  (fn [t]
-    (let [t (* 2 Math/PI t)
-          x (* rx (Math/cos t))
-          y (* ry (Math/sin t))]
-      [x y])))
-
-#+END_SRC
-
-*** sphere
-Following is an example of FREP and BREP functions for a sphere. I have some idea functions for tying both reps together into a single function.
-
-The potential challenges will arise with boolean CSG operations (union, difference, intersection) as they are quite easy with FREP, but quite difficult with BREP.
-
-The BREPs for compound shapes could easily diverge in data structure from FREP... for example, a box in BREP might be defined by having a group of parameterized faces which need to be handled in some appropriate manner.
-
-The sphere is a bit simplistic because the BREP and FREP both map cleanly onto one another, but it is not a guarantee that every shape you might want to build has such properties.
-
-#+BEGIN_SRC clojure
-;; Functional Representation
-;; SDF signed distance functions
-
-(defn frep-sphere [r]
-  (fn [[x y z]]
-    (+ (* x x) (* y y) (* z z) (- (* r r)))))
-
-;; Boundary Representation
-(defn brep-sphere
-  [r]
-  (fn [u v]
-    (let [[u v] (map #(* 2 Math/PI %) [u v])
-          x (* r (Math/sin u) (Math/cos v))
-          y (* r (Math/sin u) (Math/sin v))
-          z (* r (Math/cos u))]
-      [x y z])))
-
-(defn sphere-idea-1
-  [r]
-  {:frep (frep-sphere r)
-   :brep (brep-sphere r)})
-
-(defn sphere-idea-2
-  [r]
-  (let [frep (frep-sphere r)
-        brep (brep-sphere r)]
-    (fn
-      ([x y z] (frep x y z))
-      ([u v] (brep u v)))))
-
-#+END_SRC
-** 3d
-*** 3d-translate
-#+BEGIN_SRC clojure
-(defn mv-pt
-  [delta pt]
-  (mapv + delta pt))
-
-(defn mv-
-  [ro delta]
-  (let [nodes (map :val (:nodes ro))
-        rnodes (mapv (partial mv-pt delta) nodes)]
-    (assoc ro :nodes (mapv entity rnodes))))
-
-#+END_SRC
-
-*** renderable-objects
-Renderable objects are maps containing vertices, edges, and faces. Each entity can be assigned additional data like color.
-#+BEGIN_SRC clojure
-(def entity-defaults
-  {:color "#2e3440"
-   :fill "#a3be8c"})
-
-(defn entity
-  ([vl]
-   (entity entity-defaults vl))
-  
-  ([attr-map vl]
-   {:val vl
-    :attrs (merge entity-defaults attr-map)}))
-
-#+END_SRC
-
-*** extrude
-The extrude function will work on XY-plane shapes. So, a list of nodes and edges where nodes are [x y].
-
-Then, to extrude, take a height value, and all nodes are transformed with appropriate Z values.
-
-For the easiest implementation, assume extrusion always happens from z=0 to z=h
-
-All I have to do is copy the nodes, attach z 0 to one 'set' and z h to the other.
-
-The extrude-pt ignores any existing Z values.
-This is equivalent to 'projecting' the given pt onto the XY plane (sets Z to zero), and extruding from there.
-
-EXTRUDE needs to add edges and faces. The extrude- fn currently only changes nodes, which will break the edges.
-
-I can either update the edge indices (and add new edges) 
-
-OR
-
----> Add the new nodes AFTER existing nodes (don't interleave), then no indices have to change, only new edges (and faces) are appended onto their appropriate lists.
-
-
-
-#+BEGIN_SRC clojure
-(defn polygon-2d
-  "creates a closed 2d polygon tracing the list of points"
-  [pts]
-  (let [edges (map vec (partition 2 1 (concat 
-                                       (range (count pts))
-                                       [0])))]
-    {:nodes (map entity pts)
-     :edges (map entity edges) 
-     :faces (list (entity (vec (range (count edges)))))}))
-
-#+END_SRC
-
-*** regular-polygon
-#+BEGIN_SRC clojure
-(defn regular-polygon-pts
-  [r n]
-  (let [angle (* 2 Math/PI (/ 1 n))]
-    (for [step (range n)]
-      [(* r (Math/cos (* step angle)))
-       (* r (Math/sin (* step angle)))])))
-
-(defn regular-polygon
-  [r n]
-  (polygon-2d (regular-polygon-pts r n)))
-
-#+END_SRC
-
-**** notes on vertical faces
-This seems hacky, maybe I should entirely rethink how I store objects. However, the make-vert-face function DOES work with the current approach.
-
-What it does is take advantage of the node/edge order when an extrude- fn runs.
-
-We know that the sketch's original edges make up the first n edges, where N is the count of the edges in the sketch.
-
-We know that (range 0 n) indices always point to the original edges.
-We know that (because of how extrude- works) (range (inc n) (* 2 n)) is the set of edges making up the top plane
-We know that the remaining indices (range (* 2 n) (* 3 n)) are the vertical edges.
-
-We also know that extruding a polygon will always result in rectangular faces parallel to the extrude direction (assumed to be Z).
-
-Using these facts, we can directly build the face by doing arithmetic on indices.
-
-We pass the 'starting' idx, which will always be in (range 0 n) and just do the weird math in the fn.
-
-The math was taken from diagrams that I sketched for myself. 
-
-NOTE: this is probably a dumb way of doing things. Need to research better approaches.
-
-#+BEGIN_SRC clojure
-(defn make-vert-face
-  [sk idx]
-  (let [n (count (:edges sk))
-        indices (vec (take (* 2 n) (cycle (range (* 2 n) (* 3 n)))))]
-    [idx (get indices (inc idx)) (+ n idx) (get indices idx)]))
-
-(defn extrude-
-  [sk h]
-  (let [nodes (map :val (:nodes sk))
-        bnodes (map #(conj % 0) nodes)
-        tnodes (map #(conj % h) nodes)
-        xnodes (concat bnodes tnodes)
-
-        nedges (count (:edges sk))
-        bidx (concat (range nedges) [0])
-        tidx (concat (range nedges (* 2 nedges)) [nedges])
-        bedges (map :val (:edges sk))
-        tedges (map vec (partition 2 1 tidx))
-        medges (map vec (partition 2 (interleave bidx tidx)))
-        xedges (concat bedges tedges medges)
-
-        bfaces (map :val (:faces sk))
-        mfaces (map #(make-vert-face sk %) (range (count nodes)))
-        tfaces (list (vec (drop-last tidx)))
-        xfaces (concat bfaces mfaces tfaces)]
-    (-> sk
-        (assoc :nodes (map entity xnodes))
-        (assoc :edges (drop-last (map entity xedges)))
-        (assoc :faces (map entity xfaces)))))
-
-#+END_SRC
-
-*** join
-Like union, join takes two solids and merges them into one solid. Unlike union, join does NOT calculate intersections, trims, extensions, etc. It is a 'dumb union'.
-
-As such, this is just a starting point, not a fully useful function.
-
-#+BEGIN_SRC clojure
-(defn shift-indices
-  [entity shift-val]
-  (let [shifter (fn [v]
-                  (mapv #(+ shift-val %) v))]
-    (update entity :val shifter)))
-
-(defn join-two
-  [a b]
-  (let [anodes (:nodes a)
-        aedges (:edges a)
-        afaces (:faces a)
-        bnodes (:nodes b)
-        bedges (map #(shift-indices % (count anodes)) (:edges b))
-        bfaces (map #(shift-indices % (count aedges)) (:faces b))
-        unodes (concat anodes bnodes)
-        uedges (concat aedges bedges)
-        ufaces (concat afaces bfaces)]
-    {:nodes unodes
-     :edges uedges
-     :faces ufaces}))
-
-(defn join
-  [& solids]
-  (reduce join-two solids))
-
-#+END_SRC
-
-*** sketches
-**** changes to data structure ideas
-Currently, 'edges' is just a list of lines. This doesn't provide enough detail up front to make poly-path faces (faces with holes). I need to have a list of closed paths.
-
-- could make a function that searches the edge list for loops
-
-- could add a :paths key that specifies loops at creation time instead.
-
-#+BEGIN_SRC clojure
-(defn sk->3d
-  [sk]
-  (let [nodes-2d (map :val (:nodes sk))
-        nodes-3d (map #(entity (conj % 0)) nodes-2d)]
-    (assoc sk :nodes nodes-3d)))
-
-#+END_SRC
-
-*** draw-edges
-#+BEGIN_SRC clojure
-(defn face->edges
-  [ro face]
-  (let [edges (mapv :val (:edges ro))]
-    (mapv #(get edges %) face)))
-
-(defn edge->nodes
-  [ro edge]
-  (let [nodes (mapv :val (:nodes ro))]
-    (mapv #(get nodes %) edge)))
-
-(defn face->nodes
-  [ro face]
-  (let [edges (face->edges ro face)]
-    (into [] (distinct (mapcat (partial edge->nodes ro) edges)))))
-
-(def iso-euler-angles [30 45 0])
+** scene
+*** scene-rotations
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(def iso-euler-angles [35.264 45 0])
 (def origin-angle-adjust-a [90 0 0])
 (def origin-angle-adjust-b [0 90 0])
-(defn orient-iso
-  [ro]
-  (-> ro
-      (rot- origin-angle-adjust-a)
-      (rot- origin-angle-adjust-b)
-      (rot- iso-euler-angles)))
 
-(defn orient-top
-  [ro]
-  (rot- ro [0 0 270]))
+(defn rotate-points
+  [pts [ax ay az]]
+  (mapv #(f/rotate-point % [ax ay az]) pts))
 
-(defn orient-front
-  [ro]
-  (rot- ro [90 0 270]))
+(defn isometric-xf
+  [pts]
+  (-> pts
+      (rotate-points origin-angle-adjust-a)
+      (rotate-points origin-angle-adjust-b)
+      (rotate-points iso-euler-angles)))
 
-(defn orient-right
-  [ro]
-  (rot- ro [90 0 0]))
-
-(defn draw-edges
-  ([ro]
-   (draw-edges ro orient-iso))
-  
-  ([ro orientation]
-   (let [ro (orientation ro)
-         nodes (map :val (:nodes ro))
-         edges (:edges ro)]
-     (for [edge edges]
-       (let [col (:color (:attrs edge))
-             [n0 n1] (:val edge)
-             [xa ya _] (nth nodes n0)
-             [xb yb _] (nth nodes n1)]
-         (path [[xa ya] [xb yb]]))))))
-
-;; this was an older version of draw-edges
-(defn obj?
-  [item]
-  (and (map? item)
-       (and
-        (contains? item :nodes)
-        (contains? item :edges)
-        (contains? item :faces))))
-
-(defn get-nested-objects
-  [ro]
-  (filter seqable? ro))
-
-(defn draw-edges-recursive
-  [ro]
-  (if (and (coll? ro) 
-           (not (obj? ro)))
-    (concat (map draw-edges-recursive ro))
-    (draw-edges ro identity)))
+(defn front-xf
+  [pts]
+  (-> pts
+      (rotate-points [0 0 0])))
 
 #+END_SRC
 
-*** cad-view
-#+BEGIN_SRC clojure
-(defn get-2d-pts
-  [ro]
-  (bb-center 
-   (map #(into [] (take 2 %))
-        (map :val (:nodes ro)))))
+*** isometric-axes
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(defn drop-z
+  [pts]
+  (mapv #(into [] (drop-last %)) pts))
 
-(defn get-move-coords
-  [[w h sc] ro]
-  (let [dc (get-2d-pts ro)
-        wc (mapv #(* (/ % 2.0) sc) [w h])]
-    (mapv - wc dc)))
-
-(defn center-view
-  [[w h sc] ro]
-  (let [coords (get-move-coords [w h (/ 1 sc)] ro)]
-    (translate coords (draw-edges-recursive ro))))
-
-;; iso, top, front, right
-(defn cad-view
-  [[w h sc] descr ro]
-  (let [qw (/ w 2.0)
-        qh (/ h 2.0)]
-    (quadrant-figure 
-     [w h sc] 
-     descr
-     (center-view [qw qh sc] (orient-iso ro))
-     (center-view [qw qh sc] (orient-top ro))
-     (center-view [qw qh sc] (orient-front ro))
-     (center-view [qw qh sc] (orient-right ro)))))
+(defn axes-iso
+  []
+  (let [xpts (drop-z (isometric-xf [[-1000 0 0] [1000 0 0]]))
+        ypts (drop-z (isometric-xf [[0 -1000 0] [0 1000 0]]))
+        zpts (drop-z (isometric-xf [[0 0 -1000] [0 0 1000]]))]
+    [:g#axes
+     (map
+      (partial svg/style-element {:stroke-width 1})
+      [(svg/color "#bf616a" (apply svg/line xpts))
+       (svg/color "#a3be8c" (apply svg/line ypts))
+       (svg/color "#5e81ac" (apply svg/line zpts))])]))
 
 #+END_SRC
-* builder
-*** repl-load
-#+BEGIN_SRC clojure
-(load-file "src/stylo/builder.cljc")
-(ns stylo.builder)
+
+** triangulate-surface-proto
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(defn triangulate-surface
+  [f grid]
+  (as-> grid g
+    (delaunay/triangulate g)
+    (:triangles g)
+    (into [] (apply concat g))
+    (mapv #(apply f %) g)
+    (into [] (partition 3 g))))
+
+;; this is a bad name. 'render' implies creation of graphics... this only makes 2d points.
+
+(defn draw-triangulation
+  [triangles]
+  (as-> triangles t
+    (into [] (apply concat t))
+    (isometric-xf t)
+    (drop-z t)
+    (into [] (partition 3 t))))
 
 #+END_SRC
+
+** curve-render
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(defn render-curve
+  [c orientation-xf color]
+  (let [res (if (f/on-line-inf? (c 0.5) [(c 0.1) (c 0.9)]) 1 10)
+        pts (subdivide-curve c res)
+        rpts (for [pt pts]
+               (mapv #(f/round % 3) pt))]
+    (-> rpts
+        (orientation-xf)
+        (drop-z)
+        (svg/polyline)
+        (#(svg/color color %)))))
+ 
+(defn render-curves 
+  [shape xf color]
+  (map #(render-curve % xf color) (:curves shape)))
+
+#+END_SRC
+
+** surface-render
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(defn render-subsurface
+  [s orientation-xf style]
+  (-> s
+      (orientation-xf)
+      (drop-z)
+      (svg/polygon)
+      (#(svg/style-element style %))))
+
+#+END_SRC
+
+This works, but destroys any possibility of coloring surfaces individually, as it applies style AFTER all subsurfaces are dissociated from their surface (that is, the surfaces are sorted globally, but style properties really need to be applied locally).
+
+This might be fixable by storing style data just before sort time. Gons can be stored as [pts style] and sorted by essentially the same comp but with one more layer of destructuring.
+
+You could potentially provide a cull filter before sort time too, using surface normal calculation. Any normal pointing away from the camera is cullable.
+
+Furthermore, you could come up with a strategy to cull guaranteed hidden subsurfaces too. This might make more sense to do after transforming to screen coordinates, as you could use some sort of collision check. If any polygon about to be added exists completely inside the convex hull of existing polygons, you do NOT need to add it (assuming you add polygons from closest to camera to furthest away). NOTE: this is inverse order from my current naive implementation.
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
+(defn render-surfaces
+  [shape xf style]
+  (let [gons (mapcat #(subdivide-surface % [11 3]) (:surfaces shape))
+        gons2 (reverse (sort-by (comp (partial f/distance [1000 1000 1000]) f/centroid) gons))]
+    (map #(render-subsurface % xf style) gons2)))
+
+#+END_SRC
+
+* parser
 ** ns
-#+begin_src clojure :tangle ./src/stylo/builder.cljc
-(ns stylo.builder
+#+begin_src clojure :tangle ./src/stylo/parser.cljc
+(ns stylo.parser
   (:require [clojure.string :as s]
-            [hiccup.core :refer [h html]]
-            [hiccup.def :refer [defelem]]
-            [hiccup.page :as page]
-            [hiccup.form :as form]
-            [hiccup.element :as elem]
-            [stylo.style.mu :as mu]
             [instaparse.core :as insta]))
 
 #+end_src
@@ -2643,7 +1822,7 @@ Things that don't work properly:
 - '-' and '!' sort of work. Both NEED a full line between anything preceding. Need to fix this to allow single newline paragraph separation.
 
 
-#+BEGIN_SRC clojure :tangle ./src/stylo/builder.cljc
+#+BEGIN_SRC clojure :tangle ./src/stylo/parser.cljc
 ;; old kinda working unordered lists.
 ;; ul = ul-i+ <bl>
 ;; ul-i = <'- '> #'.+' <nl>?
@@ -2710,14 +1889,8 @@ nl = #'\n' ")
 
 #+END_SRC
 
-*** parser-test
-#+BEGIN_SRC clojure :tangle ./test/stylo/builder_test.cljc
-(deftest parser
-"")
-#+END_SRC
-
 ** extensions
-#+BEGIN_SRC clojure :tangle ./src/stylo/builder.cljc
+#+BEGIN_SRC clojure :tangle ./src/stylo/parser.cljc
 ;; doc extensions
 (defn gen-ext-str
   [tag]
@@ -2751,7 +1924,7 @@ nl = #'\n' ")
 #+END_SRC
 
 ** transformers
-#+BEGIN_SRC clojure :tangle ./src/stylo/builder.cljc
+#+BEGIN_SRC clojure :tangle ./src/stylo/parser.cljc
 (declare ->hiccup)
 (declare doc-parse)
 ;; Transformers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2821,8 +1994,8 @@ nl = #'\n' ")
 
 #+END_SRC
 
-** compiler
-#+BEGIN_SRC clojure :tangle ./src/stylo/builder.cljc
+** to-hiccup 
+#+BEGIN_SRC clojure :tangle ./src/stylo/parser.cljc
 (def doc-parse (insta/parser (str -md -tb -ex -kl -kl-hidden)))
 
 (defn ->hiccup
@@ -2845,6 +2018,25 @@ nl = #'\n' ")
                          :para transform-paragraph}]
     (insta/transform transformations tree)))
 
+#+END_SRC
+
+* builder
+** ns
+#+begin_src clojure :tangle ./src/stylo/builder.cljc
+(ns stylo.builder
+  (:require [clojure.string :as s]
+            [hiccup.core :refer [h html]]
+            [hiccup.def :refer [defelem]]
+            [hiccup.page :as page]
+            [hiccup.form :as form]
+            [hiccup.element :as elem]
+            [stylo.parser :refer :all]
+            [stylo.style.mu :as mu]))
+
+#+end_src
+
+** compiler
+#+BEGIN_SRC clojure :tangle ./src/stylo/builder.cljc
 (defn md->html
   "Parses markup into HTML."
   [markup]
@@ -3178,141 +2370,5 @@ This is used in every pattern, so it makes sense to pull it into its own functio
          (draw/mv [27.5 6.25] (draw/label "sew seams")))
 
     [:p "Blueberry Point Method"]]])
-
-#+END_SRC
-* critical-todo
-- [] dimensions has divide by zero problem. fix this
-
-- [] implement fix for dims displaying wrong with small dims (eg. 2in doesn't display cleanly)
-
-- [] show the axes so I know what directions things are pointing
-
-- [] redo svg element wrappers. make the fn names obviously ONLY for creating hiccup data to be compiled into an svg element.
-  - [] very deliberately create a clean separation between SVG drawing and creating/transforming sketch and solid elements. In general, imagine a situation where you cannot render to SVG, but still want the ability to create and transform solids and sketches. Eg. if you want to render to webgl 3D context, or create an exporter.
-
-- [] create a macro or smoother system for showing/creating parameter maps
-
-- [] get rid of old 'renderable object' map idea (eg. what (regular-polygon emits is not well designed)
-  - [] update extrude- fn to accept whatever new approach is used
-
-- [] auto-dimension function
-
-- [] fix: dimension fn is built in a 2D sense. Make dimensions 3d elements that can be displayed in all orientations
-
-- [] figure should have auto-centering so that I don't have to mess around with (mv [0 1]) manually
-
-- [] parameter-table fn should also show the s-expr to show how values are derived
-
-- [] create proper structures/absractions for sketches (2D stuff)
-
-- [] create proper structures/abstractions for solids (3D stuff)
-
-- [] create tube fns taking in a xsection
-
-- [] make chamfer/radius fn in both 2d and 3d
-
-- [] make a weldment fn
-  - [] weldments as lists of 3d lines and their x-sections
-  - [] intersection calculations for cut shapes (eg. chamfering tubes butted together)
-
-
-- [] make actual join/cut operations 
-* triangulation
-This is (for now) a copy from:
-
-https://github.com/trystan/delaunay-triangulation
-
-
-
-#+BEGIN_SRC clojure :tangle ./src/stylo/delaunay.cljc
-(ns stylo.delaunay
-  (:require [clojure.set]))
-
-;; move these to geom ns?
-(def abs #?(:clj #(Math/abs %)
-            :cljs #(js/Math.abs %)))
-
-(def pow #?(:clj #(Math/pow %1 %2)
-            :cljs #(Math/pow %1 %2)))
-
-
-(defn rand-int-pt
-  ([n]
-   (rand-int-pt n n))
-
-  ([nx ny]
-   [(rand-int nx) (rand-int ny)]))
-
-(defn random-points
-  ([n]
-   (random-points n n))
-
-  ([nx ny]
-   (repeatedly #(rand-int-pt nx ny))))
-
-(defn grid-points
-  [cell-x cell-y n-xcells n-ycells]
-  (for [nx (range n-xcells)
-        ny (range n-ycells)]
-    [(* cell-x nx) (* cell-y ny)]))
-
-;; https://gist.github.com/mutoo/5617691
-(defn circumscribe-triangle [[[ax ay] [bx by] [cx cy]]]
-  (let [A (- bx ax)
-        B (- by ay)
-        C (- cx ax)
-        D (- cy ay)
-        E (+ (* A (+ ax bx)) (* B (+ ay by)))
-        F (+ (* C (+ ax cx)) (* D (+ ay cy)))
-        G (* 2 (- (* A (- cy by)) (* B (- cx bx))))]
-    (when (> (abs G) 0.000001)
-      (let [cx (/ (- (* D E) (* B F)) G)
-            cy (/ (- (* A F) (* C E)) G)
-            dx (- cx ax)
-            dy (- cy ay)
-            r  (+ (pow dx 2) (pow dy 2))]
-        {:x cx :y cy :radius-squared r}))))
-
-(defn edges [[p1 p2 p3]] [[p1 p2] [p2 p3] [p3 p1]])
-
-(defn contains-point? [{:keys [x y radius-squared]} [px py]]
-  (let [distance-squared (+ (pow (- x px) 2) (pow (- y py) 2))]
-    (< distance-squared radius-squared)))
-
-(defn outer-edges [triangles]
-  (let [all-edges    (mapcat edges triangles)
-        matches      (fn [edge] (filter #{edge (reverse edge)} all-edges))
-        appears-once (fn [edge] (= (count (matches edge)) 1))]
-    (filter appears-once all-edges)))
-
-(defn make-new-triangles [containers point]
-  (->> containers
-       outer-edges
-       (map (fn [[p1 p2]] [p1 p2 point]))
-       set))
-
-(defn add-point-to-triangles [triangles point]
-  (let [containers    (filter #(contains-point? (circumscribe-triangle %) point) triangles)
-        new-triangles (make-new-triangles containers point)]
-    (clojure.set/union (clojure.set/difference triangles containers) new-triangles)))
-
-(defn bounds [points]
-  (let [minx (->> points (map first) (apply min) (+ -1000))
-        maxx (->> points (map first) (apply max) (+ 1000))
-        miny (->> points (map second) (apply min) (+ -1000))
-        maxy (->> points (map second) (apply max) (+ 1000))]
-    [[minx maxy] [maxx maxy] [minx miny] [maxx miny]]))
-
-;; http://paulbourke.net/papers/triangulate/
-(defn triangulate [points]
-  (let [points (map (fn [[x y]] [(float x) (float y)]) points)
-        [tl tr bl br] (bounds points)
-        initial #{[tl tr bl] [bl tr br]}
-        with-bounds (reduce add-point-to-triangles initial points)
-        triangles (remove #(some #{tl tr bl br} %) with-bounds)]
-    {:points points
-     :triangles triangles
-     :edges (distinct (mapcat edges triangles))}))
-
 
 #+END_SRC
