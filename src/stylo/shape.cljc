@@ -117,18 +117,19 @@
     (drop-z t)
     (into [] (partition 3 t))))
 
+(def resolutions {:line 1
+                  :circle 24})
+
 (defn render-curve
   [c orientation-xf color]
-  (let [res (if (f/on-line-inf? (c 0.5) [(c 0.1) (c 0.9)]) 1 10)
-        pts (subdivide-curve c res)
-        rpts (for [pt pts]
-               (mapv #(f/round % 3) pt))]
-    (-> rpts
+  (let [res 10 ;; come up with method to select res dynamically
+        pts (subdivide-curve c res)]
+    (-> pts
         (orientation-xf)
         (drop-z)
         (svg/polyline)
         (#(svg/color color %)))))
- 
+
 (defn render-curves 
   [shape xf color]
   (map #(render-curve % xf color) (:curves shape)))
