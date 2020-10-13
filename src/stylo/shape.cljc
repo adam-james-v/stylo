@@ -77,10 +77,15 @@
       (rotate-points origin-angle-adjust-b)
       (rotate-points iso-euler-angles)))
 
-(defn front-xf
+(defn top-xf
   [pts]
   (-> pts
       (rotate-points [0 0 0])))
+
+(defn right-xf
+  [pts]
+  (-> pts
+      (rotate-points [90 0 0])))
 
 (defn drop-z
   [pts]

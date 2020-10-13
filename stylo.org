@@ -1679,6 +1679,16 @@ A grid fn that creates even grids over parametric space.
 
 ** scene
 *** scene-rotations
+NOTE TO SELF:
+
+Make sure naming convention actually matches what you are doing in designs.
+
+For example, 'front-xf' apparently is actually a top view. 
+
+This stems from being imprecise about which axes define a front plane. In the isometric transform, I treat Z as up, but the 'front-xf' assumes the XY plane is front. Thus, it is actually a top view when paired with isometric views. 
+
+This is bad.
+
 #+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
 (def iso-euler-angles [35.264 45 0])
 (def origin-angle-adjust-a [90 0 0])
@@ -1695,10 +1705,15 @@ A grid fn that creates even grids over parametric space.
       (rotate-points origin-angle-adjust-b)
       (rotate-points iso-euler-angles)))
 
-(defn front-xf
+(defn top-xf
   [pts]
   (-> pts
       (rotate-points [0 0 0])))
+
+(defn right-xf
+  [pts]
+  (-> pts
+      (rotate-points [90 0 0])))
 
 #+END_SRC
 
@@ -1802,7 +1817,9 @@ Furthermore, you could come up with a strategy to cull guaranteed hidden subsurf
 #+begin_src clojure :tangle ./src/stylo/parser.cljc
 (ns stylo.parser
   (:require [clojure.string :as s]
-            [instaparse.core :as insta]))
+            [instaparse.core :as insta]
+            #?(:cljs 
+               [cljs.reader :refer [read-string]])))
 
 #+end_src
 ** parser

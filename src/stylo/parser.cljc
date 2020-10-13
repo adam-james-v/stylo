@@ -1,6 +1,8 @@
 (ns stylo.parser
   (:require [clojure.string :as s]
-            [instaparse.core :as insta]))
+            [instaparse.core :as insta]
+            #?(:cljs 
+               [cljs.reader :refer [read-string]])))
 
 ;; old kinda working unordered lists.
 ;; ul = ul-i+ <bl>
