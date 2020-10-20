@@ -142,7 +142,7 @@
   (as-> s s
     (s/replace s #"Z" "") ;; removes Z at end of path
     (s/split s #"\s") ;; split string at spaces
-    (mapcat #(s/split % #"[A-Z]") s) ;;splits on alpha chars
+    (mapcat #(s/split % #"[A-Za-z]") s) ;;splits on alpha chars
     (filter #(not (= % "")) s)
     (map read-string s)
     (vec (map vec (partition 2 s)))))
@@ -151,7 +151,9 @@
   [s]
   (cond 
     (s/includes? s "L") :line
+    (s/includes? s "l") :line
     (s/includes? s "C") :cubic
+    (s/includes? s "c") :relative-cubic
     (s/includes? s "Q") :quadratic
     (s/includes? s "A") :arc))
 
@@ -172,7 +174,7 @@
 (defmethod path-string->path :arc
   [s]
   (let [xs (-> s
-               (s/replace #"[A-Z]" "")
+               (s/replace #"[A-Za-z]" "")
                (s/split #"\s")
                (#(filter (complement s/blank?) %)))
         [p1x p1y rx ry x-deg lg sw p3x p3y] xs]
@@ -221,6 +223,17 @@
      (apply str (interpose 
                  " " 
                  (map #(apply (partial -str "S") %) (partition 2 pts))))
+     (when closed " Z"))))
+
+(defmethod path->path-string :relative-cubic
+  [{:keys [closed pts]}]
+  (let [[p1 c1 c2 p2  & pts] pts]
+    (str
+     (-str "M" p1) " "
+     (-str "c" c1 c2 p2) " "
+     (apply str (interpose 
+                 " " 
+                 (map #(apply (partial -str "") %) (partition 2 pts))))
      (when closed " Z"))))
 
 (defmethod path->path-string :arc

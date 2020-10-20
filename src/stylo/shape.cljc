@@ -150,5 +150,5 @@
 (defn render-surfaces
   [shape xf style]
   (let [gons (mapcat #(subdivide-surface % [11 3]) (:surfaces shape))
-        gons2 (reverse (sort-by (comp (partial f/distance [1000 1000 1000]) f/centroid) gons))]
+        gons2 (reverse (sort-by (comp (partial f/distance [1000 1000 1000]) f/midpoint) gons))]
     (map #(render-subsurface % xf style) gons2)))
