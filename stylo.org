@@ -697,6 +697,9 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
     :text
     :g})
 
+(defn element? [item]
+  (svg-elements (first item)))
+
 #?(:clj
    (defn check-svg-impl
      [multimethod]
@@ -732,7 +735,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 
 (defn rect
   [w h]
-  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0) :z 0}])
+  [:rect {:width w :height h :x (/ w -2.0) :y (/ h -2.0)}])
 
 (defn text
   [text]
@@ -1030,7 +1033,88 @@ These are prototype functions for now. They are used to build compound paths. Th
 #+END_SRC
 
 ** transforms
-Translate works reasonably well. Currently there is a problem when translating :g tags if you don't already have a :translate key in the xf-map. I don't totally know why this is yet.
+Transforms are translate, rotate, and scale. All transforms work well for most objects (:g and :text are exceptions). They all transform about the object's center point. This has the effect of 'local first' transformation.
+
+This leads to challenges with groups. Groups must have their midpoint calculated such that rotation and translation can correctly occur about the group's midpoint. Otherwise, a group will not follow the same behaviour as any other element.
+
+*** midpoint
+**** midpoint-element
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defmulti midpoint-element
+  (fn [element]
+    (first element)))
+
+(defmethod midpoint-element :circle
+  [[_ props]]
+  [(:cx props) (:cy props)])  
+
+(defmethod midpoint-element :ellipse
+  [[_ props]]
+  [(:cx props) (:cy props)])
+
+(defmethod midpoint-element :line
+  [[_ props]]
+  (let [a (mapv #(get % props) [:x1 :y1])
+        b (mapv #(get % props) [:x2 :y2])]
+    (f/midpoint [a b])))
+
+(defmethod midpoint-element :path
+  [[_ props]]
+  (let [path-strings (s/split-lines (:d props))
+        paths (map (comp :pts path-string->path) path-strings)]
+    (f/bb-center-2d (apply concat paths))))
+
+(defmethod midpoint-element :polygon
+  [[_ props]]
+  (let [pts (str->points (:points props))]
+    (f/midpoint pts)))
+
+(defmethod midpoint-element :polyline
+  [[_ props]]
+  (let [pts (str->points (:points props))]
+    (f/midpoint pts)))
+
+(defmethod midpoint-element :rect
+  [[_ props]]
+  [(+ (:x props) (/ (:width  props) 2.0))
+   (+ (:y props) (/ (:height props) 2.0))])
+
+;; this is not done yet. Text in general needs a redo.
+(defmethod midpoint-element :text
+  [[_ props text]]
+  [(:x props) (:y props)])
+
+#+END_SRC
+
+**** group-midpoint
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(declare midpoint)
+(defmethod midpoint-element :g
+  [[_ props & content]]
+  (f/midpoint (map midpoint content)))
+
+#+END_SRC
+
+**** interface
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+(defn midpoint
+  [& elems]
+  (let [elem (first elems)
+        elems (rest elems)]
+    (when elem
+      (cond
+        (and (element? elem) (= 0 (count elems)))
+        (midpoint-element elem)
+        
+        (and (element? elem) (< 0 (count elems)))
+        (concat
+         [(midpoint-element elem)]
+         [(midpoint elems)])
+      
+        :else
+        (recur (concat elem elems))))))
+
+#+END_SRC
 
 *** translate
 **** translate-element
@@ -1102,12 +1186,11 @@ Translate works reasonably well. Currently there is a problem when translating :
 
 (defmethod translate-element :rect
   [[x y] [k props]]
-  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
-        cx (+ (:x props) (/ (:width props) 2.0))
-        cy (+ (:y props) (/ (:height props) 2.0))
+  (let [[mx my] (midpoint [k props])
+        xf (str->xf-map (get props :transform "rotate(0 0 0)"))
         new-xf (-> xf
-                   (assoc-in [:rotate 1] (+ x cx))
-                   (assoc-in [:rotate 2] (+ y cy)))
+                   (assoc-in [:rotate 1] (+ mx x))
+                   (assoc-in [:rotate 2] (+ my y)))
         new-props (-> props
                       (assoc :transform (xf-map->str new-xf))
                       (update :x + x)
@@ -1126,7 +1209,13 @@ Translate works reasonably well. Currently there is a problem when translating :
                       (update :y + y))]
     [k new-props text]))
 
-(defmethod translate-element :g
+#+END_SRC
+
+**** group-translate
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+;; experimenting with transform that 'pushes through' group to instead map the translation onto all children in the group
+
+#_(defmethod translate-element :g
   [[x y] [k props & content]]
   (let [xf (str->xf-map (:transform props))
         new-xf (-> xf
@@ -1134,13 +1223,15 @@ Translate works reasonably well. Currently there is a problem when translating :
         new-props (assoc props :transform (xf-map->str new-xf))]
     (into [k new-props] content)))
 
+(declare translate)
+(defmethod translate-element :g
+  [[x y] [k props & content]]
+  (into [k props] (map (partial translate [x y]) content)))
+
 #+END_SRC
 
 **** interface
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(defn element? [item]
-  (svg-elements (first item)))
-
 (defn translate
   [[x y] & elems]
   (let [elem (first elems)
@@ -1208,27 +1299,59 @@ Translate works reasonably well. Currently there is a problem when translating :
 (defmethod rotate-element :line
   [deg [k props]] 
   (let [pts [[(:x1 props) (:y1 props)] [(:x2 props) (:y2 props)]]
-        center (f/bb-center-2d pts)
-        [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg center) pts)
+        [[x1 y1] [x2 y2]]  (map (partial rotate-pt-around-center deg [0 0]) pts)
         new-props (-> props
                       (assoc :x1 x1)
                       (assoc :y1 y1)
                       (assoc :x2 x2)
                       (assoc :y2 y2))]
     [k new-props]))
+#+END_SRC
 
-(defmethod rotate-element :path
+
+This is very buggy. It's got all sorts of problems, including mangling shapes as you change the angle of rotation.
+
+Idea:
+ - set center (c) as (first (:pts (first paths))) -> this is the first point that the user specifices when creating a path. Might not be correct, but did seem to fix rotation applied directly to path-polygon data
+ 
+Algorithm:
+- get list of pts that make up the path
+- calculate the bounding-box center of these points
+- translate to 0 0 by using the negative values of the bb-center
+- apply rotation by calculating new position of all pts (use rotate-pt)
+- translate new pts to original location by translating to bb-center
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+#_(defmethod rotate-element :path
   [deg [k props]]
   (let [path-strings (s/split-lines (:d props))
         paths (map path-string->path path-strings)
-        center (f/bb-center-2d (apply concat (map :pts paths)))
+        c (f/bb-center-2d (apply concat (map :pts paths)))
         new-paths (for [path paths]
-                    (let [xf (partial rotate-pt-around-center deg center)
+                    (let [xf (partial rotate-pt-around-center deg c)
                           xpts (map xf (:pts path))]
                       (path->path-string (assoc path :pts xpts))))
         new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
     [k new-props]))
 
+(defmethod rotate-element :path
+  [deg [k props]]
+  (let [[gmx gmy] (midpoint [k props])
+        [_ mprops] (translate [(- gmx) (- gmy)] [k props])
+        path-strings (s/split-lines (:d mprops))
+        paths (map path-string->path path-strings)
+        new-paths (for [path paths]
+                    (let [xpts (->> (:pts path)
+                                    (map (partial rotate-pt deg))
+                                    (map (partial move-pt [gmx gmy])))]
+                      (path->path-string (assoc path :pts xpts))))
+        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
+    [k new-props]))
+
+#+END_SRC
+
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (defmethod rotate-element :polygon
   [deg [k props]]
   (let [points (str->points (:points props))
@@ -1253,15 +1376,52 @@ Translate works reasonably well. Currently there is a problem when translating :
 
 (defmethod rotate-element :rect
   [deg [k props]]
-  (rotate-element-by-transform deg [k props]))
+  (let [[mx my] (midpoint [k props])
+        xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        new-xf (-> xf
+                   (update-in [:rotate 0] + deg)
+                   (assoc-in  [:rotate 1] mx)
+                   (assoc-in  [:rotate 2] my))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    [k new-props]))
 
 (defmethod rotate-element :text
   [deg [k props text]]
   (rotate-element-by-transform deg [k props text]))
 
-(defmethod rotate-element :g
+#+END_SRC
+
+**** group-rotate
+If I let the rotate 'pass through' a group, it rotates every child element locally. This has the effect of ignoring grouped elements that you do want to rotate about the group's center.
+
+Each child of a group must be rotated around the group's midpoint.
+So,
+- find group midpoint
+- apply rotation to children about group midpoint
+  - rotate child by deg
+  - translate child to new center (rotate its orig midpoint about group midpoint to find new position)
+
+
+
+#+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
+#_(defmethod rotate-element :g
   [deg [k props & content]]
   (rotate-element-by-transform deg [k props content]))
+
+(declare rotate)
+(defmethod rotate-element :g
+  [deg [k props & content]]
+  (let [[gmx gmy] (midpoint (into [k props] content))
+        mcontent (map (partial translate [(- gmx) (- gmy)]) content)
+        xfcontent (for [child mcontent]
+                    (let [[mx my] (midpoint child)
+                          xfm (rotate-pt deg [mx my] )]
+                      (->> child
+                           (translate [(- mx) (- my)])
+                           (rotate deg)
+                           (translate xfm))))]
+    (into [k props] 
+          (map (partial translate [gmx gmy]) xfcontent))))
 
 #+END_SRC
 
@@ -1469,7 +1629,7 @@ To consider:
   (let [color {:fill "none"
                :stroke color}]
     [k (merge props color) content]))
-  
+
 #+END_SRC
 
 **** interface
@@ -1704,8 +1864,8 @@ This is bad.
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
 (def iso-euler-angles [35.264 45 0])
-(def origin-angle-adjust-a [90 0 0])
-(def origin-angle-adjust-b [0 90 0])
+(def origin-angle-adjust-a [-90 0 0])
+(def origin-angle-adjust-b [0 -90 0])
 
 (defn rotate-points
   [pts [ax ay az]]

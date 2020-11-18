@@ -63,8 +63,8 @@
       (map #(apply s %) (quad-path u v u-step v-step)))))
 
 (def iso-euler-angles [35.264 45 0])
-(def origin-angle-adjust-a [90 0 0])
-(def origin-angle-adjust-b [0 90 0])
+(def origin-angle-adjust-a [-90 0 0])
+(def origin-angle-adjust-b [0 -90 0])
 
 (defn rotate-points
   [pts [ax ay az]]
