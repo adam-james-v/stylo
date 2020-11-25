@@ -261,18 +261,28 @@
    (apply str 
           (interpose " " (map (partial -str "L") pts)))))
 
-(defn path-polygon
+(defn centered-path-polygon
   [& pts]
   (let [m (f/midpoint (apply concat pts))
         xpts (for [spts pts] (mapv #(f/v- % m) spts))
         paths (map path-polygon-str xpts)]
     (path (apply str (interpose "\n" paths)))))
 
-(defn path-polyline
+(defn centered-path-polyline
   [& pts]
   (let [m (f/midpoint (apply concat pts))
         xpts (for [spts pts] (mapv #(f/v- % m) spts))
         paths (map path-polyline-str xpts)]
+    (path (apply str (interpose "\n" paths)))))
+
+(defn path-polygon
+  [& pts]
+  (let [paths (map path-polygon-str pts)]
+    (path (apply str (interpose "\n" paths)))))
+
+(defn path-polyline
+  [& pts]
+  (let [paths (map path-polyline-str pts)]
     (path (apply str (interpose "\n" paths)))))
 
 (declare style-element)
@@ -734,18 +744,6 @@
                       (assoc :y2 y2))]
     [k new-props]))
 
-#_(defmethod rotate-element :path
-  [deg [k props]]
-  (let [path-strings (s/split-lines (:d props))
-        paths (map path-string->path path-strings)
-        c (midpoint [k props])
-        new-paths (for [path paths]
-                    (let [xf (partial rotate-pt-around-center deg c)
-                          xpts (map xf (:pts path))]
-                      (path->path-string (assoc path :pts xpts))))
-        new-props (assoc props :d (apply str (interpose "\n" new-paths)))]
-    [k new-props]))
-
 (defmethod rotate-element :path
   [deg [k props]]
   (let [m (midpoint [k props])
@@ -762,7 +760,7 @@
 (defmethod rotate-element :polygon
   [deg [k props]]
   (let [points (str->points (:points props))
-        center (f/bb-center-2d points)
+        center (f/midpoint points)
         new-points (points->str
                     (map 
                      (partial rotate-pt-around-center deg center)
