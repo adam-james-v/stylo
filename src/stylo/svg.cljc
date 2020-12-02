@@ -833,10 +833,12 @@
 
 (defmethod rotate-element :g
   [deg [k props & content]]
-  (let [[gmx gmy] #_(midpoint (into [k props] content)) (f/midpoint (bounds (into [k props] content)))
+  (let [[gmx gmy] (f/midpoint (bounds (into [k props] content)))
         xfcontent (for [child content]
                     (let [ch (translate [(- gmx) (- gmy)] child)
-                          m (midpoint ch)
+                          m (if (= :g (first ch))
+                              (f/midpoint (bounds ch))
+                              (midpoint ch))
                           xfm (->> m
                                    (rotate-pt deg)
                                    (f/v+ [gmx gmy]))]
