@@ -749,7 +749,12 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 
 (defn g
   [& content]
-  (into [:g {}] content))
+  (if (and (= 1 (count content))
+           (not (keyword? (first (first content)))))
+    ;; content is a list of a list of elements
+    (into [:g {}] (first content))
+    ;; content is a single element OR a list of elements
+    (into [:g {}] (filter (complement nil?) content))))
 
 (declare color-element)
 
@@ -1368,7 +1373,10 @@ This leads to challenges with groups. Groups must have their midpoint calculated
 (declare translate)
 (defmethod translate-element :g
   [[x y] [k props & content]]
-  (into [k props] (map (partial translate [x y]) content)))
+  (->> content
+       (map (partial translate [x y]))
+       (filter (complement nil?))
+       (into [k props])))
 
 #+END_SRC
 
@@ -1483,7 +1491,7 @@ Algorithm:
 #+END_SRC
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
-(defmethod rotate-element :polygon
+#_(defmethod rotate-element :polygon
   [deg [k props]]
   (let [points (str->points (:points props))
         center (f/midpoint points)
@@ -1493,6 +1501,18 @@ Algorithm:
                      points))
         new-props (assoc props :points new-points)]
     [k new-props]))
+
+(defmethod rotate-element :polygon
+  [deg [k props]]
+  (let [m (midpoint [k props])
+        pts (str->points (:points props))
+        xpts (->> pts
+                  (map #(f/v- % m))
+                  (map #(rotate-pt deg %))
+                  (map #(f/v+ % m))
+                  (points->str))
+        xprops (assoc props :points xpts)]
+    [k xprops]))
 
 (defmethod rotate-element :polyline
   [deg [k props]]
@@ -1536,10 +1556,9 @@ So,
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/svg.cljc
 (declare rotate)
-(defmethod rotate-element :g
+#_(defmethod rotate-element :g
   [deg [k props & content]]
-  (let [#_[gmx gmy] #_(midpoint (into [k props] content))
-        [gmx gmy] (f/midpoint (bounds (into [k props] content)))
+  (let [[gmx gmy] (f/midpoint (bounds (into [k props] content)))
         xfcontent (for [child content]
                     (let [m (midpoint child)
                           xfm (->> m
@@ -1548,10 +1567,25 @@ So,
                                    (rotate-pt deg)
                                    (f/v+ [gmx gmy]))]
                       (->> child
-                           (translate (mapv * [-1 -1] m))
+                           (translate (f/v* [-1 -1] m))
                            (rotate deg)
                            (translate xfm))))]
-    (into [k props] xfcontent)))
+    (into [k props] (filter (complement nil?) xfcontent))))
+
+(defmethod rotate-element :g
+  [deg [k props & content]]
+  (let [[gmx gmy] #_(midpoint (into [k props] content)) (f/midpoint (bounds (into [k props] content)))
+        xfcontent (for [child content]
+                    (let [ch (translate [(- gmx) (- gmy)] child)
+                          m (midpoint ch)
+                          xfm (->> m
+                                   (rotate-pt deg)
+                                   (f/v+ [gmx gmy]))]
+                      (->> ch
+                           (translate (f/v* [-1 -1] m))
+                           (rotate deg)
+                           (translate xfm))))]
+    (into [k props] (filter (complement nil?) xfcontent))))
 
 #+END_SRC
 
@@ -1994,7 +2028,7 @@ This is bad.
 
 #+BEGIN_SRC clojure :tangle ./src/stylo/shape.cljc
 (def iso-euler-angles [35.264 45 0])
-(def origin-angle-adjust-a [-90 0 0])
+(def origin-angle-adjust-a [90 0 0])
 (def origin-angle-adjust-b [0 -90 0])
 
 (defn rotate-points
@@ -2026,14 +2060,13 @@ This is bad.
   [pts]
   (mapv #(into [] (drop-last %)) pts))
 
-(defn axes-iso
-  []
-  (let [xpts (drop-z (isometric-xf [[-1000 0 0] [1000 0 0]]))
-        ypts (drop-z (isometric-xf [[0 -1000 0] [0 1000 0]]))
-        zpts (drop-z (isometric-xf [[0 0 -1000] [0 0 1000]]))]
+(def axes-iso
+  (let [xpts (drop-z (isometric-xf [ [0 0 0] [5 0 0] ]))
+        ypts (drop-z (isometric-xf [ [0 0 0] [0 5 0] ]))
+        zpts (drop-z (isometric-xf [ [0 0 0] [0 0 5] ]))]
     [:g#axes
      (map
-      (partial svg/style-element {:stroke-width 1})
+      (partial svg/style-element {:stroke-width "2px"})
       [(svg/color "#bf616a" (apply svg/line xpts))
        (svg/color "#a3be8c" (apply svg/line ypts))
        (svg/color "#5e81ac" (apply svg/line zpts))])]))
@@ -2070,7 +2103,7 @@ It may be smart to 'bake in' a curve's tag (in the forge library). For example, 
 (def resolutions {:line 1
                   :circle 24})
 
-(defn render-curve
+#_(defn render-curve
   [c orientation-xf color]
   (let [res 10 ;; come up with method to select res dynamically
         pts (subdivide-curve c res)]
@@ -2080,9 +2113,21 @@ It may be smart to 'bake in' a curve's tag (in the forge library). For example, 
         (svg/polyline)
         (#(svg/color color %)))))
 
+(defn render-curve
+  [c orientation-xf]
+  (let [res 10 ;; come up with method to select res dynamically
+        pts (subdivide-curve c res)]
+    (-> pts
+        (orientation-xf)
+        (drop-z)
+        (svg/polyline))))
+
 (defn render-curves 
-  [shape xf color]
-  (map #(render-curve % xf color) (:curves shape)))
+  [xf shape]
+  (->> shape
+       (:curves)
+       (map #(render-curve % xf))
+       (svg/g)))
 
 #+END_SRC
 

@@ -63,7 +63,7 @@
       (map #(apply s %) (quad-path u v u-step v-step)))))
 
 (def iso-euler-angles [35.264 45 0])
-(def origin-angle-adjust-a [-90 0 0])
+(def origin-angle-adjust-a [90 0 0])
 (def origin-angle-adjust-b [0 -90 0])
 
 (defn rotate-points
@@ -91,14 +91,13 @@
   [pts]
   (mapv #(into [] (drop-last %)) pts))
 
-(defn axes-iso
-  []
-  (let [xpts (drop-z (isometric-xf [[-1000 0 0] [1000 0 0]]))
-        ypts (drop-z (isometric-xf [[0 -1000 0] [0 1000 0]]))
-        zpts (drop-z (isometric-xf [[0 0 -1000] [0 0 1000]]))]
+(def axes-iso
+  (let [xpts (drop-z (isometric-xf [ [0 0 0] [5 0 0] ]))
+        ypts (drop-z (isometric-xf [ [0 0 0] [0 5 0] ]))
+        zpts (drop-z (isometric-xf [ [0 0 0] [0 0 5] ]))]
     [:g#axes
      (map
-      (partial svg/style-element {:stroke-width 1})
+      (partial svg/style-element {:stroke-width "2px"})
       [(svg/color "#bf616a" (apply svg/line xpts))
        (svg/color "#a3be8c" (apply svg/line ypts))
        (svg/color "#5e81ac" (apply svg/line zpts))])]))
@@ -125,7 +124,7 @@
 (def resolutions {:line 1
                   :circle 24})
 
-(defn render-curve
+#_(defn render-curve
   [c orientation-xf color]
   (let [res 10 ;; come up with method to select res dynamically
         pts (subdivide-curve c res)]
@@ -135,9 +134,21 @@
         (svg/polyline)
         (#(svg/color color %)))))
 
+(defn render-curve
+  [c orientation-xf]
+  (let [res 10 ;; come up with method to select res dynamically
+        pts (subdivide-curve c res)]
+    (-> pts
+        (orientation-xf)
+        (drop-z)
+        (svg/polyline))))
+
 (defn render-curves 
-  [shape xf color]
-  (map #(render-curve % xf color) (:curves shape)))
+  [xf shape]
+  (->> shape
+       (:curves)
+       (map #(render-curve % xf))
+       (svg/g)))
 
 (defn render-subsurface
   [s orientation-xf style]

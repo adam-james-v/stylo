@@ -135,7 +135,12 @@
 
 (defn g
   [& content]
-  (into [:g {}] content))
+  (if (and (= 1 (count content))
+           (not (keyword? (first (first content)))))
+    ;; content is a list of a list of elements
+    (into [:g {}] (first content))
+    ;; content is a single element OR a list of elements
+    (into [:g {}] (filter (complement nil?) content))))
 
 (declare color-element)
 
@@ -668,7 +673,10 @@
 (declare translate)
 (defmethod translate-element :g
   [[x y] [k props & content]]
-  (into [k props] (map (partial translate [x y]) content)))
+  (->> content
+       (map (partial translate [x y]))
+       (filter (complement nil?))
+       (into [k props])))
 
 (defn translate
   [[x y] & elems]
@@ -757,7 +765,7 @@
         xprops (assoc props :d (apply str (interpose "\n" xpaths)))]
     [k xprops]))
 
-(defmethod rotate-element :polygon
+#_(defmethod rotate-element :polygon
   [deg [k props]]
   (let [points (str->points (:points props))
         center (f/midpoint points)
@@ -767,6 +775,18 @@
                      points))
         new-props (assoc props :points new-points)]
     [k new-props]))
+
+(defmethod rotate-element :polygon
+  [deg [k props]]
+  (let [m (midpoint [k props])
+        pts (str->points (:points props))
+        xpts (->> pts
+                  (map #(f/v- % m))
+                  (map #(rotate-pt deg %))
+                  (map #(f/v+ % m))
+                  (points->str))
+        xprops (assoc props :points xpts)]
+    [k xprops]))
 
 (defmethod rotate-element :polyline
   [deg [k props]]
@@ -795,10 +815,9 @@
   (rotate-element-by-transform deg [k props text]))
 
 (declare rotate)
-(defmethod rotate-element :g
+#_(defmethod rotate-element :g
   [deg [k props & content]]
-  (let [#_[gmx gmy] #_(midpoint (into [k props] content))
-        [gmx gmy] (f/midpoint (bounds (into [k props] content)))
+  (let [[gmx gmy] (f/midpoint (bounds (into [k props] content)))
         xfcontent (for [child content]
                     (let [m (midpoint child)
                           xfm (->> m
@@ -807,10 +826,25 @@
                                    (rotate-pt deg)
                                    (f/v+ [gmx gmy]))]
                       (->> child
-                           (translate (mapv * [-1 -1] m))
+                           (translate (f/v* [-1 -1] m))
                            (rotate deg)
                            (translate xfm))))]
-    (into [k props] xfcontent)))
+    (into [k props] (filter (complement nil?) xfcontent))))
+
+(defmethod rotate-element :g
+  [deg [k props & content]]
+  (let [[gmx gmy] #_(midpoint (into [k props] content)) (f/midpoint (bounds (into [k props] content)))
+        xfcontent (for [child content]
+                    (let [ch (translate [(- gmx) (- gmy)] child)
+                          m (midpoint ch)
+                          xfm (->> m
+                                   (rotate-pt deg)
+                                   (f/v+ [gmx gmy]))]
+                      (->> ch
+                           (translate (f/v* [-1 -1] m))
+                           (rotate deg)
+                           (translate xfm))))]
+    (into [k props] (filter (complement nil?) xfcontent))))
 
 (defn rotate
   [deg & elems]
