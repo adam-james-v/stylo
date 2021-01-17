@@ -124,16 +124,6 @@
 (def resolutions {:line 1
                   :circle 24})
 
-#_(defn render-curve
-  [c orientation-xf color]
-  (let [res 10 ;; come up with method to select res dynamically
-        pts (subdivide-curve c res)]
-    (-> pts
-        (orientation-xf)
-        (drop-z)
-        (svg/polyline)
-        (#(svg/color color %)))))
-
 (defn render-curve
   [c orientation-xf]
   (let [res 10 ;; come up with method to select res dynamically
@@ -143,12 +133,24 @@
         (drop-z)
         (svg/polyline))))
 
-(defn render-curves 
+#_(defn render-curves 
   [xf shape]
   (->> shape
        (:curves)
        (map #(render-curve % xf))
        (svg/g)))
+
+(defn render-curves 
+  [xf-key shape]
+  (let [xf (cond
+             (= xf-key :isometric) #(isometric-xf %)
+             (= xf-key :right) #(right-xf %)
+             (= xf-key :top) #(top-xf %)
+             :else #(isometric-xf %))]
+    (->> shape
+         (:curves)
+         (map #(render-curve % xf))
+         (svg/g))))
 
 (defn render-subsurface
   [s orientation-xf style]

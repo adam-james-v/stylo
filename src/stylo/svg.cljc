@@ -1,7 +1,9 @@
 (ns stylo.svg
   (:require [clojure.string :as s]
             [forge.proto :as f]
-            #?(:cljs 
+            #?(:clj
+               [hiccup.core :refer [html]])
+            #?(:cljs
                [cljs.reader :refer [read-string]])))
 
 (defn svg
@@ -16,6 +18,10 @@
   [pt]
   (apply str (interpose "," pt)))
 
+
+;; possible to do this without read-string?
+;; is it even bad to use read-string?
+;; only concern I have is just having to pull in a cljs.reader function specifically for cljs.
 (defn str->pt
   [s]
   (mapv read-string (s/split s #",")))
@@ -78,6 +84,7 @@
     :polyline
     :rect
     :text
+    :image
     :g})
 
 (defn element? [item]
@@ -141,6 +148,12 @@
     (into [:g {}] (first content))
     ;; content is a single element OR a list of elements
     (into [:g {}] (filter (complement nil?) content))))
+
+(defn image
+  [url w h]
+  [:image {:href url :width w :height h}])
+
+
 
 (declare color-element)
 
@@ -477,10 +490,27 @@
         xpts (mapv #(rotate-pt-around-center deg [mx my] %) pts)]
     (pts->bounds xpts)))
 
+(defmethod bounds-element :image
+  [[_ props]]
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        deg (get-in xf [:rotate 0])
+        mx (get-in xf [:rotate 1])
+        my (get-in xf [:rotate 2])
+        x (:x props)
+        y (:y props)
+        w (:width props)
+        h (:height props)
+        pts [[x y]
+             [(+ x w) y]
+             [(+ x w) (+ y h)]
+             [x (+ y h)]]
+        xpts (mapv #(rotate-pt-around-center deg [mx my] %) pts)]
+    (pts->bounds xpts)))
+
 ;; this is not done yet. Text in general needs a redo.
 (defmethod bounds-element :text
   [[_ props text]]
-  [(:x props) (:y props)])
+  [[(:x props) (:y props)]])
 
 (declare bounds)
 (defmethod bounds-element :g
@@ -539,6 +569,11 @@
     (f/midpoint pts)))
 
 (defmethod midpoint-element :rect
+  [[_ props]]
+  [(+ (:x props) (/ (:width  props) 2.0))
+   (+ (:y props) (/ (:height props) 2.0))])
+
+(defmethod midpoint-element :image
   [[_ props]]
   [(+ (:x props) (/ (:width  props) 2.0))
    (+ (:y props) (/ (:height props) 2.0))])
@@ -659,6 +694,20 @@
                       (update :x + x)
                       (update :y + y))]
     [k new-props text]))
+
+(defmethod translate-element :image
+  [[x y] [k props]]
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        cx (+ (:x props) (/ (:width props) 2))
+        cy (+ (:y props) (/ (:height props) 2))
+        new-xf (-> xf
+                   (assoc-in [:rotate 1] (+ x cx))
+                   (assoc-in [:rotate 2] (+ y cy)))
+        new-props (-> props
+                      (assoc :transform (xf-map->str new-xf))
+                      (update :x + x)
+                      (update :y + y))]
+    [k new-props]))
 
 ;; experimenting with transform that 'pushes through' group to instead map the translation onto all children in the group
 
@@ -813,6 +862,17 @@
 (defmethod rotate-element :text
   [deg [k props text]]
   (rotate-element-by-transform deg [k props text]))
+
+(defmethod rotate-element :image
+  [deg [k props text]]
+  (let [[mx my] (midpoint [k props])
+        xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        new-xf (-> xf
+                   (update-in [:rotate 0] + deg)
+                   (assoc-in  [:rotate 1] mx)
+                   (assoc-in  [:rotate 2] my))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    [k new-props]))
 
 (declare rotate)
 #_(defmethod rotate-element :g

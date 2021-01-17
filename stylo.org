@@ -37,6 +37,7 @@ Some additional notes about deps:
   org.clojure/spec.alpha         {:mvn/version "0.2.187"}
   forge/forge                    {:local/root "../forge"}
   hiccup                         {:mvn/version "2.0.0-alpha2"}
+  midje/midje                    {:mvn/version "1.9.9"}
   macchiato/hiccups              {:mvn/version "0.4.1"}
   garden                         {:mvn/version "1.3.9"}
   instaparse                     {:mvn/version "1.4.10"}
@@ -599,7 +600,9 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
 (ns stylo.svg
   (:require [clojure.string :as s]
             [forge.proto :as f]
-            #?(:cljs 
+            #?(:clj
+               [hiccup.core :refer [html]])
+            #?(:cljs
                [cljs.reader :refer [read-string]])))
 
 #+END_SRC
@@ -623,6 +626,10 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
   [pt]
   (apply str (interpose "," pt)))
 
+
+;; possible to do this without read-string?
+;; is it even bad to use read-string?
+;; only concern I have is just having to pull in a cljs.reader function specifically for cljs.
 (defn str->pt
   [s]
   (mapv read-string (s/split s #",")))
@@ -692,6 +699,7 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
     :polyline
     :rect
     :text
+    :image
     :g})
 
 (defn element? [item]
@@ -756,7 +764,14 @@ This namespace has the SVG wrappers and nothing else. This means that the most u
     ;; content is a single element OR a list of elements
     (into [:g {}] (filter (complement nil?) content))))
 
+(defn image
+  [url w h]
+  [:image {:href url :width w :height h}])
+
+
+
 (declare color-element)
+
 
 #+END_SRC
 ** path
@@ -1147,10 +1162,27 @@ This leads to challenges with groups. Groups must have their midpoint calculated
         xpts (mapv #(rotate-pt-around-center deg [mx my] %) pts)]
     (pts->bounds xpts)))
 
+(defmethod bounds-element :image
+  [[_ props]]
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        deg (get-in xf [:rotate 0])
+        mx (get-in xf [:rotate 1])
+        my (get-in xf [:rotate 2])
+        x (:x props)
+        y (:y props)
+        w (:width props)
+        h (:height props)
+        pts [[x y]
+             [(+ x w) y]
+             [(+ x w) (+ y h)]
+             [x (+ y h)]]
+        xpts (mapv #(rotate-pt-around-center deg [mx my] %) pts)]
+    (pts->bounds xpts)))
+
 ;; this is not done yet. Text in general needs a redo.
 (defmethod bounds-element :text
   [[_ props text]]
-  [(:x props) (:y props)])
+  [[(:x props) (:y props)]])
 
 #+END_SRC
 
@@ -1222,6 +1254,11 @@ This leads to challenges with groups. Groups must have their midpoint calculated
     (f/midpoint pts)))
 
 (defmethod midpoint-element :rect
+  [[_ props]]
+  [(+ (:x props) (/ (:width  props) 2.0))
+   (+ (:y props) (/ (:height props) 2.0))])
+
+(defmethod midpoint-element :image
   [[_ props]]
   [(+ (:x props) (/ (:width  props) 2.0))
    (+ (:y props) (/ (:height props) 2.0))])
@@ -1355,6 +1392,20 @@ This leads to challenges with groups. Groups must have their midpoint calculated
                       (update :x + x)
                       (update :y + y))]
     [k new-props text]))
+
+(defmethod translate-element :image
+  [[x y] [k props]]
+  (let [xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        cx (+ (:x props) (/ (:width props) 2))
+        cy (+ (:y props) (/ (:height props) 2))
+        new-xf (-> xf
+                   (assoc-in [:rotate 1] (+ x cx))
+                   (assoc-in [:rotate 2] (+ y cy)))
+        new-props (-> props
+                      (assoc :transform (xf-map->str new-xf))
+                      (update :x + x)
+                      (update :y + y))]
+    [k new-props]))
 
 #+END_SRC
 
@@ -1539,6 +1590,17 @@ Algorithm:
 (defmethod rotate-element :text
   [deg [k props text]]
   (rotate-element-by-transform deg [k props text]))
+
+(defmethod rotate-element :image
+  [deg [k props text]]
+  (let [[mx my] (midpoint [k props])
+        xf (str->xf-map (get props :transform "rotate(0 0 0)"))
+        new-xf (-> xf
+                   (update-in [:rotate 0] + deg)
+                   (assoc-in  [:rotate 1] mx)
+                   (assoc-in  [:rotate 2] my))
+        new-props (assoc props :transform (xf-map->str new-xf))]
+    [k new-props]))
 
 #+END_SRC
 
@@ -2105,16 +2167,6 @@ It may be smart to 'bake in' a curve's tag (in the forge library). For example, 
 (def resolutions {:line 1
                   :circle 24})
 
-#_(defn render-curve
-  [c orientation-xf color]
-  (let [res 10 ;; come up with method to select res dynamically
-        pts (subdivide-curve c res)]
-    (-> pts
-        (orientation-xf)
-        (drop-z)
-        (svg/polyline)
-        (#(svg/color color %)))))
-
 (defn render-curve
   [c orientation-xf]
   (let [res 10 ;; come up with method to select res dynamically
@@ -2124,12 +2176,24 @@ It may be smart to 'bake in' a curve's tag (in the forge library). For example, 
         (drop-z)
         (svg/polyline))))
 
-(defn render-curves 
+#_(defn render-curves 
   [xf shape]
   (->> shape
        (:curves)
        (map #(render-curve % xf))
        (svg/g)))
+
+(defn render-curves 
+  [xf-key shape]
+  (let [xf (cond
+             (= xf-key :isometric) #(isometric-xf %)
+             (= xf-key :right) #(right-xf %)
+             (= xf-key :top) #(top-xf %)
+             :else #(isometric-xf %))]
+    (->> shape
+         (:curves)
+         (map #(render-curve % xf))
+         (svg/g))))
 
 #+END_SRC
 
@@ -2742,3 +2806,15 @@ This is used in every pattern, so it makes sense to pull it into its own functio
     [:p "Blueberry Point Method"]]])
 
 #+END_SRC
+* midje
+#+begin_src clojure
+(ns stylo.test
+  (:use midje.sweet))
+
+(fact (conj [1 2] 3) => [1 2 3])
+;; true
+
+(fact 1 => 2)
+;; false
+
+#+end_src
